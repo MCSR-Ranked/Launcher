@@ -110,10 +110,10 @@ public class Constants {
 
     // Custom for ATLauncher Microsoft login constants
     // if you fork or modify this launcher, you must not use this Client ID
-    public static final String MICROSOFT_LOGIN_CLIENT_ID = "90890812-00d1-48a8-8d3f-38465ef43b58";
+    public static final String MICROSOFT_LOGIN_CLIENT_ID = "9c60df0c-d89b-4106-a100-156cd239e819";
     public static final int MICROSOFT_LOGIN_REDIRECT_PORT = 28562;
-    public static final String MICROSOFT_LOGIN_REDIRECT_URL = "http://127.0.0.1:" + MICROSOFT_LOGIN_REDIRECT_PORT;
-    public static final String MICROSOFT_LOGIN_REDIRECT_URL_ENCODED = "http%3A%2F%2F127.0.0.1%3A"
+    public static final String MICROSOFT_LOGIN_REDIRECT_URL = "http://localhost:" + MICROSOFT_LOGIN_REDIRECT_PORT;
+    public static final String MICROSOFT_LOGIN_REDIRECT_URL_ENCODED = "http%3A%2F%2Flocalhost%3A"
             + MICROSOFT_LOGIN_REDIRECT_PORT;
     public static final String[] MICROSOFT_LOGIN_SCOPES = { "XboxLive.signin", "XboxLive.offline_access" };
 
