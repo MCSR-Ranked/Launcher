@@ -40,6 +40,7 @@ import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.constants.Constants;
 import com.atlauncher.data.DownloadableFile;
 import com.atlauncher.data.LauncherVersion;
+import com.atlauncher.data.modcheck.ModCheckManager;
 import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.gui.tabs.InstancesTab;
 import com.atlauncher.gui.tabs.PacksBrowserTab;
@@ -108,15 +109,17 @@ public class Launcher {
 
         AccountManager.loadAccounts(); // Load the saved Accounts
 
-        PackManager.loadPacks(); // Load the Packs available in the Launcher
+       // PackManager.loadPacks(); // Load the Packs available in the Launcher
 
-        PackManager.loadUsers(); // Load the Testers and Allowed Players for the packs
+        //PackManager.loadUsers(); // Load the Testers and Allowed Players for the packs
 
         InstanceManager.loadInstances(); // Load the users installed Instances
 
-        ServerManager.loadServers(); // Load the users installed servers
+        //ServerManager.loadServers(); // Load the users installed servers
 
         PackManager.removeUnusedImages(); // remove unused pack images
+
+        ModCheckManager.loadModList();
 
         if (OS.isWindows() && !Java.is64Bit() && OS.is64Bit()) {
             LogManager.warn("You're using 32 bit Java on a 64 bit Windows install!");
@@ -357,12 +360,13 @@ public class Launcher {
             ConfigManager.loadConfig(); // Load the config
             NewsManager.loadNews(); // Load the news
             reloadNewsPanel(); // Reload news panel
-            PackManager.loadPacks(); // Load the Packs available in the Launcher
-            reloadPacksBrowserPanel();// Reload packs browser panel
-            PackManager.loadUsers(); // Load the Testers and Allowed Players for the packs
+            //PackManager.loadPacks(); // Load the Packs available in the Launcher
+            //reloadPacksBrowserPanel();// Reload packs browser panel
+            //PackManager.loadUsers(); // Load the Testers and Allowed Players for the packs
             InstanceManager.loadInstances(); // Load the users installed Instances
             reloadInstancesPanel(); // Reload instances panel
-            reloadServersPanel(); // Reload instances panel
+            //reloadServersPanel(); // Reload instances panel
+            ModCheckManager.loadModList();
             dialog.setVisible(false); // Remove the dialog
             dialog.dispose(); // Dispose the dialog
         });

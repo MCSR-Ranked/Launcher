@@ -24,5 +24,8 @@ public enum ModPlatform {
     CURSEFORGE,
 
     @SerializedName("Modrinth")
-    MODRINTH
+    MODRINTH,
+
+    @SerializedName("ModCheck")
+    MODCHECK
 }

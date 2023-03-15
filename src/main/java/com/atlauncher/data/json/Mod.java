@@ -30,6 +30,7 @@ import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.constants.Constants;
 import com.atlauncher.data.curseforge.CurseForgeFile;
 import com.atlauncher.data.curseforge.CurseForgeProject;
+import com.atlauncher.data.modcheck.ModCheckProject;
 import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthVersion;
 import com.atlauncher.managers.DialogManager;
@@ -91,6 +92,7 @@ public class Mod {
     public CurseForgeFile curseForgeFile;
     public ModrinthProject modrinthProject;
     public ModrinthVersion modrinthVersion;
+    public ModCheckProject modCheckProject;
     public boolean ignoreFailures = false;
 
     @SerializedName(value = "curseforge_project_id", alternate = { "curse_id" })

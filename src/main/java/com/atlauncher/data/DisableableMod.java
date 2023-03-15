@@ -36,6 +36,8 @@ import com.atlauncher.data.curseforge.CurseForgeFile;
 import com.atlauncher.data.curseforge.CurseForgeProject;
 import com.atlauncher.data.minecraft.FabricMod;
 import com.atlauncher.data.minecraft.MCMod;
+import com.atlauncher.data.modcheck.ModCheckManager;
+import com.atlauncher.data.modcheck.ModCheckProject;
 import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthVersion;
 import com.atlauncher.exceptions.InvalidMinecraftVersion;
@@ -50,6 +52,8 @@ import com.atlauncher.utils.ModrinthApi;
 import com.atlauncher.utils.Pair;
 import com.atlauncher.utils.Utils;
 import com.google.gson.annotations.SerializedName;
+import com.pistacium.modcheck.mod.ModData;
+import com.pistacium.modcheck.mod.resource.ModResource;
 
 @SuppressWarnings("serial")
 public class DisableableMod implements Serializable {
@@ -82,10 +86,13 @@ public class DisableableMod implements Serializable {
     public ModrinthProject modrinthProject;
     public ModrinthVersion modrinthVersion;
 
+    @SerializedName(value = "modCheckProject")
+    public ModCheckProject modCheckProject;
+
     public DisableableMod(String name, String version, boolean optional, String file, String path, Type type,
             Color colour, String description, boolean disabled, boolean userAdded, boolean wasSelected, boolean skipped,
             Integer curseForgeModId, Integer curseForgeFileId, CurseForgeProject curseForgeProject,
-            CurseForgeFile curseForgeFile, ModrinthProject modrinthProject, ModrinthVersion modrinthVersion) {
+            CurseForgeFile curseForgeFile, ModrinthProject modrinthProject, ModrinthVersion modrinthVersion, ModCheckProject modCheckProject) {
         this.name = name;
         this.version = version;
         this.optional = optional;
@@ -104,6 +111,7 @@ public class DisableableMod implements Serializable {
         this.curseForgeFile = curseForgeFile;
         this.modrinthProject = modrinthProject;
         this.modrinthVersion = modrinthVersion;
+        this.modCheckProject = modCheckProject;
     }
 
     public DisableableMod(String name, String version, boolean optional, String file, String path, Type type,
@@ -111,7 +119,7 @@ public class DisableableMod implements Serializable {
             Integer curseForgeModId, Integer curseForgeFileId, CurseForgeProject curseForgeProject,
             CurseForgeFile curseForgeFile) {
         this(name, version, optional, file, path, type, colour, description, disabled, userAdded, wasSelected, skipped,
-                curseForgeModId, curseForgeFileId, curseForgeProject, curseForgeFile, null, null);
+                curseForgeModId, curseForgeFileId, curseForgeProject, curseForgeFile, null, null, null);
     }
 
     public DisableableMod(String name, String version, boolean optional, String file, Type type, Color colour,
@@ -119,7 +127,7 @@ public class DisableableMod implements Serializable {
             Integer curseForgeModId,
             Integer curseForgeFileId, CurseForgeProject curseForgeProject, CurseForgeFile curseForgeFile) {
         this(name, version, optional, file, null, type, colour, description, disabled, userAdded, wasSelected, skipped,
-                curseForgeModId, curseForgeFileId, curseForgeProject, curseForgeFile, null, null);
+                curseForgeModId, curseForgeFileId, curseForgeProject, curseForgeFile, null, null, null);
     }
 
     public DisableableMod(String name, String version, boolean optional, String file, Type type, Color colour,
@@ -135,7 +143,7 @@ public class DisableableMod implements Serializable {
             ModrinthVersion modrinthVersion) {
         this(name, version, optional, file, null, type, colour, description, disabled, userAdded, wasSelected, skipped,
                 null,
-                null, null, null, modrinthProject, modrinthVersion);
+                null, null, null, modrinthProject, modrinthVersion, null);
     }
 
     public DisableableMod(String name, String version, boolean optional, String file, Type type, Color colour,
@@ -154,10 +162,17 @@ public class DisableableMod implements Serializable {
     }
 
     public DisableableMod(String name, String version, boolean optional, String file, Type type, Color colour,
-            String description, boolean disabled, boolean userAdded) {
+                          String description, boolean disabled, boolean userAdded) {
         this(name, version, optional, file, null, type, colour, description, disabled, userAdded, true, false, null,
-                null,
-                null, null);
+            null,
+            null, null);
+    }
+
+    public DisableableMod(String name, String version, boolean optional, String file, Type type, Color colour,
+                          String description, boolean disabled, boolean userAdded, ModCheckProject modCheckProject) {
+        this(name, version, optional, file, null, type, colour, description, disabled, userAdded, true, false, null,
+            null,
+            null, null, null, null, modCheckProject);
     }
 
     public DisableableMod() {
@@ -207,7 +222,7 @@ public class DisableableMod implements Serializable {
     }
 
     public boolean isUpdatable() {
-        return this.isFromCurseForge() || this.isFromModrinth();
+        return this.isFromCurseForge() || this.isFromModrinth() || this.isFromModCheck();
     }
 
     public boolean isFromCurseForge() {
@@ -228,6 +243,10 @@ public class DisableableMod implements Serializable {
 
     public boolean isFromModrinth() {
         return this.modrinthProject != null && this.modrinthVersion != null;
+    }
+
+    public boolean isFromModCheck() {
+        return this.modCheckProject != null;
     }
 
     public String getFilename() {
@@ -473,6 +492,19 @@ public class DisableableMod implements Serializable {
             Pair<ModrinthProject, List<ModrinthVersion>> pair = dialog.getReturnValue();
 
             new ModrinthVersionSelectorDialog(parent, pair.left(), pair.right(), instance, modrinthVersion.id);
+        } else if (this.isFromModCheck()) {
+            ModCheckProject newProject = ModCheckManager.getUpdatedProject(instance.getMinecraftVersion(), this.modCheckProject);
+            if (newProject == null || newProject.getModResource().getModVersion().compareTo(this.modCheckProject.getModResource().getModVersion()) <= 0) {
+                return false;
+            }
+
+
+            ProgressDialog<?> dialog = new ProgressDialog<>(GetText.tr("Installing " + newProject.getName()));
+            dialog.addThread(new Thread(() -> {
+                instance.addFileFromModCheck(newProject, dialog);
+                dialog.close();
+            }));
+            dialog.start();
         }
 
         return true;

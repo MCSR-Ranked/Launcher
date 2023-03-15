@@ -19,7 +19,6 @@ package com.atlauncher.managers;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -36,10 +35,15 @@ import com.atlauncher.data.minecraft.VersionManifest;
 import com.atlauncher.data.minecraft.VersionManifestVersion;
 import com.atlauncher.data.minecraft.VersionManifestVersionType;
 import com.atlauncher.exceptions.InvalidMinecraftVersion;
+import com.google.common.collect.Lists;
 import com.google.gson.JsonIOException;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
 public class MinecraftManager {
+
+    private static final List<String> AVAILABLE_VERSIONS = Lists.newArrayList("1.16.1");
+
     /**
      * Loads info about the different Minecraft versions
      */
@@ -56,7 +60,9 @@ public class MinecraftManager {
 
             if (versionManifest != null) {
                 versionManifest.versions.forEach((version) -> {
-                    Data.MINECRAFT.put(version.id, version);
+                    if (AVAILABLE_VERSIONS.contains(version.id)) {
+                        Data.MINECRAFT.put(version.id, version);
+                    }
                 });
             }
         } catch (JsonSyntaxException | FileNotFoundException | JsonIOException e) {

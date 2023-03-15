@@ -28,6 +28,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Objects;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -37,6 +38,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
+import javax.swing.WindowConstants;
 
 import org.mini2Dx.gettext.GetText;
 
@@ -46,6 +48,7 @@ import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.constants.Constants;
 import com.atlauncher.data.APIResponse;
 import com.atlauncher.data.BackupMode;
+import com.atlauncher.data.DisableableMod;
 import com.atlauncher.data.Instance;
 import com.atlauncher.data.minecraft.loaders.LoaderType;
 import com.atlauncher.evnt.listener.RelocalizationListener;
@@ -497,9 +500,16 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
     private void play(boolean offline) {
         if (!instance.launcher.isPlayable) {
             DialogManager.okDialog().setTitle(GetText.tr("Instance Corrupt"))
-                    .setContent(GetText
-                            .tr("Cannot play instance as it's corrupted. Please reinstall, update or delete it."))
-                    .setType(DialogManager.ERROR).show();
+                .setContent(GetText
+                    .tr("Cannot play instance as it's corrupted. Please reinstall, update or delete it."))
+                .setType(DialogManager.ERROR).show();
+            return;
+        }
+
+        if (offline) {
+            DialogManager.okDialog().setTitle(GetText.tr("Offline unavailable"))
+                .setContent(GetText.tr("Cannot play instance with offline mode."))
+                .setType(DialogManager.ERROR).show();
             return;
         }
 
@@ -510,6 +520,14 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
                             instance.launcher.java.getVersionString())).build())
                     .setType(DialogManager.ERROR).show();
             return;
+        }
+
+        ProgressDialog<?> rankedDialog = new ProgressDialog<>(GetText.tr("Update Checking MCSR Ranked"));
+        rankedDialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        for (DisableableMod customDisableableMod : instance.getCustomDisableableMods()) {
+            if (Objects.equals(customDisableableMod.getName(), "Project: MCSR Ranked")) {
+                customDisableableMod.checkForUpdate(rankedDialog, instance);
+            }
         }
 
         if (instance.hasUpdate() && !instance.hasLatestUpdateBeenIgnored()) {

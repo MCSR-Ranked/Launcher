@@ -201,6 +201,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
     public Arguments arguments;
     public boolean success;
     private JDialog dialog;
+    public Instance resultInstance;
 
     public InstanceInstaller(String name, com.atlauncher.data.Pack pack, com.atlauncher.data.PackVersion version,
             boolean isReinstall, boolean isServer, boolean changingLoader, boolean saveMods, String shareCode,
@@ -1843,6 +1844,8 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
             return;
         }
 
+        this.minecraftVersion.javaVersion = Instance.DEFAULT_JAVA;
+
         hideSubProgressBar();
     }
 
@@ -1916,7 +1919,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
                     com.atlauncher.data.Type.valueOf(com.atlauncher.data.Type.class, mod.getType().toString()),
                     this.packVersion.getColour(mod.getColour()), mod.getDescription(), false, false, true, false,
                     mod.getCurseForgeProjectId(), mod.getCurseForgeFileId(), mod.curseForgeProject,
-                    mod.curseForgeFile, mod.modrinthProject, mod.modrinthVersion));
+                    mod.curseForgeFile, mod.modrinthProject, mod.modrinthVersion, mod.modCheckProject));
         }
 
         if (this.isReinstall && instance.hasCustomMods()) {
@@ -2276,6 +2279,8 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
         }
 
         App.launcher.reloadInstancesPanel();
+
+        this.resultInstance = instance;
     }
 
     private void initServerSettings() {

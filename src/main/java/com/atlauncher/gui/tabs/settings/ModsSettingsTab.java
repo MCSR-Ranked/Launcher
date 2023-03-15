@@ -60,8 +60,7 @@ public class ModsSettingsTab extends AbstractSettingsTab {
         gbc.insets = UIConstants.FIELD_INSETS;
         gbc.anchor = GridBagConstraints.BASELINE_LEADING;
         defaultModPlatform = new JComboBox<>();
-        defaultModPlatform.addItem(new ComboItem<>(ModPlatform.CURSEFORGE, "CurseForge"));
-        defaultModPlatform.addItem(new ComboItem<>(ModPlatform.MODRINTH, "Modrinth"));
+        defaultModPlatform.addItem(new ComboItem<>(ModPlatform.MODCHECK, "ModCheck"));
 
         for (int i = 0; i < defaultModPlatform.getItemCount(); i++) {
             ComboItem<ModPlatform> item = defaultModPlatform.getItemAt(i);

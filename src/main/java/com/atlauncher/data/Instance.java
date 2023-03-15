@@ -95,6 +95,7 @@ import com.atlauncher.data.minecraft.JavaRuntime;
 import com.atlauncher.data.minecraft.JavaRuntimeManifest;
 import com.atlauncher.data.minecraft.JavaRuntimeManifestFileType;
 import com.atlauncher.data.minecraft.JavaRuntimes;
+import com.atlauncher.data.minecraft.JavaVersion;
 import com.atlauncher.data.minecraft.Library;
 import com.atlauncher.data.minecraft.LoggingFile;
 import com.atlauncher.data.minecraft.MinecraftVersion;
@@ -109,6 +110,8 @@ import com.atlauncher.data.minecraft.loaders.forge.FMLLibrary;
 import com.atlauncher.data.minecraft.loaders.forge.ForgeLoader;
 import com.atlauncher.data.minecraft.loaders.legacyfabric.LegacyFabricLoader;
 import com.atlauncher.data.minecraft.loaders.quilt.QuiltLoader;
+import com.atlauncher.data.modcheck.ModCheckProject;
+import com.atlauncher.data.modcheck.ModCheckVersion;
 import com.atlauncher.data.modpacksch.ModpacksChPackVersion;
 import com.atlauncher.data.modrinth.ModrinthFile;
 import com.atlauncher.data.modrinth.ModrinthProject;
@@ -164,6 +167,8 @@ import com.atlauncher.utils.ZipNameMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
+import com.pistacium.modcheck.mod.ModData;
+import com.pistacium.modcheck.mod.resource.ModResource;
 
 import net.arikia.dev.drpc.DiscordRPC;
 import net.arikia.dev.drpc.DiscordRichPresence;
@@ -172,6 +177,13 @@ import okhttp3.OkHttpClient;
 
 @Json
 public class Instance extends MinecraftVersion {
+
+    public static final JavaVersion DEFAULT_JAVA = new JavaVersion();
+    static {
+        DEFAULT_JAVA.component = "java-runtime-gamma";
+        DEFAULT_JAVA.majorVersion = 17;
+    }
+
     public String inheritsFrom;
     public InstanceLauncher launcher;
 
@@ -202,7 +214,7 @@ public class Instance extends MinecraftVersion {
 
     public void setUpdatedValues(MinecraftVersion version) {
         this.complianceLevel = version.complianceLevel;
-        this.javaVersion = version.javaVersion;
+        this.javaVersion = DEFAULT_JAVA;
         this.type = version.type;
         this.time = version.time;
         this.releaseTime = version.releaseTime;
@@ -1597,6 +1609,57 @@ public class Instance extends MinecraftVersion {
 
         // #. {0} is the name of a mod that was installed
         App.TOASTER.pop(GetText.tr("{0} Installed", mod.title));
+    }
+
+    public void addFileFromModCheck(ModCheckProject modCheckProject, ProgressDialog<?> dialog) {
+        Path downloadLocation = FileSystem.DOWNLOADS.resolve(modCheckProject.getModResource().getFileName());
+        Path finalLocation = this.getRoot().resolve("mods").resolve(modCheckProject.getModResource().getFileName());
+        com.atlauncher.network.Download download = com.atlauncher.network.Download.build().setUrl(modCheckProject.getModResource().getDownloadUrl())
+            .downloadTo(downloadLocation).copyTo(finalLocation)
+            .withHttpClient(Network.createProgressClient(dialog));
+
+        if (Files.exists(finalLocation)) {
+            FileUtils.delete(finalLocation);
+        }
+
+        // find mods with the same modcheck
+        List<DisableableMod> sameMods = this.launcher.mods.stream().filter(
+                installedMod -> installedMod.isFromModCheck()
+                    && installedMod.modCheckProject.getName().equalsIgnoreCase(modCheckProject.getName()))
+            .collect(Collectors.toList());
+
+        // delete mod files that are the same mod id
+        sameMods.forEach(disableableMod -> Utils.delete(disableableMod.getFile(this)));
+
+        if (download.needToDownload()) {
+            try {
+                download.downloadFile();
+            } catch (IOException e) {
+                LogManager.logStackTrace(e);
+                DialogManager.okDialog().setType(DialogManager.ERROR).setTitle("Failed to download")
+                    .setContent("Failed to download " + modCheckProject.getName() + ". Please try again later.")
+                    .show();
+                return;
+            }
+        } else {
+            download.copy();
+        }
+
+        // remove any mods that are from the same mod from the master mod list
+        this.launcher.mods = this.launcher.mods.stream().filter(
+                installedMod -> !installedMod.isFromModCheck()
+                    || !installedMod.modCheckProject.getName().equalsIgnoreCase(modCheckProject.getName()))
+            .collect(Collectors.toList());
+
+        Type modType = Type.mods;
+
+        // add this mod
+        DisableableMod disableableMod = new DisableableMod(modCheckProject.getName(), modCheckProject.getModResource().getModVersion().getVersionName(),
+            true, modCheckProject.getModResource().getFileName(), modType, null, "", false, true, modCheckProject);
+        if (sameMods.size() == 0 || sameMods.stream().allMatch(DisableableMod::isDisabled)) disableableMod.disable(this);
+        this.launcher.mods.add(disableableMod);
+
+        this.save();
     }
 
     public boolean hasCustomMods() {

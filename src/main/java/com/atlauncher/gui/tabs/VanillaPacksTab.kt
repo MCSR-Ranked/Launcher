@@ -52,32 +52,13 @@ class VanillaPacksTab : JPanel(BorderLayout()), Tab, RelocalizationListener {
     private fun getReleasesText() = GetText.tr("Releases")
     private val minecraftVersionReleasesFilterCheckbox = JCheckBox(getReleasesText())
 
-    private fun getExperimentsText() = GetText.tr("Experiments")
-    private val minecraftVersionExperimentsFilterCheckbox = JCheckBox(getExperimentsText())
-
-    private fun getSnapshotsText() = GetText.tr("Snapshots")
-    private val minecraftVersionSnapshotsFilterCheckbox = JCheckBox(getSnapshotsText())
-
-    private fun getBetasText() = GetText.tr("Betas")
-    private val minecraftVersionBetasFilterCheckbox = JCheckBox(getBetasText())
-
-    private fun getAlphasText() = GetText.tr("Alphas")
-    private val minecraftVersionAlphasFilterCheckbox = JCheckBox(getAlphasText())
-
     private var minecraftVersionTable: JTable? = null
     private var minecraftVersionTableModel: DefaultTableModel? = null
     private val loaderTypeButtonGroup = ButtonGroup()
 
-    private fun getNoneText() = GetText.tr("None")
-    private val loaderTypeNoneRadioButton = JRadioButton(getNoneText())
     private val loaderTypeFabricRadioButton = JRadioButton("Fabric")
-    private val loaderTypeForgeRadioButton = JRadioButton("Forge")
     private val loaderTypeLegacyFabricRadioButton = JRadioButton("Legacy Fabric")
-    private val loaderTypeQuiltRadioButton = JRadioButton("Quilt")
     private val loaderVersionsDropDown = JComboBox<ComboItem<LoaderVersion?>>()
-
-    private fun getCreateServerText() = GetText.tr("Create Server")
-    private val createServerButton = JButton(getCreateServerText())
 
     private fun getCreateInstanceText() = GetText.tr("Create Instance")
     private val createInstanceButton = JButton(getCreateInstanceText())
@@ -168,18 +149,6 @@ class VanillaPacksTab : JPanel(BorderLayout()), Tab, RelocalizationListener {
         // Release checkbox
         setupReleaseCheckbox(minecraftVersionFilterPanel)
 
-        // Experiments checkbox
-        setupExperimentsCheckbox(minecraftVersionFilterPanel)
-
-        // Snapshots checkbox
-        setupSnapshotsCheckbox(minecraftVersionFilterPanel)
-
-        // Old Betas checkbox
-        setupOldBetasCheckbox(minecraftVersionFilterPanel)
-
-        // Old Alphas checkbox
-        setupOldAlphasCheckbox(minecraftVersionFilterPanel)
-
         minecraftVersionPanel.add(minecraftVersionFilterPanel)
         mainPanel.add(minecraftVersionPanel, gbc)
         gbc.gridx++
@@ -198,26 +167,20 @@ class VanillaPacksTab : JPanel(BorderLayout()), Tab, RelocalizationListener {
         gbc.gridy++
         gbc.insets = UIConstants.LABEL_INSETS
         gbc.anchor = GridBagConstraints.EAST
-        val loaderTypeLabel = JLabel(GetText.tr("Loader") + "?")
+        val loaderTypeLabel = JLabel(GetText.tr("Loader"))
         mainPanel.add(loaderTypeLabel, gbc)
         gbc.gridx++
         gbc.insets = UIConstants.FIELD_INSETS
         gbc.anchor = GridBagConstraints.BASELINE_LEADING
-        loaderTypeButtonGroup.add(loaderTypeNoneRadioButton)
         loaderTypeButtonGroup.add(loaderTypeFabricRadioButton)
-        loaderTypeButtonGroup.add(loaderTypeForgeRadioButton)
-        loaderTypeButtonGroup.add(loaderTypeLegacyFabricRadioButton)
-        loaderTypeButtonGroup.add(loaderTypeQuiltRadioButton)
+        //loaderTypeButtonGroup.add(loaderTypeLegacyFabricRadioButton)
         val loaderTypePanel = JPanel(FlowLayout())
 
-        setupLoaderNoneButton(loaderTypePanel)
-
         setupLoaderFabricButton(loaderTypePanel)
-        setupLoaderLegacyFabricButton(loaderTypePanel)
+        //setupLoaderLegacyFabricButton(loaderTypePanel)
 
-        setupLoaderForgeButton(loaderTypePanel)
-
-        setupLoaderQuiltButton(loaderTypePanel)
+        loaderTypeButtonGroup.setSelected(loaderTypeFabricRadioButton.model, true)
+        viewModel.setLoaderType(LoaderType.FABRIC)
 
         mainPanel.add(loaderTypePanel, gbc)
 
@@ -294,58 +257,6 @@ class VanillaPacksTab : JPanel(BorderLayout()), Tab, RelocalizationListener {
 
     }
 
-    private fun setupLoaderQuiltButton(loaderTypePanel: JPanel) {
-        scope.launch {
-            viewModel.loaderTypeQuiltSelected.collect {
-                loaderTypeQuiltRadioButton.isSelected = it
-            }
-        }
-        scope.launch {
-            viewModel.loaderTypeQuiltEnabled.collect {
-                loaderTypeQuiltRadioButton.isEnabled = it
-            }
-        }
-        scope.launch {
-            viewModel.isQuiltVisible.collect {
-                loaderTypeQuiltRadioButton.isVisible = it
-            }
-        }
-        loaderTypeQuiltRadioButton.addActionListener { e: ActionEvent? ->
-            viewModel.setLoaderType(
-                LoaderType.QUILT
-            )
-        }
-        if (viewModel.showQuiltOption) {
-            loaderTypePanel.add(loaderTypeQuiltRadioButton)
-        }
-    }
-
-    private fun setupLoaderForgeButton(loaderTypePanel: JPanel) {
-        scope.launch {
-            viewModel.loaderTypeForgeSelected.collect {
-                loaderTypeForgeRadioButton.isSelected = it
-            }
-        }
-        scope.launch {
-            viewModel.loaderTypeForgeEnabled.collect {
-                loaderTypeForgeRadioButton.isEnabled = it
-            }
-        }
-        scope.launch {
-            viewModel.isForgeVisible.collect {
-                loaderTypeForgeRadioButton.isVisible = it
-            }
-        }
-        loaderTypeForgeRadioButton.addActionListener { e: ActionEvent? ->
-            viewModel.setLoaderType(
-                LoaderType.FORGE
-            )
-        }
-        if (viewModel.showForgeOption) {
-            loaderTypePanel.add(loaderTypeForgeRadioButton)
-        }
-    }
-
     private fun setupLoaderLegacyFabricButton(loaderTypePanel: JPanel) {
         scope.launch {
             viewModel.loaderTypeLegacyFabricSelected.collect {
@@ -398,98 +309,6 @@ class VanillaPacksTab : JPanel(BorderLayout()), Tab, RelocalizationListener {
         }
     }
 
-    private fun setupLoaderNoneButton(loaderTypePanel: JPanel) {
-        scope.launch {
-            viewModel.loaderTypeNoneSelected.collect {
-                loaderTypeNoneRadioButton.isSelected = it
-            }
-        }
-        scope.launch {
-            viewModel.loaderTypeNoneEnabled.collect {
-                loaderTypeNoneRadioButton.isEnabled = it
-            }
-        }
-        loaderTypeNoneRadioButton.addActionListener { e: ActionEvent? ->
-            viewModel.setLoaderType(null)
-        }
-        loaderTypePanel.add(loaderTypeNoneRadioButton)
-    }
-
-    private fun setupOldAlphasCheckbox(minecraftVersionFilterPanel: JPanel) {
-        scope.launch {
-            viewModel.oldAlphaSelected.collect {
-                minecraftVersionAlphasFilterCheckbox.isSelected = it
-            }
-        }
-        scope.launch {
-            viewModel.oldAlphaEnabled.collect {
-                minecraftVersionAlphasFilterCheckbox.isEnabled = it
-            }
-        }
-        minecraftVersionAlphasFilterCheckbox.addActionListener {
-            viewModel.setOldAlphaSelected(minecraftVersionAlphasFilterCheckbox.isSelected)
-        }
-        if (viewModel.showOldAlphaOption) {
-            minecraftVersionFilterPanel.add(minecraftVersionAlphasFilterCheckbox)
-        }
-    }
-
-    private fun setupOldBetasCheckbox(minecraftVersionFilterPanel: JPanel) {
-        scope.launch {
-            viewModel.oldBetaSelected.collect {
-                minecraftVersionBetasFilterCheckbox.isSelected = it
-            }
-        }
-        scope.launch {
-            viewModel.oldBetaEnabled.collect {
-                minecraftVersionBetasFilterCheckbox.isEnabled = it
-            }
-        }
-        minecraftVersionBetasFilterCheckbox.addActionListener {
-            viewModel.setOldBetaSelected(minecraftVersionBetasFilterCheckbox.isSelected)
-        }
-        if (viewModel.showOldBetaOption) {
-            minecraftVersionFilterPanel.add(minecraftVersionBetasFilterCheckbox)
-        }
-    }
-
-    private fun setupSnapshotsCheckbox(minecraftVersionFilterPanel: JPanel) {
-        scope.launch {
-            viewModel.snapshotSelected.collect {
-                minecraftVersionSnapshotsFilterCheckbox.isSelected = it
-            }
-        }
-        scope.launch {
-            viewModel.snapshotEnabled.collect {
-                minecraftVersionSnapshotsFilterCheckbox.isEnabled = it
-            }
-        }
-        minecraftVersionSnapshotsFilterCheckbox.addActionListener {
-            viewModel.setSnapshotSelected(minecraftVersionSnapshotsFilterCheckbox.isSelected)
-        }
-        if (viewModel.showSnapshotOption) {
-            minecraftVersionFilterPanel.add(minecraftVersionSnapshotsFilterCheckbox)
-        }
-    }
-
-    private fun setupExperimentsCheckbox(minecraftVersionFilterPanel: JPanel) {
-        scope.launch {
-            viewModel.experimentSelected.collect {
-                minecraftVersionExperimentsFilterCheckbox.isSelected = it
-            }
-        }
-        scope.launch {
-            viewModel.experimentEnabled.collect {
-                minecraftVersionExperimentsFilterCheckbox.isEnabled = it
-            }
-        }
-        minecraftVersionExperimentsFilterCheckbox.addActionListener {
-            viewModel.setExperimentSelected(minecraftVersionExperimentsFilterCheckbox.isSelected)
-        }
-        if (viewModel.showExperimentOption) {
-            minecraftVersionFilterPanel.add(minecraftVersionExperimentsFilterCheckbox)
-        }
-    }
 
     private fun setupReleaseCheckbox(minecraftVersionFilterPanel: JPanel) {
         scope.launch {
@@ -587,44 +406,21 @@ class VanillaPacksTab : JPanel(BorderLayout()), Tab, RelocalizationListener {
 
     private fun setupBottomPanel() {
         val bottomPanel = JPanel(FlowLayout())
-        bottomPanel.add(createServerButton)
-        createServerButton.addActionListener(ActionListener { // user has no instances, they may not be aware this is not how to play
-            if (viewModel.warnUserAboutServer) {
-                val ret = DialogManager.yesNoDialog().setTitle(GetText.tr("Are you sure you want to create a server?"))
-                    .setContent(
-                        HTMLBuilder().center().text(
-                            GetText.tr(
-                                "Creating a server won't allow you play Minecraft, it's for letting others play together.<br/><br/>If you just want to play Minecraft, you don't want to create a server, and instead will want to create an instance.<br/><br/>Are you sure you want to create a server?"
-                            )
-                        ).build()
-                    ).setType(DialogManager.QUESTION).show()
-                if (ret != 0) {
-                    return@ActionListener
-                }
-            }
-            viewModel.createServer()
-        })
         bottomPanel.add(createInstanceButton)
         createInstanceButton.addActionListener { viewModel.createInstance() }
         add(bottomPanel, BorderLayout.SOUTH)
     }
 
     override fun getTitle(): String {
-        return GetText.tr("Vanilla Packs")
+        return GetText.tr("Create Instance")
     }
 
     override fun getAnalyticsScreenViewName(): String {
-        return "Vanilla Packs"
+        return "Create Instance"
     }
 
     override fun onRelocalization() {
         minecraftVersionReleasesFilterCheckbox.text = getReleasesText()
-        minecraftVersionExperimentsFilterCheckbox.text = getExperimentsText()
-        minecraftVersionSnapshotsFilterCheckbox.text = getSnapshotsText()
-        minecraftVersionBetasFilterCheckbox.text = getBetasText()
-        minecraftVersionAlphasFilterCheckbox.text = getAlphasText()
-        loaderTypeNoneRadioButton.text = getNoneText()
-        createServerButton.text = getCreateServerText()
         createInstanceButton.text = getCreateInstanceText()
     }
 

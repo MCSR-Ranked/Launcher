@@ -98,7 +98,7 @@ public class BasicLauncherUiTest extends AbstractUiTest {
         // account selector now showing
         JComboBoxFixture accountSelector = this.frame.comboBox("accountSelector");
         accountSelector.requireVisible();
-        mainTabsFixture.selectTab("Vanilla Packs");
+        mainTabsFixture.selectTab("Create Instance");
         Pause.pause(1, TimeUnit.SECONDS);
 
         MockHelper.mockJson(mockServer, "GET", "download.nodecdn.net",

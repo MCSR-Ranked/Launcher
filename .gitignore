@@ -1,5 +1,6 @@
 # Binaries
 .gradle/
+.idea/
 build/
 
 # Runtime

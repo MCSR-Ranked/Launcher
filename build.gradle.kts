@@ -51,6 +51,7 @@ repositories {
         content {
             includeGroup("com.github.RyanTheAllmighty.gettext")
             includeGroup("com.github.Vatuu")
+            includeGroup("com.github.RedLime")
         }
     }
 }
@@ -87,6 +88,8 @@ dependencies {
     implementation("com.apollographql.apollo:apollo-runtime:2.5.14")
     implementation("com.apollographql.apollo:apollo-http-cache:2.5.14")
     implementation("com.apollographql.apollo:apollo-coroutines-support:2.5.14")
+
+    implementation("com.github.RedLime:ModCheck:0.5.3")
 
     // Kotlin
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")

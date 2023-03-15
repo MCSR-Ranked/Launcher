@@ -24,13 +24,17 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.WindowConstants;
 
 import org.mini2Dx.gettext.GetText;
 
@@ -42,16 +46,22 @@ import com.atlauncher.data.PackVersion;
 import com.atlauncher.data.curseforge.pack.CurseForgeManifest;
 import com.atlauncher.data.minecraft.VersionManifestVersion;
 import com.atlauncher.data.minecraft.loaders.LoaderVersion;
+import com.atlauncher.data.modcheck.ModCheckManager;
+import com.atlauncher.data.modcheck.ModCheckProject;
 import com.atlauncher.data.modpacksch.ModpacksChPackManifest;
 import com.atlauncher.data.modrinth.ModrinthProject;
+import com.atlauncher.data.modrinth.ModrinthVersion;
 import com.atlauncher.data.modrinth.pack.ModrinthModpackManifest;
 import com.atlauncher.data.multimc.MultiMCManifest;
 import com.atlauncher.data.technic.TechnicModpack;
+import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.InstanceManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.ServerManager;
+import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.FileUtils;
+import com.atlauncher.utils.ModrinthApi;
 import com.atlauncher.workers.InstanceInstaller;
 
 public abstract class Installable {
@@ -227,6 +237,8 @@ public abstract class Installable {
                     }
 
                     if (success) {
+                        downloadRankedResources(this.resultInstance);
+
                         type = DialogManager.INFO;
 
                         // #. {0} is the pack name and {1} is the pack version
@@ -400,6 +412,57 @@ public abstract class Installable {
         dialog.setVisible(true);
 
         return instanceInstaller.success;
+    }
+
+    private void downloadRankedResources(Instance targetInstance) {
+        if (targetInstance == null) return;
+
+        ProgressDialog<?> rankedDialog = new ProgressDialog<>(GetText.tr("Installing MCSR Ranked"));
+        rankedDialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        rankedDialog.addThread(new Thread(() -> {
+            ModrinthProject rankedModrinth = ModrinthApi.getProject("I9W1u5Ac");
+            List<ModrinthVersion> rankedModrinthVersion = ModrinthApi.getVersions("I9W1u5Ac");
+            ModrinthVersion version = Objects.requireNonNull(rankedModrinthVersion.stream().filter(mv -> mv.gameVersions.contains(targetInstance.getMinecraftVersion())).sorted((c1, c2) -> new Random().nextInt(3) - 1).findFirst().orElse(null));
+            targetInstance.addFileFromModrinth(rankedModrinth, version, version.files.get(0), rankedDialog);
+            rankedDialog.close();
+        }));
+        rankedDialog.start();
+
+        ProgressDialog<?> srigtDialog = new ProgressDialog<>(GetText.tr("Installing SpeedRunIGT"));
+        srigtDialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        srigtDialog.addThread(new Thread(() -> {
+            ModrinthProject srigt = ModrinthApi.getProject("jnkd7LkJ");
+            List<ModrinthVersion> srigtVersion = ModrinthApi.getVersions("jnkd7LkJ");
+            ModrinthVersion version = Objects.requireNonNull(srigtVersion.stream().filter(mv -> mv.gameVersions.contains(targetInstance.getMinecraftVersion())).findFirst().orElse(null));
+            targetInstance.addFileFromModrinth(srigt, version, version.files.get(0), srigtDialog);
+            srigtDialog.close();
+        }));
+        srigtDialog.start();
+
+        int ret = DialogManager.yesNoDialog(false).setTitle(GetText.tr("Setup Speedrun Mods"))
+            .setContent(GetText.tr("Do you want to download Minecraft speedrunning legalized mods? (All disabled by default)"))
+            .setType(DialogManager.INFO).show();
+
+        if (ret == DialogManager.YES_OPTION) {ProgressDialog<?> legalModsDialog = new ProgressDialog<>(GetText.tr("Installing Mods"));
+            legalModsDialog.addThread(new Thread(() -> {
+                try {
+                    List<ModCheckProject> modList = ModCheckManager.getAvailableMods(targetInstance.getMinecraftVersion());
+                    int index = 0;
+                    for (ModCheckProject availableMod : modList) {
+                        legalModsDialog.setSubProgress(index++ / (modList.size() * 1.0) * 100, "Downloading " + availableMod.getName());
+                        if (!availableMod.getName().equalsIgnoreCase("speedrunigt")) {
+                            targetInstance.addFileFromModCheck(availableMod, legalModsDialog);
+                        }
+                    }
+                    legalModsDialog.close();
+                } catch (Exception e) {
+                    LogManager.logStackTrace(e);
+                }
+            }));
+            legalModsDialog.start();
+        }
+
+        LogManager.debug("Downloaded MCSR Ranked Mods");
     }
 
     private String getDialogTitle(String name) {

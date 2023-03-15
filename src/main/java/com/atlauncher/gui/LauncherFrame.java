@@ -43,8 +43,6 @@ import com.atlauncher.evnt.manager.TabChangeManager;
 import com.atlauncher.gui.components.LauncherBottomBar;
 import com.atlauncher.gui.dialogs.InstanceInstallerDialog;
 import com.atlauncher.gui.tabs.InstancesTab;
-import com.atlauncher.gui.tabs.PacksBrowserTab;
-import com.atlauncher.gui.tabs.ServersTab;
 import com.atlauncher.gui.tabs.SettingsTab;
 import com.atlauncher.gui.tabs.Tab;
 import com.atlauncher.gui.tabs.VanillaPacksTab;
@@ -58,7 +56,6 @@ import com.atlauncher.managers.PerformanceManager;
 import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.Utils;
 
-@SuppressWarnings("serial")
 public final class LauncherFrame extends JFrame implements RelocalizationListener {
     private JTabbedPane tabbedPane;
 
@@ -201,20 +198,10 @@ public final class LauncherFrame extends JFrame implements RelocalizationListene
         VanillaPacksTab vanillaPacksTab = new VanillaPacksTab();
         PerformanceManager.end("vanillaPacksTab");
 
-        PerformanceManager.start("packsBrowserTab");
-        PacksBrowserTab packsBrowserTab = new PacksBrowserTab();
-        App.launcher.setPacksBrowserPanel(packsBrowserTab);
-        PerformanceManager.end("packsBrowserTab");
-
         PerformanceManager.start("instancesTab");
         InstancesTab instancesTab = new InstancesTab();
         App.launcher.setInstancesPanel(instancesTab);
         PerformanceManager.end("instancesTab");
-
-        PerformanceManager.start("serversTab");
-        ServersTab serversTab = new ServersTab();
-        App.launcher.setServersPanel(serversTab);
-        PerformanceManager.end("serversTab");
 
         PerformanceManager.start("accountsTab");
         AccountsTab accountsTab = new AccountsTab();
@@ -228,8 +215,8 @@ public final class LauncherFrame extends JFrame implements RelocalizationListene
         SettingsTab settingsTab = new SettingsTab();
         PerformanceManager.end("settingsTab");
 
-        this.tabs = Arrays.asList(new Tab[] { newsTab, vanillaPacksTab, packsBrowserTab, instancesTab,
-                serversTab, accountsTab, toolsTab, settingsTab });
+        this.tabs = Arrays.asList(new Tab[] { newsTab, vanillaPacksTab, instancesTab,
+                accountsTab, toolsTab, settingsTab });
 
         tabbedPane.setFont(App.THEME.getTabFont());
         for (Tab tab : this.tabs) {
