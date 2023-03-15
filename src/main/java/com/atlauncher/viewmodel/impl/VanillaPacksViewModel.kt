@@ -450,6 +450,12 @@ class VanillaPacksViewModel : IVanillaPacksViewModel, SettingsListener {
                     selectedLoaderVersion.value = loaders.first()
                 }
 
+                loaders.firstOrNull { it.recommended }.let {
+                    if (it != null) {
+                        selectedLoaderVersion.value = it
+                    }
+                }
+
 
                 setLoaderGroupEnabled(true, enableCreateServers)
 

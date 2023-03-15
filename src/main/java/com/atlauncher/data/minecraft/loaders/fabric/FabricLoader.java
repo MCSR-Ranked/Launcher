@@ -245,7 +245,7 @@ public class FabricLoader implements Loader {
                     .asTypeWithThrow(type);
 
             return versions.stream().filter(fv -> !disabledVersions.contains(fv.loader.version))
-                    .map(version -> new LoaderVersion(version.loader.version, false, "Fabric"))
+                    .map(version -> new LoaderVersion(version.loader.version, version.loader.stable, "Fabric"))
                     .collect(Collectors.toList());
         } catch (Exception e) {
             return new ArrayList<>();

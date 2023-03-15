@@ -113,7 +113,7 @@ public final class LauncherFrame extends JFrame implements RelocalizationListene
                     .setType(DialogManager.INFO).show();
 
                 if (ret == DialogManager.YES_OPTION) {
-                    this.tabbedPane.setSelectedIndex(1);
+                    this.tabbedPane.setSelectedIndex(2);
                 }
             }
 
