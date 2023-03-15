@@ -33,6 +33,8 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.WindowConstants;
 
+import org.mini2Dx.gettext.GetText;
+
 import com.atlauncher.App;
 import com.atlauncher.constants.Constants;
 import com.atlauncher.evnt.listener.RelocalizationListener;
@@ -46,11 +48,19 @@ import com.atlauncher.gui.tabs.VanillaPacksTab;
 import com.atlauncher.gui.tabs.accounts.AccountsTab;
 import com.atlauncher.gui.tabs.news.NewsTab;
 import com.atlauncher.gui.tabs.tools.ToolsTab;
+import com.atlauncher.managers.DialogManager;
+import com.atlauncher.managers.InstanceManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.PerformanceManager;
 import com.atlauncher.utils.Utils;
 
 public final class LauncherFrame extends JFrame implements RelocalizationListener {
+
+    private static LauncherFrame instance = null;
+    public static LauncherFrame getInstance() {
+        return instance;
+    }
+
     private JTabbedPane tabbedPane;
 
     private List<Tab> tabs;
@@ -97,6 +107,16 @@ public final class LauncherFrame extends JFrame implements RelocalizationListene
             LogManager.info("Showing Launcher");
             setVisible(true);
 
+            if (InstanceManager.getInstances().size() == 0) {
+                int ret = DialogManager.yesNoDialog(false).setTitle(GetText.tr("Setup Instance"))
+                    .setContent(GetText.tr("Hi, it looks like this is your first time, do you want to create an instance right away?"))
+                    .setType(DialogManager.INFO).show();
+
+                if (ret == DialogManager.YES_OPTION) {
+                    this.tabbedPane.setSelectedIndex(1);
+                }
+            }
+
             addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent windowEvent) {
@@ -132,6 +152,8 @@ public final class LauncherFrame extends JFrame implements RelocalizationListene
                 }
             }
         });
+
+        instance = this;
     }
 
     /**
@@ -167,7 +189,7 @@ public final class LauncherFrame extends JFrame implements RelocalizationListene
         SettingsTab settingsTab = new SettingsTab();
         PerformanceManager.end("settingsTab");
 
-        this.tabs = Arrays.asList(new Tab[] { newsTab, vanillaPacksTab, instancesTab,
+        this.tabs = Arrays.asList(new Tab[] { newsTab, instancesTab, vanillaPacksTab,
                 accountsTab, toolsTab, settingsTab });
 
         tabbedPane.setFont(App.THEME.getTabFont());
@@ -187,5 +209,9 @@ public final class LauncherFrame extends JFrame implements RelocalizationListene
         }
 
         tabbedPane.setFont(App.THEME.getTabFont());
+    }
+
+    public void openTab(int i) {
+        tabbedPane.setSelectedIndex(i);
     }
 }

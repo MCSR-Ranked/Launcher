@@ -1278,8 +1278,8 @@ public class Instance extends MinecraftVersion {
         // add this mod
         DisableableMod disableableMod = new DisableableMod(modCheckProject.getName(), modCheckProject.getModResource().getModVersion().getVersionName(),
             true, modCheckProject.getModResource().getFileName(), modType, null, "", false, true, modCheckProject);
-        if (sameMods.size() == 0 || sameMods.stream().allMatch(DisableableMod::isDisabled)) disableableMod.disable(this);
         this.launcher.mods.add(disableableMod);
+        if (sameMods.size() == 0 || sameMods.stream().anyMatch(DisableableMod::isDisabled)) disableableMod.disable(this);
 
         this.save();
     }

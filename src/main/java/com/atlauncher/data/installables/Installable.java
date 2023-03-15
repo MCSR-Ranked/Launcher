@@ -50,6 +50,7 @@ import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthVersion;
 import com.atlauncher.data.modrinth.pack.ModrinthModpackManifest;
 import com.atlauncher.data.multimc.MultiMCManifest;
+import com.atlauncher.gui.LauncherFrame;
 import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.InstanceManager;
@@ -292,8 +293,11 @@ public abstract class Installable {
                 dialog.dispose();
 
                 if (!addingLoader && !changingLoader && !removingLoader) {
-                    DialogManager.okDialog().setTitle(title).setContent(new HTMLBuilder().center().text(text).build())
+                    int result = DialogManager.okDialog().setTitle(title).setContent(new HTMLBuilder().center().text(text).build())
                             .setType(type).show();
+                    if (result == DialogManager.OK_OPTION) {
+                        LauncherFrame.getInstance().openTab(1);
+                    }
                 }
             }
         };

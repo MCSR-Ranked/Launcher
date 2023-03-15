@@ -34,13 +34,9 @@ import com.atlauncher.utils.OS;
 public abstract class BottomBar extends JPanel implements ThemeListener {
     private static final long serialVersionUID = -7488195680365431776L;
 
-    protected final JButton nodeCraftIcon = new SMButton("/assets/image/social/nodecraft.png",
-            "Nodecraft - Setup a Minecraft server with an ATLauncher modpack in less than 60 seconds");
     protected final JButton discordIcon = new SMButton("/assets/image/social/discord.png", "Discord");
-    protected final JButton facebookIcon = new SMButton("/assets/image/social/facebook.png", "Facebook");
     protected final JButton githubIcon = new SMButton("/assets/image/social/github.png", "GitHub");
     protected final JButton twitterIcon = new SMButton("/assets/image/social/twitter.png", "Twitter");
-    protected final JButton redditIcon = new SMButton("/assets/image/social/reddit.png", "Reddit");
 
     protected final JPanel rightSide = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 8));
 
@@ -51,40 +47,25 @@ public abstract class BottomBar extends JPanel implements ThemeListener {
 
         this.add(this.rightSide, BorderLayout.EAST);
         this.setupSocialButtonListeners();
-        this.rightSide.add(this.nodeCraftIcon);
         this.rightSide.add(this.discordIcon);
-        this.rightSide.add(this.facebookIcon);
         this.rightSide.add(this.githubIcon);
-        this.rightSide.add(this.redditIcon);
         this.rightSide.add(this.twitterIcon);
 
         ThemeManager.addListener(this);
     }
 
     private void setupSocialButtonListeners() {
-        nodeCraftIcon.addActionListener(e -> {
-            LogManager.info("Opening Up Nodecraft");
-            OS.openWebBrowser("https://atl.pw/nodecraft-from-launcher");
-        });
         discordIcon.addActionListener(e -> {
             LogManager.info("Opening Up ATLauncher Discord");
-            OS.openWebBrowser("https://atl.pw/discord");
-        });
-        facebookIcon.addActionListener(e -> {
-            LogManager.info("Opening Up ATLauncher Facebook Page");
-            OS.openWebBrowser("https://atl.pw/facebook");
+            OS.openWebBrowser("https://mcsrranked.com/discord");
         });
         githubIcon.addActionListener(e -> {
             LogManager.info("Opening Up ATLauncher GitHub Page");
-            OS.openWebBrowser("https://atl.pw/github-launcher-3");
-        });
-        redditIcon.addActionListener(e -> {
-            LogManager.info("Opening Up ATLauncher Reddit Page");
-            OS.openWebBrowser("https://atl.pw/reddit");
+            OS.openWebBrowser("https://github.com/RedLime/MCSR-Ranked-Launcher");
         });
         twitterIcon.addActionListener(e -> {
             LogManager.info("Opening Up ATLauncher Twitter Page");
-            OS.openWebBrowser("https://atl.pw/twitter");
+            OS.openWebBrowser("https://twitter.com/mcsr_ranked/");
         });
     }
 
