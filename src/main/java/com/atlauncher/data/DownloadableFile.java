@@ -67,6 +67,6 @@ public class DownloadableFile {
         return Download.build()
                 .setUrl(String.format("%s/launcher/%s/%s", Constants.DOWNLOAD_SERVER, this.folder.toLowerCase(),
                         this.name))
-                .downloadTo(FileSystem.CONFIGS.resolve(this.folder + "/" + this.name)).size(this.size).hash(this.sha1);
+                .downloadTo(FileSystem.CONFIGS.resolve(this.folder + "/" + this.name));
     }
 }

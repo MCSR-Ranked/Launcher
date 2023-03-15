@@ -83,19 +83,6 @@ public class LoggingSettingsTab extends AbstractSettingsTab {
         }
         add(enableLogs, gbc);
 
-        // Enable Analytics
-
-        gbc.gridx = 0;
-        gbc.gridy++;
-        gbc.insets = UIConstants.LABEL_INSETS;
-        gbc.anchor = GridBagConstraints.BASELINE_TRAILING;
-        JLabelWithHover enableAnalyticsLabel = new JLabelWithHover(GetText.tr("Enable Anonymous Analytics") + "?",
-                HELP_ICON,
-                new HTMLBuilder().center().split(100).text(GetText.tr(
-                        "The Launcher sends back anonymous analytics to Google Analytics in order to track what people do and don't use in the launcher. This helps determine what new features we implement in the future. All analytics are anonymous and contain no user/instance information in it at all. If you don't want to send anonymous analytics, you can disable this option."))
-                        .build());
-        add(enableAnalyticsLabel, gbc);
-
         gbc.gridx++;
         gbc.insets = UIConstants.CHECKBOX_FIELD_INSETS;
         gbc.anchor = GridBagConstraints.BASELINE_LEADING;
