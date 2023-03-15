@@ -65,7 +65,7 @@ public class Constants {
     public static String DOWNLOAD_SERVER = BASE_CDN_PROTOCOL + BASE_CDN_DOMAIN + BASE_CDN_PATH;
     public static String DOWNLOAD_HOST = BASE_CDN_DOMAIN;
 
-    public static String LAUNCHER_DOWNLOAD_URL = "https://0";
+    public static String LAUNCHER_UPDATE_URL = "https://github.com/RedLime/MCSR-Ranked-Launcher/releases/latest";
 
 
     // Modrinth domains, endpoints, config, etc

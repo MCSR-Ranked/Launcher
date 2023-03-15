@@ -353,33 +353,17 @@ public class Launcher {
 
         LogManager.debug("Checking for launcher update");
         if (launcherHasUpdate()) {
-            if (App.noLauncherUpdate) {
-                int ret = DialogManager.okDialog().setTitle("Launcher Update Available")
-                        .setContent(new HTMLBuilder().center().split(80).text(GetText.tr(
-                                "An update to the launcher is available. Please update via your package manager or manually by visiting https://atlauncher.com/downloads to get the latest features and bug fixes."))
-                                .build())
-                        .addOption(GetText.tr("Visit Downloads Page")).setType(DialogManager.INFO).show();
+            int ret = DialogManager.okDialog().setTitle("Launcher Update Available")
+                .setContent(new HTMLBuilder().center().split(80).text(GetText.tr(
+                        "An update to the launcher is available. Please update by visiting {0} to get the latest features and bug fixes.", Constants.LAUNCHER_UPDATE_URL))
+                    .build())
+                .addOption(GetText.tr("Visit Downloads Page")).setType(DialogManager.INFO).show();
 
-                if (ret == 1) {
-                    OS.openWebBrowser("https://atlauncher.com/downloads");
-                }
-
-                return;
+            if (ret == 1) {
+                OS.openWebBrowser(Constants.LAUNCHER_UPDATE_URL);
             }
 
-            if (!App.wasUpdated) {
-                downloadUpdate(); // Update the Launcher
-            } else {
-                DialogManager.okDialog().setTitle("Update Failed!")
-                        .setContent(new HTMLBuilder().center()
-                                .text(GetText.tr("Update failed. Please click Ok to close "
-                                        + "the launcher and open up the downloads page.<br/><br/>Download "
-                                        + "the update and replace the old exe/jar file."))
-                                .build())
-                        .setType(DialogManager.ERROR).show();
-                OS.openWebBrowser("https://atlauncher.com/downloads");
-                System.exit(0);
-            }
+            return;
         }
         LogManager.debug("Finished checking for launcher update");
         PerformanceManager.end();
