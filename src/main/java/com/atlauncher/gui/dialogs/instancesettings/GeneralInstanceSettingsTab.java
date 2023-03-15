@@ -91,17 +91,6 @@ public class GeneralInstanceSettingsTab extends JPanel {
 
         add(account, gbc);
 
-        // Enable Discord Integration
-
-        gbc.gridx = 0;
-        gbc.gridy++;
-        gbc.insets = UIConstants.LABEL_INSETS;
-        gbc.anchor = GridBagConstraints.BASELINE_TRAILING;
-        JLabelWithHover enableDiscordIntegrationLabel = new JLabelWithHover(
-                GetText.tr("Enable Discord Integration") + "?", HELP_ICON,
-                GetText.tr("This will enable showing which pack you're playing in Discord."));
-        add(enableDiscordIntegrationLabel, gbc);
-
         gbc.gridx++;
         gbc.insets = UIConstants.FIELD_INSETS;
         gbc.anchor = GridBagConstraints.BASELINE_LEADING;
