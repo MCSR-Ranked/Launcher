@@ -49,7 +49,6 @@ import com.atlauncher.constants.UIConstants;
 import com.atlauncher.data.AbstractAccount;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.ComboItem;
 import com.atlauncher.utils.MojangAPIUtils;
 import com.atlauncher.utils.Utils;
@@ -71,8 +70,6 @@ public class ChangeSkinDialog extends JDialog {
         super(parent, GetText.tr("Changing Skin"), ModalityType.DOCUMENT_MODAL);
 
         this.account = account;
-
-        Analytics.sendScreenView("Change Skin Dialog");
 
         setSize(445, 180);
         setLocationRelativeTo(parent);

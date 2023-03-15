@@ -81,10 +81,9 @@ public class Settings {
     public boolean enableArmSupport = true;
 
     // Mods
-    public ModPlatform defaultModPlatform = ModPlatform.CURSEFORGE;
+    public ModPlatform defaultModPlatform = ModPlatform.MODCHECK;
     public AddModRestriction addModRestriction = AddModRestriction.STRICT;
     public boolean enableAddedModsByDefault = true;
-    public boolean dontCheckModsOnCurseForge = false;
     public boolean dontCheckModsOnModrinth = false;
     public InstanceExportFormat defaultExportFormat = InstanceExportFormat.CURSEFORGE;
 
@@ -295,7 +294,6 @@ public class Settings {
         validateSelectedTabOnStartup();
 
         validateDisableAddModRestrictions();
-        validateDefaultModPlatform();
 
         validateJavaPath();
 
@@ -366,13 +364,6 @@ public class Settings {
     private void validateDisableAddModRestrictions() {
         if (disableAddModRestrictions && addModRestriction != AddModRestriction.NONE) {
             addModRestriction = AddModRestriction.NONE;
-        }
-    }
-
-    private void validateDefaultModPlatform() {
-        if (defaultModPlatform == null
-                || !(defaultModPlatform == ModPlatform.CURSEFORGE || defaultModPlatform == ModPlatform.MODRINTH)) {
-            defaultModPlatform = ModPlatform.CURSEFORGE;
         }
     }
 

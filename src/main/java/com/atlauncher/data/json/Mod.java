@@ -28,8 +28,6 @@ import com.atlauncher.FileSystem;
 import com.atlauncher.annot.Json;
 import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.constants.Constants;
-import com.atlauncher.data.curseforge.CurseForgeFile;
-import com.atlauncher.data.curseforge.CurseForgeProject;
 import com.atlauncher.data.modcheck.ModCheckProject;
 import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthVersion;
@@ -88,18 +86,10 @@ public class Mod {
     public List<String> depends;
     public String filePrefix;
     public String description;
-    public CurseForgeProject curseForgeProject;
-    public CurseForgeFile curseForgeFile;
     public ModrinthProject modrinthProject;
     public ModrinthVersion modrinthVersion;
     public ModCheckProject modCheckProject;
     public boolean ignoreFailures = false;
-
-    @SerializedName(value = "curseforge_project_id", alternate = { "curse_id" })
-    public Integer curseForgeProjectId;
-
-    @SerializedName(value = "curseforge_file_id", alternate = { "curse_file_id" })
-    public Integer curseForgeFileId;
 
     public String getName() {
         return this.name;
@@ -327,14 +317,6 @@ public class Mod {
 
     public String getDescription() {
         return this.description;
-    }
-
-    public Integer getCurseForgeProjectId() {
-        return this.curseForgeProjectId;
-    }
-
-    public Integer getCurseForgeFileId() {
-        return this.curseForgeFileId;
     }
 
     public boolean hasDepends() {

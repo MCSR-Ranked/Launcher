@@ -29,19 +29,10 @@ import javax.swing.ImageIcon;
 import com.atlauncher.FileSystem;
 import com.atlauncher.Gsons;
 import com.atlauncher.constants.Constants;
-import com.atlauncher.data.curseforge.CurseForgeProject;
 import com.atlauncher.data.json.Version;
-import com.atlauncher.data.modpacksch.ModpacksChPackManifest;
 import com.atlauncher.data.modrinth.ModrinthProject;
-import com.atlauncher.data.technic.TechnicModpack;
-import com.atlauncher.graphql.AddPackActionMutation;
-import com.atlauncher.graphql.type.AddPackActionInput;
-import com.atlauncher.graphql.type.PackLogAction;
 import com.atlauncher.managers.AccountManager;
-import com.atlauncher.managers.ConfigManager;
-import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.PackManager;
-import com.atlauncher.network.GraphqlClient;
 import com.atlauncher.utils.Utils;
 
 public class Pack {
@@ -60,10 +51,7 @@ public class Pack {
     public boolean system;
     public boolean hasDiscordImage;
     public String description;
-    public CurseForgeProject curseForgeProject;
-    public ModpacksChPackManifest modpacksChPack;
     public ModrinthProject modrinthProject;
-    public TechnicModpack technicModpack;
     public String discordInviteURL = null;
     public String supportURL = null;
     public String websiteURL = null;
@@ -311,62 +299,5 @@ public class Pack {
     public String getJsonDownloadUrl(String version) {
         return String.format("%s/packs/%s/versions/%s/Configs.json", Constants.DOWNLOAD_SERVER, this.getSafeName(),
                 version);
-    }
-
-    public void addInstall(String version) {
-        if (ConfigManager.getConfigItem("useGraphql.packActions", false) == true) {
-            GraphqlClient
-                    .mutateAndWait(
-                            new AddPackActionMutation(AddPackActionInput.builder().packId(Integer.toString(
-                                    id)).version(version).action(PackLogAction.INSTALL).build()));
-        } else {
-            Map<String, Object> request = new HashMap<>();
-
-            request.put("version", version);
-
-            try {
-                Utils.sendAPICall("pack/" + getSafeName() + "/installed/", request);
-            } catch (IOException e) {
-                LogManager.logStackTrace(e);
-            }
-        }
-    }
-
-    public void addServerInstall(String version) {
-        if (ConfigManager.getConfigItem("useGraphql.packActions", false) == true) {
-            GraphqlClient
-                    .mutateAndWait(
-                            new AddPackActionMutation(AddPackActionInput.builder().packId(Integer.toString(
-                                    id)).version(version).action(PackLogAction.SERVER).build()));
-        } else {
-            Map<String, Object> request = new HashMap<>();
-
-            request.put("version", version);
-
-            try {
-                Utils.sendAPICall("pack/" + getSafeName() + "/serverinstalled/", request);
-            } catch (IOException e) {
-                LogManager.logStackTrace(e);
-            }
-        }
-    }
-
-    public void addUpdate(String version) {
-        if (ConfigManager.getConfigItem("useGraphql.packActions", false) == true) {
-            GraphqlClient
-                    .mutateAndWait(
-                            new AddPackActionMutation(AddPackActionInput.builder().packId(Integer.toString(
-                                    id)).version(version).action(PackLogAction.UPDATE).build()));
-        } else {
-            Map<String, Object> request = new HashMap<>();
-
-            request.put("version", version);
-
-            try {
-                Utils.sendAPICall("pack/" + getSafeName() + "/updated/", request);
-            } catch (IOException e) {
-                LogManager.logStackTrace(e);
-            }
-        }
     }
 }

@@ -195,11 +195,6 @@ interface IVanillaPacksViewModel {
     val isLegacyFabricVisible: Flow<Boolean>
 
     /**
-     * Is forge an option currently
-     */
-    val isForgeVisible: Flow<Boolean>
-
-    /**
      * Is quilt an option currently
      */
     val isQuiltVisible: Flow<Boolean>
@@ -210,12 +205,7 @@ interface IVanillaPacksViewModel {
     val showFabricOption: Boolean
 
     /**
-     * If forge is enabled in config or not
-     */
-    val showForgeOption: Boolean
-
-    /**
-     * If legacy forge should be enabled or not
+     * If legacy fabric should be enabled or not
      */
     val showLegacyFabricOption: Boolean
 
@@ -245,19 +235,9 @@ interface IVanillaPacksViewModel {
     val loaderTypeFabricEnabled: Flow<Boolean>
 
     /**
-     * Has forge been selected
-     */
-    val loaderTypeForgeSelected: Flow<Boolean>
-
-    /**
      * Is legacy fabric selected
      */
     val loaderTypeLegacyFabricSelected: Flow<Boolean>
-
-    /**
-     * Is the forge button enabled or not
-     */
-    val loaderTypeForgeEnabled: Flow<Boolean>
 
     /**
      * Is legacy fabric enabled

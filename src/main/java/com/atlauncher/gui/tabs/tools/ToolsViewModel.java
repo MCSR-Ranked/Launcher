@@ -33,7 +33,6 @@ import com.atlauncher.evnt.listener.SettingsListener;
 import com.atlauncher.evnt.manager.AccountManager;
 import com.atlauncher.evnt.manager.SettingsManager;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.network.Download;
 import com.atlauncher.utils.OS;
 import com.atlauncher.utils.Utils;
@@ -76,15 +75,11 @@ public class ToolsViewModel implements IToolsViewModel, SettingsListener, Accoun
 
     @Override
     public void launchInDebug() {
-        Analytics.sendEvent("DebugMode", "Run", "Tool");
-
         OS.relaunchInDebugMode();
     }
 
     @Override
     public void clearDownloads() {
-        Analytics.sendEvent("DownloadClearer", "Run", "Tool");
-
         for (File file : FileSystem.DOWNLOADS.toFile().listFiles()) {
             if (!file.equals(FileSystem.TECHNIC_DOWNLOADS.toFile())) {
                 Utils.delete(file);
@@ -102,8 +97,6 @@ public class ToolsViewModel implements IToolsViewModel, SettingsListener, Accoun
 
     @Override
     public void deleteLibraries() {
-        Analytics.sendEvent("LibrariesDeleter", "Run", "Tool");
-
         for (File file : FileSystem.LIBRARIES.toFile().listFiles()) {
             Utils.delete(file);
         }
@@ -111,8 +104,6 @@ public class ToolsViewModel implements IToolsViewModel, SettingsListener, Accoun
 
     @Override
     public void clearLogs() {
-        Analytics.sendEvent("LogClearer", "Run", "Tool");
-
         if (Files.exists(FileSystem.LOGS.resolve("old"))) {
             for (File file : FileSystem.LOGS.resolve("old").toFile().listFiles()) {
                 Utils.delete(file);
@@ -131,10 +122,9 @@ public class ToolsViewModel implements IToolsViewModel, SettingsListener, Accoun
     }
 
     private final String[] HOSTS = { "authserver.mojang.com", "session.minecraft.net", "libraries.minecraft.net",
-            "launchermeta.mojang.com", "launcher.mojang.com", Constants.API_HOST, Constants.PASTE_HOST,
-            Constants.DOWNLOAD_HOST, Constants.FABRIC_HOST, Constants.LEGACY_FABRIC_HOST, Constants.FORGE_HOST,
-            Constants.QUILT_HOST, Constants.CURSEFORGE_CORE_API_HOST, Constants.MODRINTH_HOST,
-            Constants.MODPACKS_CH_HOST };
+            "launchermeta.mojang.com", "launcher.mojang.com", Constants.API_HOST,
+            Constants.DOWNLOAD_HOST, Constants.FABRIC_HOST, Constants.LEGACY_FABRIC_HOST,
+            Constants.QUILT_HOST, Constants.MODRINTH_HOST };
 
     @Override
     public int hostsLength() {
@@ -143,7 +133,6 @@ public class ToolsViewModel implements IToolsViewModel, SettingsListener, Accoun
 
     @Override
     public void runNetworkChecker(Consumer<Void> onTaskComplete, Consumer<Void> onFail, Consumer<Void> onSuccess) {
-        Analytics.sendEvent("NetworkChecker", "Run", "Tool");
         StringBuilder results = new StringBuilder();
 
         // Connection to CDN
@@ -164,16 +153,6 @@ public class ToolsViewModel implements IToolsViewModel, SettingsListener, Accoun
                 .append(Utils.traceRoute(Constants.API_HOST)).append("\n\n----------------\n\n");
         onTaskComplete.accept(null);
 
-        // Connection to CurseForge Core API
-        results.append("Ping results to " + Constants.CURSEFORGE_CORE_API_HOST + " was ")
-                .append(Utils.pingAddress(Constants.CURSEFORGE_CORE_API_HOST));
-        onTaskComplete.accept(null);
-
-        results.append("Tracert to " + Constants.CURSEFORGE_CORE_API_HOST + " was ")
-                .append(Utils.traceRoute(Constants.CURSEFORGE_CORE_API_HOST))
-                .append("\n\n----------------\n\n");
-        onTaskComplete.accept(null);
-
         // Connection to Modrinth API
         results.append("Ping results to " + Constants.MODRINTH_HOST + " was ")
                 .append(Utils.pingAddress(Constants.MODRINTH_HOST));
@@ -183,15 +162,6 @@ public class ToolsViewModel implements IToolsViewModel, SettingsListener, Accoun
                 .append(Utils.traceRoute(Constants.MODRINTH_HOST)).append("\n\n----------------\n\n");
         onTaskComplete.accept(null);
 
-        // Connection to Modpacks.ch API
-        results.append("Ping results to " + Constants.MODPACKS_CH_HOST + " was ")
-                .append(Utils.pingAddress(Constants.MODPACKS_CH_HOST));
-        onTaskComplete.accept(null);
-
-        results.append("Tracert to " + Constants.MODPACKS_CH_HOST + " was ")
-                .append(Utils.traceRoute(Constants.MODPACKS_CH_HOST)).append("\n\n----------------\n\n");
-        onTaskComplete.accept(null);
-
         // Connection to Fabric CDN
         results.append("Ping results to " + Constants.FABRIC_HOST + " was ")
                 .append(Utils.pingAddress(Constants.FABRIC_HOST));
@@ -199,15 +169,6 @@ public class ToolsViewModel implements IToolsViewModel, SettingsListener, Accoun
 
         results.append("Tracert to " + Constants.FABRIC_HOST + " was ")
                 .append(Utils.traceRoute(Constants.FABRIC_HOST)).append("\n\n----------------\n\n");
-        onTaskComplete.accept(null);
-
-        // Connection to Forge CDN
-        results.append("Ping results to " + Constants.FORGE_HOST + " was ")
-                .append(Utils.pingAddress(Constants.FORGE_HOST));
-        onTaskComplete.accept(null);
-
-        results.append("Tracert to " + Constants.FORGE_HOST + " was ")
-                .append(Utils.traceRoute(Constants.FORGE_HOST)).append("\n\n----------------\n\n");
         onTaskComplete.accept(null);
 
         // Connection to Legacy Fabric CDN
@@ -292,17 +253,6 @@ public class ToolsViewModel implements IToolsViewModel, SettingsListener, Accoun
                 String.format("Download speed to %s was %s, " + "" + "taking %.2f seconds to download 100MB",
                         Constants.DOWNLOAD_SERVER, speed, (timeTaken / 1000.0)));
         onTaskComplete.accept(null);
-
-        String result = Utils.uploadPaste(Constants.LAUNCHER_NAME + " Network Test Log", results.toString());
-        if (result.contains(Constants.PASTE_CHECK_URL)) {
-            LogManager.info("Network Test has finished running, you can view the results at " + result);
-            onTaskComplete.accept(null);
-            onSuccess.accept(null);
-        } else {
-            LogManager.error("Network Test failed to submit");
-            onTaskComplete.accept(null);
-            onFail.accept(null);
-        }
     }
 
     @Override
@@ -318,8 +268,6 @@ public class ToolsViewModel implements IToolsViewModel, SettingsListener, Accoun
 
     @Override
     public void updateSkins(Consumer<Void> onTaskComplete) {
-        Analytics.sendEvent("SkinUpdater", "Run", "Tool");
-
         Data.ACCOUNTS.forEach(account -> {
             account.updateSkin();
             onTaskComplete.accept(null);

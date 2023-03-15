@@ -196,41 +196,6 @@ public class Utils {
     }
 
     /**
-     * Upload paste.
-     *
-     * @param title the title
-     * @param log   the log
-     * @return the string
-     */
-    public static String uploadPaste(String title, String log) {
-        String line;
-        String result = "";
-        try {
-            String urlParameters = "";
-            urlParameters += "title=" + URLEncoder.encode(title, "ISO-8859-1") + "&";
-            urlParameters += "language=" + URLEncoder.encode("text", "ISO-8859-1") + "&";
-            urlParameters += "private=" + URLEncoder.encode("1", "ISO-8859-1") + "&";
-            urlParameters += "text=" + URLEncoder.encode(log, "ISO-8859-1");
-            URL url = new URL(Constants.PASTE_API_URL);
-            URLConnection conn = url.openConnection();
-            conn.addRequestProperty("User-Agent", Network.USER_AGENT);
-            conn.setDoOutput(true);
-            OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
-            writer.write(urlParameters);
-            writer.flush();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            while ((line = reader.readLine()) != null) {
-                result = line;
-            }
-            writer.close();
-            reader.close();
-        } catch (IOException e1) {
-            LogManager.logStackTrace(e1);
-        }
-        return result;
-    }
-
-    /**
      * Move file.
      *
      * @param from         the from

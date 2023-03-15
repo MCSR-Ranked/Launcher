@@ -273,7 +273,7 @@ class VanillaPacksTab : JPanel(BorderLayout()), Tab, RelocalizationListener {
                 loaderTypeLegacyFabricRadioButton.isVisible = it
             }
         }
-        loaderTypeLegacyFabricRadioButton.addActionListener { e: ActionEvent? ->
+        loaderTypeLegacyFabricRadioButton.addActionListener {
             viewModel.setLoaderType(
                 LoaderType.LEGACY_FABRIC
             )
@@ -299,7 +299,7 @@ class VanillaPacksTab : JPanel(BorderLayout()), Tab, RelocalizationListener {
                 loaderTypeFabricRadioButton.isVisible = it
             }
         }
-        loaderTypeFabricRadioButton.addActionListener { e: ActionEvent? ->
+        loaderTypeFabricRadioButton.addActionListener {
             viewModel.setLoaderType(
                 LoaderType.FABRIC
             )

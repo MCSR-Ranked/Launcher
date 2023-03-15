@@ -43,7 +43,6 @@ import com.atlauncher.data.json.Mod;
 import com.atlauncher.gui.components.ModsJCheckBox;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.Utils;
 import com.atlauncher.workers.InstanceInstaller;
 import com.google.gson.reflect.TypeToken;
@@ -65,8 +64,6 @@ public class ModsChooser extends JDialog {
     public ModsChooser(InstanceInstaller installerr) {
         super(App.launcher.getParent(), GetText.tr("Select Mods To Install"), ModalityType.DOCUMENT_MODAL);
         this.installer = installerr;
-
-        Analytics.sendScreenView("Mods Chooser Dialog");
 
         setIconImage(Utils.getImage("/assets/image/icon.png"));
         setLocationRelativeTo(App.launcher.getParent());

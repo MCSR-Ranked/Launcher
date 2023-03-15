@@ -50,7 +50,6 @@ repositories {
     maven("https://jitpack.io") {
         content {
             includeGroup("com.github.RyanTheAllmighty.gettext")
-            includeGroup("com.github.Vatuu")
             includeGroup("com.github.RedLime")
         }
     }
@@ -64,7 +63,6 @@ dependencies {
     implementation("org.tukaani:xz:1.9")
     implementation("com.mojang:authlib:1.5.21")
     implementation("net.iharder:base64:2.3.9")
-    implementation("com.github.Vatuu:discord-rpc:1.6.2")
     implementation("net.sf.jopt-simple:jopt-simple:5.0.4")
     implementation("org.zeroturnaround:zt-zip:1.15")
     implementation("com.squareup.okhttp3:okhttp:4.9.3")

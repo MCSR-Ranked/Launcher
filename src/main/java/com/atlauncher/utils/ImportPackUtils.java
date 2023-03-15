@@ -30,10 +30,6 @@ import java.util.regex.Pattern;
 
 import com.atlauncher.FileSystem;
 import com.atlauncher.Gsons;
-import com.atlauncher.data.curseforge.CurseForgeFile;
-import com.atlauncher.data.curseforge.CurseForgeFileHash;
-import com.atlauncher.data.curseforge.CurseForgeProject;
-import com.atlauncher.data.curseforge.pack.CurseForgeManifest;
 import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthVersion;
 import com.atlauncher.data.modrinth.pack.ModrinthModpackManifest;
@@ -45,10 +41,6 @@ import com.atlauncher.network.Download;
 
 public class ImportPackUtils {
     public static boolean loadFromUrl(String url) {
-        if (url.startsWith("https://www.curseforge.com/minecraft/modpacks")) {
-            return loadFromCurseForgeUrl(url);
-        }
-
         if (url.startsWith("https://modrinth.com/modpack")) {
             return loadFromModrinthUrl(url);
         }
@@ -63,74 +55,6 @@ public class ImportPackUtils {
             LogManager.error("Failed to download modpack file");
             return false;
         }
-    }
-
-    public static boolean loadFromCurseForgeUrl(String url) {
-        if (!url.startsWith("https://www.curseforge.com/minecraft/modpacks")) {
-            LogManager.error("Cannot install as the url was not a CurseForge modpack url");
-            return false;
-        }
-
-        Pattern pattern = Pattern.compile(
-                "https:\\/\\/www\\.curseforge\\.com\\/minecraft\\/modpacks\\/([a-zA-Z0-9-]+)\\/?(?:download|files)?\\/?([0-9]+)?");
-        Matcher matcher = pattern.matcher(url);
-
-        if (!matcher.find() || matcher.groupCount() < 2) {
-            LogManager.error("Cannot install as the url was not a valid CurseForge modpack url");
-            return false;
-        }
-
-        String packSlug = matcher.group(1);
-        Integer projectId = null;
-        Integer fileId = null;
-
-        LogManager.debug(matcher.groupCount() + "");
-
-        if (matcher.groupCount() == 2 && matcher.group(2) != null) {
-            fileId = Integer.parseInt(matcher.group(2));
-        }
-
-        LogManager.debug("Found pack with slug " + packSlug + " and file id of " + fileId);
-
-        CurseForgeProject project = CurseForgeApi.getModPackBySlug(packSlug);
-        projectId = project.id;
-        fileId = project.mainFileId;
-
-        if (projectId == null || fileId == null) {
-            LogManager.error(
-                    "Cannot install as the id's couldn't be found. Try using a specific files install link instead.");
-            return false;
-        }
-
-        LogManager.debug("Resolved to project id " + projectId + " and file id of " + fileId);
-
-        CurseForgeFile curseFile = CurseForgeApi.getFileForProject(projectId, fileId);
-        Path tempZip = FileSystem.TEMP.resolve(curseFile.fileName);
-
-        try {
-            Download download = new Download().setUrl(curseFile.downloadUrl).downloadTo(tempZip)
-                    .size(curseFile.fileLength);
-
-            Optional<CurseForgeFileHash> md5Hash = curseFile.hashes.stream().filter(h -> h.isMd5())
-                    .findFirst();
-            Optional<CurseForgeFileHash> sha1Hash = curseFile.hashes.stream().filter(h -> h.isSha1())
-                    .findFirst();
-
-            if (md5Hash.isPresent()) {
-                download = download.hash(md5Hash.get().value);
-            } else if (sha1Hash.isPresent()) {
-                download = download.hash(sha1Hash.get().value);
-            } else {
-                download = download.fingerprint(curseFile.packageFingerprint);
-            }
-
-            download.downloadFile();
-        } catch (IOException e) {
-            LogManager.error("Failed to download modpack file from CurseForge");
-            return false;
-        }
-
-        return loadCurseForgeFormat(tempZip.toFile(), projectId, fileId);
     }
 
     public static boolean loadFromModrinthUrl(String url) {
@@ -185,10 +109,6 @@ public class ImportPackUtils {
             }
 
             FileUtils.deleteDirectory(tmpDir);
-            
-            if (ArchiveUtils.archiveContainsFile(file.toPath(), "manifest.json")) {
-                return loadCurseForgeFormat(file, null, null);
-            }
 
             if (ArchiveUtils.archiveContainsFile(file.toPath(), "modrinth.index.json")) {
                 return loadModrinthFormat(file);
@@ -200,47 +120,6 @@ public class ImportPackUtils {
         }
 
         return false;
-    }
-
-    public static boolean loadCurseForgeFormat(File file, Integer projectId, Integer fileId) {
-        if (!file.getName().endsWith(".zip")) {
-            LogManager.error("Cannot install as the file was not a zip file");
-            return false;
-        }
-
-        Path tmpDir = FileSystem.TEMP.resolve("curseforgeimport" + file.getName().toString().toLowerCase());
-
-        try {
-            CurseForgeManifest manifest = Gsons.MINECRAFT.fromJson(ArchiveUtils.getFile(file.toPath(), "manifest.json"),
-                    CurseForgeManifest.class);
-
-            if (projectId != null) {
-                manifest.projectID = projectId;
-            }
-
-            if (fileId != null) {
-                manifest.fileID = fileId;
-            }
-
-            if (!manifest.manifestType.equals("minecraftModpack")) {
-                LogManager.error("Cannot install as the manifest is not a Minecraft Modpack");
-                return false;
-            }
-
-            if (manifest.manifestVersion != 1) {
-                LogManager.warn("Manifest is version " + manifest.manifestVersion + " which may be an issue!");
-            }
-
-            ArchiveUtils.extract(file.toPath(), tmpDir);
-
-            new InstanceInstallerDialog(manifest, tmpDir);
-        } catch (Exception e) {
-            LogManager.logStackTrace("Failed to install CurseForge pack", e);
-            FileUtils.deleteDirectory(tmpDir);
-            return false;
-        }
-
-        return true;
     }
 
     public static boolean loadModrinthFormat(File file) {

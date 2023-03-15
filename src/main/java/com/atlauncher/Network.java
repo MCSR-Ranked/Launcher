@@ -20,6 +20,7 @@ package com.atlauncher;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -37,7 +38,6 @@ import com.atlauncher.constants.Constants;
 import com.atlauncher.interfaces.NetworkProgressable;
 import com.atlauncher.listener.ProgressListener;
 import com.atlauncher.network.DebugLoggingInterceptor;
-import com.atlauncher.network.ErrorReportingInterceptor;
 import com.atlauncher.network.UserAgentInterceptor;
 import com.atlauncher.utils.Java;
 import com.atlauncher.utils.OS;
@@ -52,12 +52,11 @@ import okhttp3.tls.HandshakeCertificates;
 public final class Network {
     public static Cache CACHE = new Cache(FileSystem.CACHE.toFile(), 100 * 1024 * 1024); // 100MB cache
 
-    private static List<Protocol> protocols = App.settings.dontUseHttp2 ? Arrays.asList(Protocol.HTTP_1_1)
+    private static List<Protocol> protocols = App.settings.dontUseHttp2 ? Collections.singletonList(Protocol.HTTP_1_1)
             : Arrays.asList(Protocol.HTTP_2, Protocol.HTTP_1_1);
 
     public static OkHttpClient CLIENT = new OkHttpClient.Builder().protocols(protocols)
             .addNetworkInterceptor(new UserAgentInterceptor()).addInterceptor(new DebugLoggingInterceptor())
-            .addNetworkInterceptor(new ErrorReportingInterceptor())
             .connectTimeout(App.settings.connectionTimeout, TimeUnit.SECONDS)
             .readTimeout(App.settings.connectionTimeout, TimeUnit.SECONDS)
             .writeTimeout(App.settings.connectionTimeout, TimeUnit.SECONDS).build();

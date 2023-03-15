@@ -51,7 +51,6 @@ import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.PackManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.ArchiveUtils;
 import com.atlauncher.utils.OS;
 import com.atlauncher.utils.Utils;
@@ -245,8 +244,6 @@ public class Server {
     }
 
     public void backup() {
-        Analytics.sendEvent(pack + " - " + version, "Backup", "Server");
-
         Timestamp timestamp = new Timestamp(new Date().getTime());
         String time = timestamp.toString().replaceAll("[^0-9]", "_");
         String filename = "Server-" + getSafeName() + "-" + time.substring(0, time.lastIndexOf("_")) + ".zip";

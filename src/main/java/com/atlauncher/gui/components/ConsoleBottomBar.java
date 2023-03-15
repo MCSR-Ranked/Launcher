@@ -31,21 +31,17 @@ import org.mini2Dx.gettext.GetText;
 
 import com.atlauncher.App;
 import com.atlauncher.builders.HTMLBuilder;
-import com.atlauncher.constants.Constants;
 import com.atlauncher.evnt.listener.RelocalizationListener;
 import com.atlauncher.evnt.manager.RelocalizationManager;
 import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.network.Analytics;
-import com.atlauncher.thread.PasteUpload;
 
 @SuppressWarnings("serial")
 public class ConsoleBottomBar extends BottomBar implements RelocalizationListener {
 
     private final JButton clearButton = new JButton(GetText.tr("Clear"));
     private final JButton copyLogButton = new JButton(GetText.tr("Copy Log"));
-    private final JButton uploadLogButton = new JButton(GetText.tr("Upload Log"));
     private final JButton killMinecraftButton = new JButton(GetText.tr("Kill Minecraft"));
 
     public ConsoleBottomBar() {
@@ -54,7 +50,6 @@ public class ConsoleBottomBar extends BottomBar implements RelocalizationListene
         JPanel leftSide = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 13));
         leftSide.add(this.clearButton);
         leftSide.add(this.copyLogButton);
-        leftSide.add(this.uploadLogButton);
         leftSide.add(this.killMinecraftButton);
 
         this.killMinecraftButton.setVisible(false);
@@ -73,46 +68,11 @@ public class ConsoleBottomBar extends BottomBar implements RelocalizationListene
             LogManager.info("Console Cleared");
         });
         copyLogButton.addActionListener(e -> {
-            Analytics.sendEvent("CopyLog", "Launcher");
             App.TOASTER.pop("Copied Log to clipboard");
             LogManager.info("Copied Log to clipboard");
             StringSelection text = new StringSelection(App.console.getLog());
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
             clipboard.setContents(text, null);
-        });
-        uploadLogButton.addActionListener(e -> {
-            String result;
-            final ProgressDialog<String> dialog = new ProgressDialog<>(GetText.tr("Uploading Logs"), 0,
-                    GetText.tr("Uploading Logs"), "Aborting Uploading Logs", App.console);
-
-            dialog.addThread(new Thread(() -> {
-                try {
-                    dialog.setReturnValue(App.TASKPOOL.submit(new PasteUpload()).get());
-                } catch (InterruptedException ignored) {
-                    Thread.currentThread().interrupt();
-                    dialog.setReturnValue(null);
-                } catch (ExecutionException ex) {
-                    LogManager.logStackTrace("Exception while uploading paste", ex);
-                    dialog.setReturnValue(null);
-                }
-
-                dialog.close();
-            }));
-
-            dialog.start();
-            result = dialog.getReturnValue();
-
-            if (result != null && result.contains(Constants.PASTE_CHECK_URL)) {
-                Analytics.sendEvent("UploadLog", "Launcher");
-                App.TOASTER.pop("Log uploaded and link copied to clipboard");
-                LogManager.info("Log uploaded and link copied to clipboard: " + result);
-                StringSelection text = new StringSelection(result);
-                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                clipboard.setContents(text, null);
-            } else {
-                App.TOASTER.popError("Log failed to upload!");
-                LogManager.error("Log failed to upload: " + result);
-            }
         });
         killMinecraftButton.addActionListener(arg0 -> {
             int ret = DialogManager.yesNoDialog().setTitle(GetText.tr("Kill Minecraft") + "?")
@@ -121,7 +81,6 @@ public class ConsoleBottomBar extends BottomBar implements RelocalizationListene
                             .build())
                     .setType(DialogManager.QUESTION).show();
             if (ret == DialogManager.YES_OPTION) {
-                Analytics.sendEvent("KillMinecraft", "Launcher");
                 App.launcher.killMinecraft();
                 killMinecraftButton.setVisible(false);
             }
@@ -144,7 +103,6 @@ public class ConsoleBottomBar extends BottomBar implements RelocalizationListene
     public void onRelocalization() {
         clearButton.setText(GetText.tr("Clear"));
         copyLogButton.setText(GetText.tr("Copy Log"));
-        uploadLogButton.setText(GetText.tr("Upload Log"));
         killMinecraftButton.setText(GetText.tr("Kill Minecraft"));
     }
 }

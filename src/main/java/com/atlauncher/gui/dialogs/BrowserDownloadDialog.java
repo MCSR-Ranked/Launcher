@@ -50,7 +50,6 @@ import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.constants.UIConstants;
 import com.atlauncher.data.json.Mod;
 import com.atlauncher.gui.layouts.WrapLayout;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.FileUtils;
 import com.atlauncher.utils.Hashing;
 import com.atlauncher.utils.OS;
@@ -80,8 +79,6 @@ public final class BrowserDownloadDialog extends JDialog {
     public BrowserDownloadDialog(Window parent, List<Mod> browserDownloadMods) {
         super(parent, GetText.tr("Browser Download Mods"), ModalityType.DOCUMENT_MODAL);
         this.browserDownloadMods = browserDownloadMods;
-
-        Analytics.sendScreenView("Browser Download Mods");
 
         this.setPreferredSize(new Dimension(680, 600));
         this.setMinimumSize(new Dimension(680, 600));

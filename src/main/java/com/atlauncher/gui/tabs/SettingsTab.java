@@ -41,7 +41,6 @@ import com.atlauncher.gui.tabs.settings.LoggingSettingsTab;
 import com.atlauncher.gui.tabs.settings.ModsSettingsTab;
 import com.atlauncher.gui.tabs.settings.NetworkSettingsTab;
 import com.atlauncher.managers.DialogManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.OS;
 import com.formdev.flatlaf.FlatLaf;
 
@@ -97,9 +96,6 @@ public class SettingsTab extends JPanel implements Tab, RelocalizationListener {
                 if (reloadInstancesPanel) {
                     App.launcher.reloadInstancesPanel();
                 }
-                if (themeChanged) {
-                    Analytics.sendEvent(App.THEME.getName(), "ChangeTheme", "Launcher");
-                }
                 if (languageChanged) {
                     int ret = DialogManager.yesNoDialog().setType(DialogManager.INFO)
                             .setTitle(GetText.tr("Language Changed. Restart?"))
@@ -122,9 +118,6 @@ public class SettingsTab extends JPanel implements Tab, RelocalizationListener {
                 App.TOASTER.pop("Settings Saved");
             }
         });
-
-        tabbedPane.addChangeListener(e -> Analytics
-                .sendScreenView(((Tab) tabbedPane.getSelectedComponent()).getAnalyticsScreenViewName() + " Settings"));
     }
 
     @Override

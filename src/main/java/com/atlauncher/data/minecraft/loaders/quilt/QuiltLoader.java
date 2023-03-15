@@ -33,18 +33,13 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import com.atlauncher.FileSystem;
-import com.atlauncher.Gsons;
 import com.atlauncher.data.minecraft.Arguments;
 import com.atlauncher.data.minecraft.Library;
 import com.atlauncher.data.minecraft.loaders.Loader;
 import com.atlauncher.data.minecraft.loaders.LoaderVersion;
-import com.atlauncher.graphql.GetLatestQuiltLoaderVersionQuery;
-import com.atlauncher.graphql.GetQuiltLoaderVersionQuery;
-import com.atlauncher.graphql.GetQuiltLoaderVersionsForMinecraftVersionQuery;
 import com.atlauncher.managers.ConfigManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.network.Download;
-import com.atlauncher.network.GraphqlClient;
 import com.atlauncher.utils.Utils;
 import com.atlauncher.workers.InstanceInstaller;
 import com.google.gson.reflect.TypeToken;
@@ -76,26 +71,6 @@ public class QuiltLoader implements Loader {
     }
 
     private QuiltMetaProfile getLoader(String version) {
-        if (ConfigManager.getConfigItem("useGraphql.loaderVersionsNonForge", false) == true) {
-            GetQuiltLoaderVersionQuery.Data response = GraphqlClient
-                    .callAndWait(GetQuiltLoaderVersionQuery.builder().quiltVersion(version)
-                            .minecraftVersion(this.minecraft).includeClientJson(
-                                    !instanceInstaller.isServer)
-                            .includeServerJson(instanceInstaller.isServer).build());
-
-            if (response == null || response.quiltLoaderVersion() == null) {
-                return null;
-            }
-
-            if (instanceInstaller.isServer) {
-                return Gsons.MINECRAFT.fromJson(response.quiltLoaderVersion().serverJson(),
-                        QuiltMetaProfile.class);
-            }
-
-            return Gsons.MINECRAFT.fromJson(response.quiltLoaderVersion().clientJson(),
-                    QuiltMetaProfile.class);
-        }
-
         return Download.build()
                 .setUrl(String.format("https://meta.quiltmc.org/v3/versions/loader/%s/%s/%s/json", this.minecraft,
                         version,
@@ -104,18 +79,6 @@ public class QuiltLoader implements Loader {
     }
 
     public String getLatestVersion() {
-        if (ConfigManager.getConfigItem("useGraphql.loaderVersionsNonForge", false) == true) {
-            GetLatestQuiltLoaderVersionQuery.Data response = GraphqlClient
-                    .callAndWait(new GetLatestQuiltLoaderVersionQuery());
-
-            if (response == null || response.quiltLoaderVersions() == null
-                    || response.quiltLoaderVersions().size() == 0) {
-                return null;
-            }
-
-            return response.quiltLoaderVersions().get(0).version();
-        }
-
         java.lang.reflect.Type type = new TypeToken<List<QuiltMetaVersion>>() {
         }.getType();
 
@@ -236,22 +199,6 @@ public class QuiltLoader implements Loader {
         try {
             List<String> disabledVersions = ConfigManager.getConfigItem("loaders.quilt.disabledVersions",
                     new ArrayList<String>());
-
-            if (ConfigManager.getConfigItem("useGraphql.loaderVersionsNonForge", false) == true) {
-                GetQuiltLoaderVersionsForMinecraftVersionQuery.Data response = GraphqlClient
-                        .callAndWait(new GetQuiltLoaderVersionsForMinecraftVersionQuery(minecraft));
-
-                if (response == null || response.loaderVersions() == null
-                        || response.loaderVersions().quilt() == null
-                        || response.loaderVersions().quilt().size() == 0) {
-                    return null;
-                }
-
-                return response.loaderVersions().quilt().stream()
-                        .filter(fv -> !disabledVersions.contains(fv.version()))
-                        .map(version -> new LoaderVersion(version.version(), false, "Quilt"))
-                        .collect(Collectors.toList());
-            }
 
             java.lang.reflect.Type type = new TypeToken<List<QuiltMetaVersion>>() {
             }.getType();

@@ -21,12 +21,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.*;
 
-import com.atlauncher.App;
 import com.atlauncher.Data;
 import com.atlauncher.FileSystem;
 import com.atlauncher.Gsons;
 import com.atlauncher.data.Instance;
-import com.atlauncher.utils.CurseForgeApi;
 import com.atlauncher.utils.FileUtils;
 import com.atlauncher.utils.Utils;
 import com.google.gson.JsonIOException;
@@ -90,21 +88,6 @@ public class InstanceManager {
                 } catch (JsonIOException | JsonSyntaxException e) {
                     LogManager.logStackTrace("Failed to load instance in the folder " + instanceDir, e);
                     continue;
-                }
-
-                if (instance.launcher.curseForgeManifest != null
-                        && instance.launcher.curseForgeManifest.projectID != null
-                        && instance.launcher.curseForgeManifest.fileID != null) {
-                    LogManager.info(String.format("Converting instance \"%s\" CurseForge information",
-                            instance.launcher.name));
-                    instance.launcher.curseForgeProject = CurseForgeApi
-                            .getProjectById(instance.launcher.curseForgeManifest.projectID);
-                    instance.launcher.curseForgeFile = CurseForgeApi.getFileForProject(
-                            instance.launcher.curseForgeManifest.projectID,
-                            instance.launcher.curseForgeManifest.fileID);
-                    instance.launcher.curseForgeManifest = null;
-
-                    instance.save();
                 }
 
                 if (instance.launcher.numPlays == null) {

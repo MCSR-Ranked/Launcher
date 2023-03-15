@@ -19,7 +19,6 @@ package com.atlauncher.data.minecraft;
 
 import java.lang.reflect.Type;
 
-import com.atlauncher.data.minecraft.loaders.forge.ForgeLibrary;
 import com.google.gson.Gson;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -32,20 +31,6 @@ public class LibraryTypeAdapter implements JsonDeserializer<Library> {
     public Library deserialize(JsonElement json, Type type, JsonDeserializationContext context)
             throws JsonParseException {
         JsonObject object = json.getAsJsonObject();
-
-        Library library;
-
-        if (object.has("checksums")) {
-            library = new Gson().fromJson(object, ForgeLibrary.class);
-        } else {
-            library = new Gson().fromJson(object, Library.class);
-
-            if (library.name.contains("forge") && library.downloads != null && library.downloads.artifact != null
-                    && library.downloads.artifact.url.endsWith("-launcher.jar")) {
-                library.downloads.artifact.url = library.downloads.artifact.url.replace("-launcher.jar", ".jar");
-            }
-        }
-
-        return library;
+        return new Gson().fromJson(object, Library.class);
     }
 }

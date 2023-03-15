@@ -289,19 +289,7 @@ public class Version {
     }
 
     public List<Mod> getInstallMods(InstanceInstaller instanceInstaller, boolean client) {
-        return this.mods.stream().filter(client ? Mod::installOnClient : Mod::installOnServer).map(mod -> {
-            if (instanceInstaller.isReinstall) {
-                Optional<DisableableMod> matchingMod = instanceInstaller.instance.launcher.mods.parallelStream()
-                        .filter(dm -> dm.file.equals(mod.file)).findFirst();
-
-                if (matchingMod.isPresent() && matchingMod.get().hasFullCurseForgeInformation()) {
-                    mod.curseForgeProject = matchingMod.get().curseForgeProject;
-                    mod.curseForgeFile = matchingMod.get().curseForgeFile;
-                }
-            }
-
-            return mod;
-        }).collect(Collectors.toList());
+        return this.mods.stream().filter(client ? Mod::installOnClient : Mod::installOnServer).collect(Collectors.toList());
     }
 
     public List<Action> getActions() {

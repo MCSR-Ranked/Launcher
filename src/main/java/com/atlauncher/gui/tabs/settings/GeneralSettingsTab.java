@@ -102,10 +102,6 @@ public class GeneralSettingsTab extends AbstractSettingsTab {
 
         languagePanel.add(Box.createHorizontalStrut(5));
 
-        JButton translateButton = new JButton(GetText.tr("Help Translate"));
-        translateButton.addActionListener(e -> OS.openWebBrowser(Constants.CROWDIN_URL));
-        languagePanel.add(translateButton);
-
         add(languagePanel, gbc);
 
         // Theme

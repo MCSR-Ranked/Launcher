@@ -60,7 +60,6 @@ import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.constants.Constants;
 import com.atlauncher.data.Instance;
 import com.atlauncher.data.Language;
-import com.atlauncher.data.Pack;
 import com.atlauncher.data.Settings;
 import com.atlauncher.gui.LauncherConsole;
 import com.atlauncher.gui.LauncherFrame;
@@ -70,8 +69,6 @@ import com.atlauncher.gui.dialogs.SetupDialog;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.InstanceManager;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.managers.PackManager;
-import com.atlauncher.network.ErrorReporting;
 import com.atlauncher.themes.ATLauncherLaf;
 import com.atlauncher.utils.Java;
 import com.atlauncher.utils.OS;
@@ -82,8 +79,6 @@ import com.formdev.flatlaf.extras.FlatUIDefaultsInspector;
 import io.github.asyncronous.toast.Toaster;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import net.arikia.dev.drpc.DiscordEventHandlers;
-import net.arikia.dev.drpc.DiscordRPC;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
 import oshi.hardware.GraphicsCard;
@@ -123,8 +118,6 @@ public class App {
      */
     public static boolean wasUpdated = false;
 
-    public static boolean discordInitialized = false;
-
     /**
      * This allows skipping the setup dialog on first run. This is mainly used for
      * automation tests. It can be skipped with the below command line argument.
@@ -141,23 +134,6 @@ public class App {
      * --skip-tray-integration
      */
     public static boolean skipTrayIntegration = false;
-
-    /**
-     * This allows skipping the in built analytics collection. This is mainly useful
-     * for development when you don't want to report analytics. For end users, this
-     * can be turned off in the launcher setup or through the settings.
-     * <p/>
-     * --disable-analytics
-     */
-    public static boolean disableAnalytics = false;
-
-    /**
-     * This allows skipping the in built error reporting. This is mainly useful for
-     * development when you don't want to report errors to an external third party.
-     * <p/>
-     * --disable-error-reporting
-     */
-    public static boolean disableErrorReporting = false;
 
     /**
      * This forces the working directory for the launcher. It can be changed with
@@ -198,21 +174,6 @@ public class App {
      * --close-launcher
      */
     public static boolean closeLauncher = false;
-
-    /**
-     * This sets a pack code to be added to the launcher on startup.
-     */
-    public static String packCodeToAdd = null;
-
-    /**
-     * This sets a pack to install on startup (no share code so just prompt).
-     */
-    public static String packToInstall = null;
-
-    /**
-     * This sets a pack to install on startup (with share code).
-     */
-    public static String packShareCodeToInstall = null;
 
     /**
      * Config overrides.
@@ -258,11 +219,6 @@ public class App {
 
         // Parse all the command line arguments
         parseCommandLineArguments(args);
-
-        // Initialize the error reporting unless disabled by command line
-        if (!disableErrorReporting) {
-            ErrorReporting.enable();
-        }
 
         // check the launcher has been 'installed' correctly
         checkInstalledCorrectly();
@@ -364,42 +320,12 @@ public class App {
             }
         }
 
-        if (packCodeToAdd != null) {
-            if (PackManager.addPack(packCodeToAdd)) {
-                Pack packAdded = PackManager.getSemiPublicPackByCode(packCodeToAdd);
-                if (packAdded != null) {
-                    LogManager.info("The pack " + packAdded.getName() + " was automatically added to the launcher!");
-                } else {
-                    LogManager.error("Error automatically adding semi public pack with code of " + packCodeToAdd + "!");
-                }
-            } else {
-                LogManager.error("Error automatically adding semi public pack with code of " + packCodeToAdd + "!");
-            }
-        }
-
         // Open the Launcher
         final boolean openLauncher = open;
         SwingUtilities.invokeLater(() -> {
             new LauncherFrame(openLauncher);
             ss.close();
         });
-    }
-
-    public static void ensureDiscordIsInitialized() {
-        if (!OS.isArm() && !discordInitialized) {
-            try {
-                DiscordEventHandlers handlers = new DiscordEventHandlers.Builder().build();
-                DiscordRPC.discordInitialize(Constants.DISCORD_CLIENT_ID, handlers, true);
-                DiscordRPC.discordRegister(Constants.DISCORD_CLIENT_ID, "");
-
-                discordInitialized = true;
-
-                Runtime.getRuntime().addShutdownHook(new Thread(DiscordRPC::discordShutdown));
-            } catch (Throwable e) {
-                LogManager.logStackTrace("Failed to initialize Discord integration", e);
-                discordInitialized = false;
-            }
-        }
     }
 
     private static void logSystemInformation(String[] args) {
@@ -921,16 +847,6 @@ public class App {
         skipTrayIntegration = options.has("skip-tray-integration");
         if (skipTrayIntegration) {
             LogManager.debug("Skipping tray integration!");
-        }
-
-        disableAnalytics = options.has("disable-analytics");
-        if (disableAnalytics) {
-            LogManager.debug("Disabling analytics!");
-        }
-
-        disableErrorReporting = options.has("disable-error-reporting");
-        if (disableErrorReporting) {
-            LogManager.debug("Disabling error reporting!");
         }
 
         if (options.has("working-dir")) {

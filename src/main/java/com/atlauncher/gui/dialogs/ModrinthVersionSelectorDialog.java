@@ -54,7 +54,6 @@ import com.atlauncher.gui.card.ModrinthProjectDependencyCard;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.MinecraftManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.ComboItem;
 import com.atlauncher.utils.ModrinthApi;
 import com.atlauncher.utils.OS;
@@ -149,22 +148,6 @@ public class ModrinthVersionSelectorDialog extends JDialog {
                     .filter(dependency -> dependency.dependencyType == ModrinthDependencyType.REQUIRED
                             && instance.launcher.mods.stream()
                                     .noneMatch(installedMod -> {
-                                        // don't show Modrinth dependency when grabbed from CurseForge
-                                        if (dependency.projectId.equals(Constants.MODRINTH_FABRIC_MOD_ID)
-                                                && installedMod.isFromCurseForge()
-                                                && installedMod
-                                                        .getCurseForgeFileId() == Constants.CURSEFORGE_FABRIC_MOD_ID) {
-                                            return true;
-                                        }
-
-                                        // don't show Modrinth dependency when grabbed from CurseForge
-                                        if (dependency.projectId.equals(Constants.MODRINTH_LEGACY_FABRIC_MOD_ID)
-                                                && installedMod.isFromCurseForge()
-                                                && installedMod
-                                                        .getCurseForgeFileId() == Constants.CURSEFORGE_LEGACY_FABRIC_MOD_ID) {
-                                            return true;
-                                        }
-
                                         // don't show Fabric dependency when QSL is installed
                                         if (dependency.projectId.equals(Constants.MODRINTH_FABRIC_MOD_ID)
                                                 && installedMod.isFromModrinth()
@@ -204,8 +187,6 @@ public class ModrinthVersionSelectorDialog extends JDialog {
     }
 
     private void setupComponents() {
-        Analytics.sendScreenView("Modrinth Version Selector Dialog");
-
         // #. {0} is the name of the mod we're installing
         setTitle(GetText.tr("Installing {0}", mod.title));
 
@@ -290,7 +271,6 @@ public class ModrinthVersionSelectorDialog extends JDialog {
                     // #. {0} is the name of the mod we're installing
                     GetText.tr("Installing {0}", version.name), true, this);
             progressDialog.addThread(new Thread(() -> {
-                Analytics.sendEvent(mod.title + " - " + version.name, "AddFile", "ModrinthMod");
                 instance.addFileFromModrinth(mod, version, file, progressDialog);
 
                 progressDialog.close();

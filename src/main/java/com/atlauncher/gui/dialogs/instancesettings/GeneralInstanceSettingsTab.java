@@ -42,7 +42,6 @@ public class GeneralInstanceSettingsTab extends JPanel {
     private final Instance instance;
 
     private JComboBox<ComboItem<String>> account;
-    private JComboBox<ComboItem<Boolean>> enableDiscordIntegration;
 
     final ImageIcon HELP_ICON = Utils.getIconImage(App.THEME.getIconPath("question"));
     final ImageIcon ERROR_ICON = Utils.getIconImage(App.THEME.getIconPath("error"));
@@ -107,28 +106,10 @@ public class GeneralInstanceSettingsTab extends JPanel {
         gbc.gridx++;
         gbc.insets = UIConstants.FIELD_INSETS;
         gbc.anchor = GridBagConstraints.BASELINE_LEADING;
-        enableDiscordIntegration = new JComboBox<>();
-        enableDiscordIntegration.addItem(new ComboItem<>(null, GetText.tr("Use Launcher Default")));
-        enableDiscordIntegration.addItem(new ComboItem<>(true, GetText.tr("Yes")));
-        enableDiscordIntegration.addItem(new ComboItem<>(false, GetText.tr("No")));
-
-        enableDiscordIntegration.setEnabled(!OS.isArm());
-
-        if (instance.launcher.enableDiscordIntegration == null) {
-            enableDiscordIntegration.setSelectedIndex(0);
-        } else if (instance.launcher.enableDiscordIntegration) {
-            enableDiscordIntegration.setSelectedIndex(1);
-        } else {
-            enableDiscordIntegration.setSelectedIndex(2);
-        }
-
-        add(enableDiscordIntegration, gbc);
     }
 
     public void saveSettings() {
         this.instance.launcher.account = ((ComboItem<String>) account.getSelectedItem()).getValue();
-        this.instance.launcher.enableDiscordIntegration = ((ComboItem<Boolean>) enableDiscordIntegration
-                .getSelectedItem()).getValue();
     }
 
 }
