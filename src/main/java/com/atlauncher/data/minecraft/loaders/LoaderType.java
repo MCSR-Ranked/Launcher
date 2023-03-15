@@ -29,13 +29,6 @@ public enum LoaderType {
         }
     },
 
-    @SerializedName("forge")
-    FORGE {
-        public String toString() {
-            return "Forge";
-        }
-    },
-
     @SerializedName("legacyfabric")
     LEGACY_FABRIC {
         public String toString() {
@@ -51,10 +44,6 @@ public enum LoaderType {
     },;
 
     public Integer getAnalyticsValue() {
-        if (this == FORGE) {
-            return 1;
-        }
-
         if (this == FABRIC) {
             return 2;
         }

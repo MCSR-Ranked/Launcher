@@ -27,8 +27,6 @@ import java.util.UUID;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.TransferQueue;
 
-import com.atlauncher.managers.LogManager;
-
 import org.freedesktop.dbus.DBusMap;
 import org.freedesktop.dbus.DBusMatchRule;
 import org.freedesktop.dbus.connections.impl.DBusConnection;
@@ -36,6 +34,8 @@ import org.freedesktop.dbus.interfaces.DBusSigHandler;
 import org.freedesktop.dbus.messages.DBusSignal;
 import org.freedesktop.dbus.types.UInt32;
 import org.freedesktop.dbus.types.Variant;
+
+import com.atlauncher.managers.LogManager;
 
 public class DBusUtils {
     public static File[] selectFiles() {

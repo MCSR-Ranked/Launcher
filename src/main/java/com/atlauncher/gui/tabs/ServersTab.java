@@ -28,8 +28,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
-import com.atlauncher.viewmodel.base.IServersTabViewModel;
-import com.atlauncher.viewmodel.impl.ServersTabViewModel;
 import org.mini2Dx.gettext.GetText;
 
 import com.atlauncher.builders.HTMLBuilder;
@@ -38,7 +36,8 @@ import com.atlauncher.evnt.listener.RelocalizationListener;
 import com.atlauncher.evnt.manager.RelocalizationManager;
 import com.atlauncher.gui.card.NilCard;
 import com.atlauncher.gui.card.ServerCard;
-import com.atlauncher.network.Analytics;
+import com.atlauncher.viewmodel.base.IServersTabViewModel;
+import com.atlauncher.viewmodel.impl.ServersTabViewModel;
 import com.formdev.flatlaf.icons.FlatSearchIcon;
 
 @SuppressWarnings("serial")
@@ -68,7 +67,6 @@ public class ServersTab extends JPanel implements Tab, RelocalizationListener {
             public void keyReleased(KeyEvent e) {
                 if (e.getKeyChar() == KeyEvent.VK_ENTER) {
                     String text = searchBox.getText();
-                    Analytics.sendEvent(text, "Search", "Server");
                     viewModel.setSearch(text);
                 }
             }

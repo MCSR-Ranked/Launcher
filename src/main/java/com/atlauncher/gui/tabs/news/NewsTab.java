@@ -33,9 +33,9 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
 
-import com.atlauncher.gui.tabs.Tab;
 import org.mini2Dx.gettext.GetText;
 
+import com.atlauncher.gui.tabs.Tab;
 import com.atlauncher.utils.OS;
 
 /**

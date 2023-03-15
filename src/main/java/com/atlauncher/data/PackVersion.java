@@ -17,10 +17,8 @@
  */
 package com.atlauncher.data;
 
-import com.atlauncher.data.curseforge.CurseForgeFile;
 import com.atlauncher.data.minecraft.VersionManifestVersion;
 import com.atlauncher.data.minecraft.VersionManifestVersionType;
-import com.atlauncher.data.modpacksch.ModpacksChPackVersionType;
 import com.atlauncher.data.modrinth.ModrinthVersion;
 
 public class PackVersion {
@@ -34,8 +32,6 @@ public class PackVersion {
     public boolean hasChoosableLoader = false;
     public String loaderType;
     public transient Integer _modpacksChId = null;
-    public transient ModpacksChPackVersionType _modpacksChType = null;
-    public transient CurseForgeFile _curseForgeFile = null;
     public transient ModrinthVersion _modrinthVersion = null;
     public transient boolean _technicRecommended = false;
     public transient boolean _technicLatest = false;
@@ -53,14 +49,6 @@ public class PackVersion {
 
         if (_technicLatest) {
             return versionString + " (Latest)";
-        }
-
-        if (_modpacksChType == ModpacksChPackVersionType.BETA) {
-            return versionString + " (Beta)";
-        }
-
-        if (_modpacksChType == ModpacksChPackVersionType.ALPHA) {
-            return versionString + " (Alpha)";
         }
 
         return versionString;
@@ -99,10 +87,6 @@ public class PackVersion {
     }
 
     public boolean versionMatches(Instance instance) {
-        if (instance.isCurseForgePack()) {
-            return versionMatches(instance.launcher.curseForgeFile.displayName);
-        }
-
         return versionMatches(instance.launcher.version);
     }
 

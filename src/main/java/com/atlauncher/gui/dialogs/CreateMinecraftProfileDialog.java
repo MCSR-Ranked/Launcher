@@ -39,7 +39,6 @@ import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.constants.UIConstants;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.MojangAPIUtils;
 import com.atlauncher.utils.Utils;
 
@@ -59,8 +58,6 @@ public class CreateMinecraftProfileDialog extends JDialog {
         super(parent, GetText.tr("Create Minecraft Profile"), ModalityType.DOCUMENT_MODAL);
 
         this.accessToken = accessToken;
-
-        Analytics.sendScreenView("Create Minecraft Profile Dialog");
 
         setSize(320, 150);
         setLocationRelativeTo(parent);

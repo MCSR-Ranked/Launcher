@@ -40,7 +40,6 @@ import com.atlauncher.data.Instance;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.InstanceManager;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.Utils;
 
 @SuppressWarnings("serial")
@@ -58,8 +57,6 @@ public class RenameInstanceDialog extends JDialog {
         super(parent, GetText.tr("Renaming Instance"), ModalityType.DOCUMENT_MODAL);
 
         this.instance = instance;
-
-        Analytics.sendScreenView("Rename Instance Dialog");
 
         setSize(320, 150);
         setLocationRelativeTo(parent);

@@ -48,47 +48,23 @@ public class Constants {
     // Launcher config
     public static final LauncherVersion VERSION;
     public static final String LAUNCHER_NAME = "MCSR Ranked Launcher";
-    public static final String LAUNCHER_WEBSITE = "https://atlauncher.com";
+    public static final String LAUNCHER_WEBSITE = "https://mcsrranked.com";
     public static final String DEFAULT_THEME_CLASS = "com.atlauncher.themes.Dark";
     public static final String DISCORD_CLIENT_ID = "589393213723246592";
     public static final String GA_TRACKING_ID = "UA-88820616-7";
-    public static final String CROWDIN_URL = "https://crowdin.com/project/atlauncher";
-    public static final String SENTRY_DSN = "https://499c3bbc55cb434dad42a3ac670e2c91@sentry.io/1498519";
-
     // Launcher domains, endpoints, etc
     public static String BASE_LAUNCHER_PROTOCOL = "https://";
-    public static String BASE_LAUNCHER_DOMAIN = "atlauncher.com";
+    public static String BASE_LAUNCHER_DOMAIN = "mcsrranked.com";
     public static String API_BASE_URL = BASE_LAUNCHER_PROTOCOL + "api." + BASE_LAUNCHER_DOMAIN + "/v1/launcher/";
-    public static String GRAPHQL_ENDPOINT = BASE_LAUNCHER_PROTOCOL + "api." + BASE_LAUNCHER_DOMAIN + "/v2/graphql";
     public static String API_HOST = "api." + BASE_LAUNCHER_DOMAIN;
-    public static String PASTE_CHECK_URL = BASE_LAUNCHER_PROTOCOL + "paste." + BASE_LAUNCHER_DOMAIN;
-    public static String PASTE_HOST = "paste." + BASE_LAUNCHER_DOMAIN;
-    public static String SERVERS_LIST_PACK = BASE_LAUNCHER_PROTOCOL + BASE_LAUNCHER_DOMAIN + "/servers/list/pack";
-    public static String PASTE_API_URL = BASE_LAUNCHER_PROTOCOL + "paste." + BASE_LAUNCHER_DOMAIN + "/api/create";
 
     // CDN domains, endpoints, etc
     public static String BASE_CDN_PROTOCOL = "https://";
-    public static String BASE_CDN_DOMAIN = "download.nodecdn.net";
+    public static String BASE_CDN_DOMAIN = "mcsrranked.com";
     public static String BASE_CDN_PATH = "/containers/atl";
     public static String DOWNLOAD_SERVER = BASE_CDN_PROTOCOL + BASE_CDN_DOMAIN + BASE_CDN_PATH;
     public static String DOWNLOAD_HOST = BASE_CDN_DOMAIN;
 
-    // CurseForge domains, endpoints, config, etc
-    public static final String CURSEFORGE_CORE_API_URL = "https://api.curseforge.com/v1";
-    // if you fork or modify this launcher, you must not use this API key and apply
-    // for your own
-    public static final String CURSEFORGE_CORE_API_KEY = "$2a$10$.7CSxLm/lnj5lCBSM5jGQ.3SICSX4j9r661AgoB1Rc4Nw8jCMKcv2";
-    public static final String CURSEFORGE_CORE_API_HOST = "api.curseforge.com";
-    public static final int CURSEFORGE_FORGE_MODLOADER_ID = 1;
-    public static final int CURSEFORGE_FABRIC_MODLOADER_ID = 4;
-    public static final int CURSEFORGE_PAGINATION_SIZE = 20;
-    public static final int CURSEFORGE_FABRIC_MOD_ID = 306612;
-    public static final int CURSEFORGE_LEGACY_FABRIC_MOD_ID = 400281;
-    public static final int CURSEFORGE_JUMPLOADER_MOD_ID = 361988;
-    public static final int CURSEFORGE_MODS_SECTION_ID = 6;
-    public static final int CURSEFORGE_MODPACKS_SECTION_ID = 4471;
-    public static final int CURSEFORGE_RESOURCE_PACKS_SECTION_ID = 12;
-    public static final int CURSEFORGE_WORLDS_SECTION_ID = 17;
 
     // Modrinth domains, endpoints, config, etc
     public static final String MODRINTH_API_URL = "https://api.modrinth.com/v2";
@@ -97,23 +73,6 @@ public class Constants {
     public static final String MODRINTH_LEGACY_FABRIC_MOD_ID = "9CJED7xi";
     public static final String MODRINTH_QSL_MOD_ID = "qvIfYCYJ";
     public static final int MODRINTH_PAGINATION_SIZE = 20;
-
-    // Modpacks.ch domains, endpoints, config, etc
-    public static final String MODPACKS_CH_API_URL = "https://api.modpacks.ch/public";
-    public static final String MODPACKS_CH_HOST = "api.modpacks.ch";
-    public static final int MODPACKS_CH_PAGINATION_SIZE = 20;
-
-    // Technic domains, endpoints, config, etc
-    public static final String TECHNIC_API_URL = "https://api.technicpack.net";
-    public static final String TECHNIC_HOST = "api.technicpack.net";
-    public static final int TECHNIC_PAGINATION_SIZE = 20;
-
-    // Forge domains, endpoints, etc
-    public static final String FORGE_MAVEN = "https://maven.minecraftforge.net/net/minecraftforge/forge";
-    public static final String FORGE_PROMOTIONS_FILE = "https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json";
-    public static final String FORGE_MAVEN_BASE = "https://maven.minecraftforge.net/";
-    public static final String FORGE_HOST = "maven.minecraftforge.net";
-    public static final String FORGE_OLD_MAVEN_BASE = "https://files.minecraftforge.net/maven/";
 
     // Fabric domains, endpoints, etc
     public static final String FABRIC_MAVEN = "https://maven.fabricmc.net/";
@@ -175,10 +134,6 @@ public class Constants {
         BASE_LAUNCHER_DOMAIN = host;
         API_BASE_URL = BASE_LAUNCHER_PROTOCOL + "api." + host + "/v1/launcher/";
         API_HOST = "api." + host;
-        PASTE_CHECK_URL = BASE_LAUNCHER_PROTOCOL + "paste." + host;
-        PASTE_HOST = "paste." + host;
-        SERVERS_LIST_PACK = BASE_LAUNCHER_PROTOCOL + host + "/servers/list/pack";
-        PASTE_API_URL = BASE_LAUNCHER_PROTOCOL + "paste." + host + "/api/create";
     }
 
     public static void setBaseCdnDomain(String baseCdnDomain) {

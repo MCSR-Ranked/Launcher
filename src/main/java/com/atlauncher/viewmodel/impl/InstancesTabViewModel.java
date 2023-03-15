@@ -17,20 +17,21 @@
  */
 package com.atlauncher.viewmodel.impl;
 
-import com.atlauncher.App;
-import com.atlauncher.data.Instance;
-import com.atlauncher.managers.InstanceManager;
-import com.atlauncher.utils.sort.InstanceSortingStrategy;
-import com.atlauncher.viewmodel.base.IInstancesTabViewModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.atlauncher.App;
+import com.atlauncher.data.Instance;
+import com.atlauncher.managers.InstanceManager;
+import com.atlauncher.utils.sort.InstanceSortingStrategy;
+import com.atlauncher.viewmodel.base.IInstancesTabViewModel;
 
 /**
  * 20 / 11 / 2022

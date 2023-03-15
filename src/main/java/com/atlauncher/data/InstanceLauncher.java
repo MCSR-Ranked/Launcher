@@ -22,18 +22,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.atlauncher.annot.Json;
-import com.atlauncher.data.curseforge.CurseForgeFile;
-import com.atlauncher.data.curseforge.CurseForgeProject;
-import com.atlauncher.data.curseforge.pack.CurseForgeManifest;
 import com.atlauncher.data.json.Java;
 import com.atlauncher.data.minecraft.loaders.LoaderVersion;
-import com.atlauncher.data.modpacksch.ModpacksChPackManifest;
-import com.atlauncher.data.modpacksch.ModpacksChPackVersionManifest;
 import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthVersion;
 import com.atlauncher.data.modrinth.pack.ModrinthModpackManifest;
 import com.atlauncher.data.multimc.MultiMCManifest;
-import com.atlauncher.data.technic.TechnicModpack;
 import com.google.gson.annotations.SerializedName;
 
 @Json
@@ -50,9 +44,6 @@ public class InstanceLauncher {
     public String hash;
 
     public Java java;
-
-    @SerializedName(value = "enableCurseForgeIntegration", alternate = { "enableCurseIntegration" })
-    public boolean enableCurseForgeIntegration = false;
     public boolean enableEditingMods = true;
 
     public LoaderVersion loaderVersion;
@@ -67,7 +58,6 @@ public class InstanceLauncher {
     public String javaArguments;
     public String javaRuntimeOverride = null;
     public String account;
-    public Boolean enableDiscordIntegration = null;
     public Boolean useJavaProvidedByMinecraft = null;
     public Boolean disableLegacyLaunching = null;
     public Boolean enableCommands = null;
@@ -80,19 +70,10 @@ public class InstanceLauncher {
     public boolean isDev;
     public boolean isPlayable;
     public boolean assetsMapToResources;
-
-    @SerializedName(value = "curseForgeManifest", alternate = { "curseManifest" })
-    public CurseForgeManifest curseForgeManifest;
-
-    public CurseForgeProject curseForgeProject;
-    public CurseForgeFile curseForgeFile;
     public MultiMCManifest multiMCManifest;
     public ModrinthProject modrinthProject;
     public ModrinthVersion modrinthVersion;
     public ModrinthModpackManifest modrinthManifest;
-    public ModpacksChPackManifest modpacksChPackManifest;
-    public ModpacksChPackVersionManifest modpacksChPackVersionManifest;
-    public TechnicModpack technicModpack;
 
     public boolean checkForUpdates = true;
 

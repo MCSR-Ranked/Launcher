@@ -31,8 +31,6 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 import javax.annotation.Nullable;
 
-import com.atlauncher.managers.LogManager;
-
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveOutputStream;
@@ -41,6 +39,8 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.zeroturnaround.zip.NameMapper;
 import org.zeroturnaround.zip.ZipUtil;
+
+import com.atlauncher.managers.LogManager;
 
 public class ArchiveUtils {
     public static boolean archiveContainsFile(Path archivePath, String file) {

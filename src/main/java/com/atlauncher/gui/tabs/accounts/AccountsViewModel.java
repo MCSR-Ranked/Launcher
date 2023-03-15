@@ -32,7 +32,6 @@ import com.atlauncher.data.MojangAccount;
 import com.atlauncher.gui.dialogs.ChangeSkinDialog;
 import com.atlauncher.managers.AccountManager;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.Authentication;
 
 /**
@@ -190,7 +189,6 @@ public class AccountsViewModel implements IAccountsViewModel {
             com.atlauncher.evnt.manager.AccountManager.post();
         }
 
-        Analytics.sendEvent("Edit", "Account");
         LogManager.info("Edited Account " + account);
         pushNewAccounts();
     }
@@ -226,10 +224,7 @@ public class AccountsViewModel implements IAccountsViewModel {
     }
 
     @Override
-    public boolean refreshAccessToken() {
-        Analytics.sendEvent("RefreshAccessToken", "Account");
-
-        AbstractAccount abstractAccount = getSelectedAccount();
+    public boolean refreshAccessToken() {AbstractAccount abstractAccount = getSelectedAccount();
         if (abstractAccount instanceof MicrosoftAccount) {
             MicrosoftAccount account = (MicrosoftAccount) abstractAccount;
             boolean success = account
@@ -249,7 +244,6 @@ public class AccountsViewModel implements IAccountsViewModel {
     @Override
     public void updateUsername() {
         AbstractAccount account = getSelectedAccount();
-        Analytics.sendEvent("UpdateUsername", "Account");
         account.updateUsername();
         AccountManager.saveAccounts();
         pushNewAccounts();
@@ -265,13 +259,11 @@ public class AccountsViewModel implements IAccountsViewModel {
     @Override
     public void updateSkin() {
         AbstractAccount account = getSelectedAccount();
-        Analytics.sendEvent("UpdateSkin", "Account");
         account.updateSkin();
     }
 
     @Override
     public void deleteAccount() {
-        Analytics.sendEvent("Delete", "Account");
         AccountManager.removeAccount(getSelectedAccount());
         pushNewAccounts();
     }

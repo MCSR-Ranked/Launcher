@@ -22,10 +22,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Window;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -33,49 +31,26 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JEditorPane;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.event.HyperlinkEvent;
 
-import org.apache.commons.text.WordUtils;
 import org.mini2Dx.gettext.GetText;
 
 import com.atlauncher.App;
 import com.atlauncher.builders.HTMLBuilder;
-import com.atlauncher.constants.Constants;
-import com.atlauncher.data.AddModRestriction;
 import com.atlauncher.data.Instance;
 import com.atlauncher.data.ModPlatform;
-import com.atlauncher.data.curseforge.CurseForgeCategoryForGame;
-import com.atlauncher.data.curseforge.CurseForgeProject;
 import com.atlauncher.data.minecraft.loaders.LoaderVersion;
 import com.atlauncher.data.modcheck.ModCheckManager;
 import com.atlauncher.data.modcheck.ModCheckProject;
 import com.atlauncher.data.modcheck.ModCheckSearchHitCard;
-import com.atlauncher.data.modrinth.ModrinthCategory;
-import com.atlauncher.data.modrinth.ModrinthProject;
-import com.atlauncher.data.modrinth.ModrinthSearchHit;
-import com.atlauncher.data.modrinth.ModrinthSearchResult;
-import com.atlauncher.exceptions.InvalidMinecraftVersion;
-import com.atlauncher.gui.card.CurseForgeProjectCard;
-import com.atlauncher.gui.card.ModrinthSearchHitCard;
 import com.atlauncher.gui.layouts.WrapLayout;
 import com.atlauncher.gui.panels.LoadingPanel;
 import com.atlauncher.gui.panels.NoCurseModsPanel;
-import com.atlauncher.managers.ConfigManager;
 import com.atlauncher.managers.DialogManager;
-import com.atlauncher.managers.LogManager;
-import com.atlauncher.managers.MinecraftManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.ComboItem;
-import com.atlauncher.utils.CurseForgeApi;
-import com.atlauncher.utils.ModrinthApi;
-import com.atlauncher.utils.OS;
 import com.formdev.flatlaf.icons.FlatSearchIcon;
 import com.google.common.collect.Lists;
 
@@ -88,7 +63,6 @@ public final class AddModsDialog extends JDialog {
     private final JPanel contentPanel = new JPanel(new WrapLayout());
     private final JPanel topPanel = new JPanel(new BorderLayout());
     private final JTextField searchField = new JTextField(16);
-    private final JLabel platformMessageLabel = new JLabel();
     private final JComboBox<ComboItem<ModPlatform>> hostComboBox = new JComboBox<ComboItem<ModPlatform>>();
 
     private JScrollPane jscrollPane;
@@ -113,8 +87,6 @@ public final class AddModsDialog extends JDialog {
 
         hostComboBox.addItem(new ComboItem<>(ModPlatform.MODCHECK, "ModCheck"));
 
-        hostComboBox.setSelectedIndex(App.settings.defaultModPlatform == ModPlatform.CURSEFORGE ? 0 : 1);
-
         searchField.putClientProperty("JTextField.placeholderText", GetText.tr("Search"));
         searchField.putClientProperty("JTextField.leadingIcon", new FlatSearchIcon());
         searchField.putClientProperty("JTextField.showClearButton", true);
@@ -122,13 +94,6 @@ public final class AddModsDialog extends JDialog {
             searchField.setText("");
             searchForMods();
         });
-
-        String platformMessage = ConfigManager.getConfigItem(String.format("platforms.%s.message",
-                App.settings.defaultModPlatform == ModPlatform.CURSEFORGE ? "curseforge" : "modrinth"), null);
-        if (platformMessage != null) {
-            platformMessageLabel.setText(new HTMLBuilder().center().text(platformMessage).build());
-        }
-        platformMessageLabel.setVisible(platformMessage != null);
 
         setupComponents();
 
@@ -140,8 +105,6 @@ public final class AddModsDialog extends JDialog {
     }
 
     private void setupComponents() {
-        Analytics.sendScreenView("Add Mods Dialog");
-
         this.topPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
 
         JPanel searchButtonsPanel = new JPanel();
@@ -180,8 +143,6 @@ public final class AddModsDialog extends JDialog {
         bottomButtonsPanel.add(prevButton);
         bottomButtonsPanel.add(nextButton);
 
-        platformMessageLabel.setForeground(UIManager.getColor("yellow"));
-        bottomPanel.add(platformMessageLabel, BorderLayout.NORTH);
         bottomPanel.add(bottomButtonsPanel, BorderLayout.CENTER);
 
         this.add(mainPanel, BorderLayout.CENTER);
@@ -190,8 +151,6 @@ public final class AddModsDialog extends JDialog {
         this.hostComboBox.addActionListener(e -> {
             updating = true;
             page = 0;
-
-            platformMessageLabel.setVisible(false);
 
             if (searchField.getText().isEmpty()) {
                 loadDefaultMods();
@@ -220,10 +179,6 @@ public final class AddModsDialog extends JDialog {
             page -= 1;
         }
 
-        boolean isCurseForge = ((ComboItem<ModPlatform>) hostComboBox.getSelectedItem())
-                .getValue() == ModPlatform.CURSEFORGE;
-        Analytics.sendEvent(page, "Previous", "Navigation", isCurseForge ? "CurseForgeMod" : "ModrinthMod");
-
         getMods();
     }
 
@@ -231,10 +186,6 @@ public final class AddModsDialog extends JDialog {
         if (contentPanel.getComponentCount() != 0) {
             page += 1;
         }
-
-        boolean isCurseForge = ((ComboItem<ModPlatform>) hostComboBox.getSelectedItem())
-                .getValue() == ModPlatform.CURSEFORGE;
-        Analytics.sendEvent(page, "Next", "Navigation", isCurseForge ? "CurseForgeMod" : "ModrinthMod");
 
         getMods();
     }
@@ -262,10 +213,6 @@ public final class AddModsDialog extends JDialog {
         String query = searchField.getText();
 
         page = 0;
-
-        boolean isCurseForge = ((ComboItem<ModPlatform>) hostComboBox.getSelectedItem())
-                .getValue() == ModPlatform.CURSEFORGE;
-        Analytics.sendEvent(query, "Search", isCurseForge ? "CurseForgeMod" : "ModrinthMod");
 
         getMods();
     }
@@ -315,8 +262,6 @@ public final class AddModsDialog extends JDialog {
                                 .setType(DialogManager.ERROR).show();
                         return;
                     }
-
-                    Analytics.sendEvent(mod.getName(), "Add", "ModrinthMod");
 
                     ProgressDialog<?> dialog = new ProgressDialog<>(GetText.tr("Installing " + mod.getName()));
                     dialog.addThread(new Thread(() -> {

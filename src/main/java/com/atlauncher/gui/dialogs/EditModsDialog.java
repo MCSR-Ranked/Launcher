@@ -50,8 +50,6 @@ import com.atlauncher.App;
 import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.data.DisableableMod;
 import com.atlauncher.data.Instance;
-import com.atlauncher.data.curseforge.CurseForgeFingerprint;
-import com.atlauncher.data.curseforge.CurseForgeProject;
 import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthVersion;
 import com.atlauncher.gui.components.ModsJCheckBox;
@@ -60,8 +58,6 @@ import com.atlauncher.gui.layouts.WrapLayout;
 import com.atlauncher.managers.ConfigManager;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.network.Analytics;
-import com.atlauncher.utils.CurseForgeApi;
 import com.atlauncher.utils.FileUtils;
 import com.atlauncher.utils.Hashing;
 import com.atlauncher.utils.ModrinthApi;
@@ -110,8 +106,6 @@ public class EditModsDialog extends JDialog {
     }
 
     private void setupComponents() {
-        Analytics.sendScreenView("Edit Mods Dialog");
-
         JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         split.setDividerSize(0);
         split.setBorder(null);
@@ -273,31 +267,29 @@ public class EditModsDialog extends JDialog {
         });
         bottomPanel.add(addButton);
 
-        if (instance.launcher.enableCurseForgeIntegration) {
-            if (ConfigManager.getConfigItem("platforms.curseforge.modsEnabled", true) == true
-                    || (ConfigManager.getConfigItem("platforms.modrinth.modsEnabled", true) == true
-                            && this.instance.launcher.loaderVersion != null)) {
-                JButton browseMods = new JButton(GetText.tr("Browse Mods"));
-                browseMods.addActionListener(e -> {
-                    new AddModsDialog(this, instance);
+        if (ConfigManager.getConfigItem("platforms.curseforge.modsEnabled", true)
+            || (ConfigManager.getConfigItem("platforms.modrinth.modsEnabled", true)
+            && this.instance.launcher.loaderVersion != null)) {
+            JButton browseMods = new JButton(GetText.tr("Browse Mods"));
+            browseMods.addActionListener(e -> {
+                new AddModsDialog(this, instance);
 
-                    loadMods();
+                loadMods();
 
-                    reloadPanels();
-                });
-                bottomPanel.add(browseMods);
-            }
-
-            checkForUpdatesButton = new JButton(GetText.tr("Check For Updates"));
-            checkForUpdatesButton.addActionListener(e -> checkForUpdates());
-            checkForUpdatesButton.setEnabled(false);
-            bottomPanel.add(checkForUpdatesButton);
-
-            reinstallButton = new JButton(GetText.tr("Reinstall"));
-            reinstallButton.addActionListener(e -> reinstall());
-            reinstallButton.setEnabled(false);
-            bottomPanel.add(reinstallButton);
+                reloadPanels();
+            });
+            bottomPanel.add(browseMods);
         }
+
+        checkForUpdatesButton = new JButton(GetText.tr("Check For Updates"));
+        checkForUpdatesButton.addActionListener(e -> checkForUpdates());
+        checkForUpdatesButton.setEnabled(false);
+        bottomPanel.add(checkForUpdatesButton);
+
+        reinstallButton = new JButton(GetText.tr("Reinstall"));
+        reinstallButton.addActionListener(e -> reinstall());
+        reinstallButton.setEnabled(false);
+        bottomPanel.add(reinstallButton);
 
         enableButton = new JButton(GetText.tr("Enable Selected"));
         enableButton.addActionListener(e -> enableMods());
@@ -366,16 +358,14 @@ public class EditModsDialog extends JDialog {
     }
 
     private void checkBoxesChanged() {
-        if (instance.launcher.enableCurseForgeIntegration) {
-            boolean hasSelectedACurseForgeOrModrinthMod = (enabledMods.stream().anyMatch(AbstractButton::isSelected)
-                    && enabledMods.stream().filter(AbstractButton::isSelected)
-                            .anyMatch(cb -> cb.getDisableableMod().isUpdatable()))
-                    || (disabledMods.stream().anyMatch(AbstractButton::isSelected) && disabledMods.stream()
-                            .filter(AbstractButton::isSelected).anyMatch(cb -> cb.getDisableableMod().isUpdatable()));
+        boolean hasSelectedACurseForgeOrModrinthMod = (enabledMods.stream().anyMatch(AbstractButton::isSelected)
+            && enabledMods.stream().filter(AbstractButton::isSelected)
+            .anyMatch(cb -> cb.getDisableableMod().isUpdatable()))
+            || (disabledMods.stream().anyMatch(AbstractButton::isSelected) && disabledMods.stream()
+            .filter(AbstractButton::isSelected).anyMatch(cb -> cb.getDisableableMod().isUpdatable()));
 
-            checkForUpdatesButton.setEnabled(hasSelectedACurseForgeOrModrinthMod);
-            reinstallButton.setEnabled(hasSelectedACurseForgeOrModrinthMod);
-        }
+        checkForUpdatesButton.setEnabled(hasSelectedACurseForgeOrModrinthMod);
+        reinstallButton.setEnabled(hasSelectedACurseForgeOrModrinthMod);
 
         removeButton.setEnabled((disabledMods.size() != 0 && disabledMods.stream().anyMatch(AbstractButton::isSelected))
                 || (enabledMods.size() != 0 && enabledMods.stream().anyMatch(AbstractButton::isSelected)));
@@ -498,62 +488,6 @@ public class EditModsDialog extends JDialog {
             modsToRefresh
                     .addAll(disabledMods.parallelStream().filter(ModsJCheckBox::isSelected)
                             .collect(Collectors.toList()));
-
-            // TODO: Generalise this, cause fuck me I've copy pasted this like 10 times now
-            if (!App.settings.dontCheckModsOnCurseForge) {
-                Map<Long, ModsJCheckBox> murmurHashes = new HashMap<>();
-
-                modsToRefresh.stream()
-                        .filter(mjc -> mjc.getDisableableMod().getFile(instance.ROOT, instance.id) != null)
-                        .forEach(mjc -> {
-                            try {
-                                long hash = Hashing
-                                        .murmur(mjc.getDisableableMod().getFile(instance.ROOT, instance.id).toPath());
-                                murmurHashes.put(hash, mjc);
-                            } catch (Throwable t) {
-                                LogManager.logStackTrace(t);
-                            }
-                        });
-
-                if (murmurHashes.size() != 0) {
-                    CurseForgeFingerprint fingerprintResponse = CurseForgeApi
-                            .checkFingerprints(murmurHashes.keySet().stream().toArray(Long[]::new));
-
-                    if (fingerprintResponse != null && fingerprintResponse.exactMatches != null) {
-                        int[] projectIdsFound = fingerprintResponse.exactMatches.stream().mapToInt(em -> em.id)
-                                .toArray();
-
-                        if (projectIdsFound.length != 0) {
-                            Map<Integer, CurseForgeProject> foundProjects = CurseForgeApi
-                                    .getProjectsAsMap(projectIdsFound);
-
-                            if (foundProjects != null) {
-                                fingerprintResponse.exactMatches.stream().filter(em -> em != null && em.file != null
-                                        && murmurHashes.containsKey(em.file.packageFingerprint)).forEach(foundMod -> {
-                                            DisableableMod dm = murmurHashes.get(foundMod.file.packageFingerprint)
-                                                    .getDisableableMod();
-
-                                            // add CurseForge information
-                                            dm.curseForgeProjectId = foundMod.id;
-                                            dm.curseForgeFile = foundMod.file;
-                                            dm.curseForgeFileId = foundMod.file.id;
-
-                                            CurseForgeProject curseForgeProject = foundProjects.get(foundMod.id);
-
-                                            if (curseForgeProject != null) {
-                                                dm.curseForgeProject = curseForgeProject;
-                                                dm.name = curseForgeProject.name;
-                                                dm.description = curseForgeProject.summary;
-                                            }
-
-                                            LogManager.debug("Found matching mod from CurseForge called "
-                                                    + dm.curseForgeFile.displayName);
-                                        });
-                            }
-                        }
-                    }
-                }
-            }
 
             if (!App.settings.dontCheckModsOnModrinth) {
                 Map<String, ModsJCheckBox> sha1Hashes = new HashMap<>();

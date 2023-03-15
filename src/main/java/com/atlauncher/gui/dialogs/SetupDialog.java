@@ -27,7 +27,6 @@ import java.awt.event.WindowEvent;
 import java.util.Locale;
 
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -42,9 +41,6 @@ import com.atlauncher.constants.UIConstants;
 import com.atlauncher.data.Language;
 import com.atlauncher.evnt.listener.RelocalizationListener;
 import com.atlauncher.evnt.manager.RelocalizationManager;
-import com.atlauncher.gui.components.JLabelWithHover;
-import com.atlauncher.network.Analytics;
-import com.atlauncher.utils.OS;
 import com.atlauncher.utils.Utils;
 
 public class SetupDialog extends JDialog implements RelocalizationListener {
@@ -54,9 +50,6 @@ public class SetupDialog extends JDialog implements RelocalizationListener {
 
     private final JLabel languageLabel;
     private final JComboBox<String> language;
-
-    private final JLabel enableAnalyticsLabel;
-    private final JCheckBox enableAnalytics;
 
     private final JButton saveButton;
 
@@ -103,33 +96,9 @@ public class SetupDialog extends JDialog implements RelocalizationListener {
         });
         middle.add(language, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy++;
-        gbc.insets = UIConstants.LABEL_INSETS;
-        gbc.anchor = GridBagConstraints.BASELINE_TRAILING;
-        enableAnalyticsLabel = new JLabelWithHover(GetText.tr("Enable Anonymous Analytics") + "? ",
-                Utils.getIconImage(App.THEME.getIconPath("question")),
-                "<html>" + Utils.splitMultilinedString(GetText.tr(
-                        "The Launcher sends back anonymous analytics to Google Analytics in order to track what people do and don't use in the launcher. This helps determine what new features we implement in the future. All analytics are anonymous and contain no user/instance information in it at all. If you don't want to send anonymous analytics, you can disable this option."),
-                        80, "<br/>") + "</html>");
-        middle.add(enableAnalyticsLabel, gbc);
-
         gbc.gridx++;
         gbc.insets = UIConstants.FLOW_FIELD_INSETS;
         gbc.anchor = GridBagConstraints.BASELINE_LEADING;
-
-        JPanel enableAnalyticsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, UIConstants.SPACING_LARGE, 0));
-        enableAnalytics = new JCheckBox();
-        enableAnalytics.setSelected(!App.disableAnalytics);
-        enableAnalyticsPanel.add(enableAnalytics);
-
-        JButton privacyPolicyButton = new JButton(GetText.tr("Open Privacy Policy"));
-        privacyPolicyButton.addActionListener(e -> {
-            OS.openWebBrowser("https://atlauncher.com/privacy-policy");
-        });
-        enableAnalyticsPanel.add(privacyPolicyButton);
-
-        middle.add(enableAnalyticsPanel, gbc);
 
         // Bottom Panel Stuff
         JPanel bottom = new JPanel();
@@ -138,14 +107,8 @@ public class SetupDialog extends JDialog implements RelocalizationListener {
         saveButton.addActionListener(e -> {
             Language.setLanguage((String) language.getSelectedItem());
             App.settings.language = (String) language.getSelectedItem();
-            App.settings.enableAnalytics = enableAnalytics.isSelected();
             App.settings.firstTimeRun = false;
             App.settings.save();
-
-            if (enableAnalytics.isSelected()) {
-                Analytics.startSession();
-                Analytics.sendEvent("SetupDialogComplete", "Launcher");
-            }
 
             setVisible(false);
             dispose();
@@ -171,10 +134,6 @@ public class SetupDialog extends JDialog implements RelocalizationListener {
     public void onRelocalization() {
         setupLabel.setText(GetText.tr("Setting up {0}", Constants.LAUNCHER_NAME));
         languageLabel.setText(GetText.tr("Language") + ": ");
-        enableAnalyticsLabel.setText(GetText.tr("Enable Anonymous Analytics") + "? ");
-        enableAnalyticsLabel.setToolTipText("<html>" + Utils.splitMultilinedString(GetText.tr(
-                "The Launcher sends back anonymous analytics to Google Analytics in order to track what people do and don't use in the launcher. This helps determine what new features we implement in the future. All analytics are anonymous and contain no user/instance information in it at all. If you don't want to send anonymous analytics, you can disable this option."),
-                80, "<br/>") + "</html>");
         saveButton.setText(GetText.tr("Save"));
     }
 }

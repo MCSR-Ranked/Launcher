@@ -38,7 +38,6 @@ public class ModsSettingsTab extends AbstractSettingsTab {
     private final JComboBox<ComboItem<ModPlatform>> defaultModPlatform;
     private final JComboBox<ComboItem<AddModRestriction>> addModRestriction;
     private final JCheckBox enableAddedModsByDefault;
-    private final JCheckBox dontCheckModsOnCurseForge;
     private final JCheckBox dontCheckModsOnModrinth;
     private final JComboBox<ComboItem<InstanceExportFormat>> defaultExportFormat;
 
@@ -125,29 +124,6 @@ public class ModsSettingsTab extends AbstractSettingsTab {
         enableAddedModsByDefault.setSelected(App.settings.enableAddedModsByDefault);
         add(enableAddedModsByDefault, gbc);
 
-        // Dont check mods on CurseForge
-
-        gbc.gridx = 0;
-        gbc.gridy++;
-        gbc.insets = UIConstants.LABEL_INSETS;
-        gbc.anchor = GridBagConstraints.BASELINE_TRAILING;
-        JLabelWithHover dontCheckModsOnCurseForgeLabel = new JLabelWithHover(
-                // #. {0} is the platform (e.g. CurseForge/Modrinth)
-                GetText.tr("Don't Check Mods On {0}?", "CurseForge"), HELP_ICON,
-                // #. {0} is the platform (e.g. CurseForge/Modrinth)
-                new HTMLBuilder().center().split(100).text(GetText.tr(
-                        "When installing packs or adding mods manually to instances, we check for the file on {0} to show more information about the mod as well as make updating easier. Disabling this will mean you won't be able to update manually added mods from within the launcher.",
-                        "CurseForge"))
-                        .build());
-        add(dontCheckModsOnCurseForgeLabel, gbc);
-
-        gbc.gridx++;
-        gbc.insets = UIConstants.CHECKBOX_FIELD_INSETS;
-        gbc.anchor = GridBagConstraints.BASELINE_LEADING;
-        dontCheckModsOnCurseForge = new JCheckBox();
-        dontCheckModsOnCurseForge.setSelected(App.settings.dontCheckModsOnCurseForge);
-        add(dontCheckModsOnCurseForge, gbc);
-
         // Dont check mods on Modrinth
 
         gbc.gridx = 0;
@@ -212,7 +188,6 @@ public class ModsSettingsTab extends AbstractSettingsTab {
         App.settings.addModRestriction = ((ComboItem<AddModRestriction>) addModRestriction.getSelectedItem())
                 .getValue();
         App.settings.enableAddedModsByDefault = enableAddedModsByDefault.isSelected();
-        App.settings.dontCheckModsOnCurseForge = dontCheckModsOnCurseForge.isSelected();
         App.settings.dontCheckModsOnModrinth = dontCheckModsOnModrinth.isSelected();
         App.settings.defaultExportFormat = ((ComboItem<InstanceExportFormat>) defaultExportFormat.getSelectedItem())
                 .getValue();

@@ -19,20 +19,22 @@ package com.atlauncher.managers;
 
 import java.io.File;
 import java.io.FileReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
-import com.atlauncher.App;
+import javax.swing.SwingUtilities;
+
 import com.atlauncher.Data;
 import com.atlauncher.FileSystem;
 import com.atlauncher.Gsons;
 import com.atlauncher.data.Instance;
-import com.atlauncher.utils.CurseForgeApi;
 import com.atlauncher.utils.FileUtils;
 import com.atlauncher.utils.Utils;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
-
-import javax.swing.*;
 
 public class InstanceManager {
     private static final List<Listener> listeners = new LinkedList<>();
@@ -90,21 +92,6 @@ public class InstanceManager {
                 } catch (JsonIOException | JsonSyntaxException e) {
                     LogManager.logStackTrace("Failed to load instance in the folder " + instanceDir, e);
                     continue;
-                }
-
-                if (instance.launcher.curseForgeManifest != null
-                        && instance.launcher.curseForgeManifest.projectID != null
-                        && instance.launcher.curseForgeManifest.fileID != null) {
-                    LogManager.info(String.format("Converting instance \"%s\" CurseForge information",
-                            instance.launcher.name));
-                    instance.launcher.curseForgeProject = CurseForgeApi
-                            .getProjectById(instance.launcher.curseForgeManifest.projectID);
-                    instance.launcher.curseForgeFile = CurseForgeApi.getFileForProject(
-                            instance.launcher.curseForgeManifest.projectID,
-                            instance.launcher.curseForgeManifest.fileID);
-                    instance.launcher.curseForgeManifest = null;
-
-                    instance.save();
                 }
 
                 if (instance.launcher.numPlays == null) {

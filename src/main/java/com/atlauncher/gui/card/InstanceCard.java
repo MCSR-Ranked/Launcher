@@ -45,7 +45,6 @@ import org.mini2Dx.gettext.GetText;
 import com.atlauncher.App;
 import com.atlauncher.Gsons;
 import com.atlauncher.builders.HTMLBuilder;
-import com.atlauncher.constants.Constants;
 import com.atlauncher.data.APIResponse;
 import com.atlauncher.data.BackupMode;
 import com.atlauncher.data.DisableableMod;
@@ -66,7 +65,6 @@ import com.atlauncher.managers.ConfigManager;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.InstanceManager;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.OS;
 import com.atlauncher.utils.Utils;
 import com.google.gson.reflect.TypeToken;
@@ -85,7 +83,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
     private final JButton exportButton = new JButton(GetText.tr("Export"));
     private final JButton addButton = new JButton(GetText.tr("Add Mods"));
     private final JButton editButton = new JButton(GetText.tr("Edit Mods"));
-    private final JButton serversButton = new JButton(GetText.tr("Servers"));
     private final JButton openWebsite = new JButton(GetText.tr("Open Website"));
     private final JButton openButton = new JButton(GetText.tr("Open Folder"));
     private final JButton settingsButton = new JButton(GetText.tr("Settings"));
@@ -125,12 +122,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
     private final JMenuItem changeFabricVersionMenuItem = new JMenuItem(GetText.tr("Change {0} Version", "Fabric"));
     // #. {0} is the loader (Forge/Fabric/Quilt)
     private final JMenuItem removeFabricMenuItem = new JMenuItem(GetText.tr("Remove {0}", "Fabric"));
-    // #. {0} is the loader (Forge/Fabric/Quilt)
-    private final JMenuItem addForgeMenuItem = new JMenuItem(GetText.tr("Add {0}", "Forge"));
-    // #. {0} is the loader (Forge/Fabric/Quilt)
-    private final JMenuItem changeForgeVersionMenuItem = new JMenuItem(GetText.tr("Change {0} Version", "Forge"));
-    // #. {0} is the loader (Forge/Fabric/Quilt)
-    private final JMenuItem removeForgeMenuItem = new JMenuItem(GetText.tr("Remove {0}", "Forge"));
     // #. {0} is the loader (Forge/Fabric/Quilt)
     private final JMenuItem addLegacyFabricMenuItem = new JMenuItem(GetText.tr("Add {0}", "Legacy Fabric"));
     // #. {0} is the loader (Forge/LegacyFabric/Quilt)
@@ -213,28 +204,14 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
             this.updateButton.setVisible(instance.isUpdatable());
         }
 
-        if (instance.isExternalPack() || instance.launcher.vanillaInstance) {
-            this.serversButton.setVisible(false);
-        }
-
-        if (instance.getPack() != null && instance.getPack().system) {
-            this.serversButton.setVisible(false);
-        }
-
         this.openWebsite.setVisible(instance.hasWebsite());
 
-        if (instance.launcher.enableCurseForgeIntegration
-                && (ConfigManager.getConfigItem("platforms.curseforge.modsEnabled", true) == true
-                        || (ConfigManager.getConfigItem("platforms.modrinth.modsEnabled", true) == true
-                                && this.instance.launcher.loaderVersion != null))) {
-            bottom.add(this.addButton);
-        }
+        bottom.add(this.addButton);
 
         if (instance.launcher.enableEditingMods) {
             bottom.add(this.editButton);
         }
 
-        bottom.add(this.serversButton);
         bottom.add(this.openWebsite);
         bottom.add(this.openButton);
 
@@ -307,7 +284,7 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
         editInstancePopupMenu.add(changeImageMenuItem);
         editInstancePopupMenu.addSeparator();
 
-        if (ConfigManager.getConfigItem("loaders.fabric.enabled", true) == true
+        if (ConfigManager.getConfigItem("loaders.fabric.enabled", true)
                 && !ConfigManager.getConfigItem("loaders.fabric.disabledMinecraftVersions", new ArrayList<String>())
                         .contains(instance.id)) {
             editInstancePopupMenu.add(addFabricMenuItem);
@@ -315,15 +292,7 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
         }
         editInstancePopupMenu.add(removeFabricMenuItem);
 
-        if (ConfigManager.getConfigItem("loaders.forge.enabled", true) == true
-                && !ConfigManager.getConfigItem("loaders.forge.disabledMinecraftVersions", new ArrayList<String>())
-                        .contains(instance.id)) {
-            editInstancePopupMenu.add(addForgeMenuItem);
-            editInstancePopupMenu.add(changeForgeVersionMenuItem);
-        }
-        editInstancePopupMenu.add(removeForgeMenuItem);
-
-        if (ConfigManager.getConfigItem("loaders.legacyfabric.enabled", true) == true
+        if (ConfigManager.getConfigItem("loaders.legacyfabric.enabled", true)
                 && !ConfigManager
                         .getConfigItem("loaders.legacyfabric.disabledMinecraftVersions", new ArrayList<String>())
                         .contains(instance.id)) {
@@ -332,7 +301,7 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
         }
         editInstancePopupMenu.add(removeLegacyFabricMenuItem);
 
-        if (ConfigManager.getConfigItem("loaders.quilt.enabled", false) == true
+        if (ConfigManager.getConfigItem("loaders.quilt.enabled", false)
                 && !ConfigManager.getConfigItem("loaders.quilt.disabledMinecraftVersions", new ArrayList<String>())
                         .contains(instance.id)) {
             editInstancePopupMenu.add(addQuiltMenuItem);
@@ -359,10 +328,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
             instance.addLoader(LoaderType.FABRIC);
             setEditInstanceMenuItemVisbility();
         });
-        addForgeMenuItem.addActionListener(e -> {
-            instance.addLoader(LoaderType.FORGE);
-            setEditInstanceMenuItemVisbility();
-        });
         addLegacyFabricMenuItem.addActionListener(e -> {
             instance.addLoader(LoaderType.LEGACY_FABRIC);
             setEditInstanceMenuItemVisbility();
@@ -376,10 +341,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
             instance.changeLoaderVersion();
             setEditInstanceMenuItemVisbility();
         });
-        changeForgeVersionMenuItem.addActionListener(e -> {
-            instance.changeLoaderVersion();
-            setEditInstanceMenuItemVisbility();
-        });
         changeLegacyFabricVersionMenuItem.addActionListener(e -> {
             instance.changeLoaderVersion();
             setEditInstanceMenuItemVisbility();
@@ -390,10 +351,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
         });
 
         removeFabricMenuItem.addActionListener(e -> {
-            instance.removeLoader();
-            setEditInstanceMenuItemVisbility();
-        });
-        removeForgeMenuItem.addActionListener(e -> {
             instance.removeLoader();
             setEditInstanceMenuItemVisbility();
         });
@@ -411,14 +368,11 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
         reinstallMenuItem.setVisible(instance.isUpdatable());
 
         addFabricMenuItem.setVisible(instance.launcher.loaderVersion == null);
-        addForgeMenuItem.setVisible(instance.launcher.loaderVersion == null);
         addLegacyFabricMenuItem.setVisible(instance.launcher.loaderVersion == null);
         addQuiltMenuItem.setVisible(instance.launcher.loaderVersion == null);
 
         changeFabricVersionMenuItem
                 .setVisible(instance.launcher.loaderVersion != null && instance.launcher.loaderVersion.isFabric());
-        changeForgeVersionMenuItem
-                .setVisible(instance.launcher.loaderVersion != null && instance.launcher.loaderVersion.isForge());
         changeLegacyFabricVersionMenuItem
                 .setVisible(
                         instance.launcher.loaderVersion != null && instance.launcher.loaderVersion.isLegacyFabric());
@@ -427,8 +381,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
 
         removeFabricMenuItem
                 .setVisible(instance.launcher.loaderVersion != null && instance.launcher.loaderVersion.isFabric());
-        removeForgeMenuItem
-                .setVisible(instance.launcher.loaderVersion != null && instance.launcher.loaderVersion.isForge());
         removeLegacyFabricMenuItem
                 .setVisible(
                         instance.launcher.loaderVersion != null && instance.launcher.loaderVersion.isLegacyFabric());
@@ -445,30 +397,19 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
                 return;
             }
 
-            Analytics.sendEvent(instance.launcher.pack + " - " + instance.launcher.version, "Update",
-                    instance.getAnalyticsCategory());
             instance.update();
         });
         this.addButton.addActionListener(e -> {
-            Analytics.sendEvent(instance.launcher.pack + " - " + instance.launcher.version, "AddMods",
-                    instance.getAnalyticsCategory());
             new AddModsDialog(instance);
             exportButton.setVisible(instance.canBeExported());
         });
         this.editButton.addActionListener(e -> {
-            Analytics.sendEvent(instance.launcher.pack + " - " + instance.launcher.version, "EditMods",
-                    instance.getAnalyticsCategory());
             new EditModsDialog(instance);
             exportButton.setVisible(instance.canBeExported());
         });
-        this.serversButton.addActionListener(e -> OS.openWebBrowser(
-                String.format("%s/%s?utm_source=launcher&utm_medium=button&utm_campaign=instance_v2_button",
-                        Constants.SERVERS_LIST_PACK, instance.getSafePackName())));
         this.openWebsite.addActionListener(e -> OS.openWebBrowser(instance.getWebsiteUrl()));
         this.openButton.addActionListener(e -> OS.openFileExplorer(instance.getRoot()));
         this.settingsButton.addActionListener(e -> {
-            Analytics.sendEvent(instance.launcher.pack + " - " + instance.launcher.version, "Settings",
-                    instance.getAnalyticsCategory());
             new InstanceSettingsDialog(instance);
         });
         this.deleteButton.addActionListener(e -> {
@@ -478,8 +419,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
                     .setType(DialogManager.ERROR).show();
 
             if (ret == DialogManager.YES_OPTION) {
-                Analytics.sendEvent(instance.launcher.pack + " - " + instance.launcher.version, "Delete",
-                        instance.getAnalyticsCategory());
                 final ProgressDialog dialog = new ProgressDialog(GetText.tr("Deleting Instance"), 0,
                         GetText.tr("Deleting Instance. Please wait..."), null, App.launcher.getParent());
                 dialog.addThread(new Thread(() -> {
@@ -491,8 +430,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
             }
         });
         this.exportButton.addActionListener(e -> {
-            Analytics.sendEvent(instance.launcher.pack + " - " + instance.launcher.version, "Export",
-                    instance.getAnalyticsCategory());
             new InstanceExportDialog(instance);
         });
     }
@@ -546,8 +483,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
                             .setContent(GetText.tr("Cannot update pack as you have no account selected."))
                             .setType(DialogManager.ERROR).show();
                 } else {
-                    Analytics.sendEvent(instance.launcher.pack + " - " + instance.launcher.version, "UpdateFromPlay",
-                            instance.getAnalyticsCategory());
                     instance.update();
                 }
             } else if (ret == 1 || ret == DialogManager.CLOSED_OPTION || ret == 2 || ret == 3) {
@@ -637,8 +572,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
 
                     JMenuItem shareCodeItem = new JMenuItem(GetText.tr("Share Code"));
                     shareCodeItem.addActionListener(e1 -> {
-                        Analytics.sendEvent(instance.launcher.pack + " - " + instance.launcher.version, "MakeShareCode",
-                                instance.getAnalyticsCategory());
                         try {
                             java.lang.reflect.Type type = new TypeToken<APIResponse<String>>() {
                             }.getType();
@@ -697,7 +630,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
         this.deleteButton.setText(GetText.tr("Delete"));
         this.addButton.setText(GetText.tr("Add Mods"));
         this.editButton.setText(GetText.tr("Edit Mods"));
-        this.serversButton.setText(GetText.tr("Servers"));
         this.openWebsite.setText(GetText.tr("Open Website"));
         this.openButton.setText(GetText.tr("Open Folder"));
         this.settingsButton.setText(GetText.tr("Settings"));

@@ -49,7 +49,6 @@ import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.ServerManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.OS;
 import com.atlauncher.utils.Utils;
 
@@ -134,7 +133,6 @@ public class ServerCard extends CollapsiblePanel implements RelocalizationListen
                     .show();
 
             if (ret == DialogManager.YES_OPTION) {
-                Analytics.sendEvent(server.pack + " - " + server.version, "Delete", "Server");
                 final ProgressDialog dialog = new ProgressDialog(GetText.tr("Deleting Server"), 0,
                         GetText.tr("Deleting Server. Please wait..."), null, App.launcher.getParent());
                 dialog.addThread(new Thread(() -> {
@@ -175,7 +173,6 @@ public class ServerCard extends CollapsiblePanel implements RelocalizationListen
                         if (ret == JFileChooser.APPROVE_OPTION) {
                             File img = chooser.getSelectedFile();
                             if (img.getAbsolutePath().endsWith(".png")) {
-                                Analytics.sendEvent(server.pack + " - " + server.version, "ChangeImage", "Server");
                                 try {
                                     Utils.safeCopy(img, server.getRoot().resolve("server.png").toFile());
                                     image.setImage(server.getImage().getImage());

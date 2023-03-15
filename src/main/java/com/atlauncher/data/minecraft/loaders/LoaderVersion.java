@@ -83,7 +83,7 @@ public class LoaderVersion {
             return LoaderType.QUILT;
         }
 
-        return LoaderType.FORGE;
+        return LoaderType.FABRIC;
     }
 
     public String toStringWithCurrent(Instance instance) {

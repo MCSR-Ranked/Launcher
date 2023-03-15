@@ -27,7 +27,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Random;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.JDialog;
@@ -43,23 +42,19 @@ import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.data.Instance;
 import com.atlauncher.data.Pack;
 import com.atlauncher.data.PackVersion;
-import com.atlauncher.data.curseforge.pack.CurseForgeManifest;
 import com.atlauncher.data.minecraft.VersionManifestVersion;
 import com.atlauncher.data.minecraft.loaders.LoaderVersion;
 import com.atlauncher.data.modcheck.ModCheckManager;
 import com.atlauncher.data.modcheck.ModCheckProject;
-import com.atlauncher.data.modpacksch.ModpacksChPackManifest;
 import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthVersion;
 import com.atlauncher.data.modrinth.pack.ModrinthModpackManifest;
 import com.atlauncher.data.multimc.MultiMCManifest;
-import com.atlauncher.data.technic.TechnicModpack;
 import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.InstanceManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.ServerManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.FileUtils;
 import com.atlauncher.utils.ModrinthApi;
 import com.atlauncher.workers.InstanceInstaller;
@@ -78,15 +73,12 @@ public abstract class Installable {
     public Window parent = App.launcher.getParent();
 
     public boolean showModsChooser = true;
-    public CurseForgeManifest curseForgeManifest;
     public Path curseExtractedPath;
     public ModrinthProject modrinthProject;
     public ModrinthModpackManifest modrinthManifest;
     public Path modrinthExtractedPath;
-    public ModpacksChPackManifest modpacksChPackManifest;
     public MultiMCManifest multiMCManifest;
     public Path multiMCExtractedPath;
-    public TechnicModpack technicModpack;
 
     public abstract Pack getPack();
 
@@ -172,9 +164,8 @@ public abstract class Installable {
         boolean saveMods = !isServer && isReinstall && this.saveMods;
 
         final InstanceInstaller instanceInstaller = new InstanceInstaller(instanceName, pack, version, isReinstall,
-                isServer, changingLoader, saveMods, null, showModsChooser, loaderVersion, curseForgeManifest,
-                curseExtractedPath, modpacksChPackManifest, modrinthManifest, modrinthExtractedPath, multiMCManifest,
-                multiMCExtractedPath, technicModpack, dialog) {
+                isServer, changingLoader, saveMods, null, showModsChooser, loaderVersion, modrinthManifest, modrinthExtractedPath, multiMCManifest,
+                multiMCExtractedPath, dialog) {
 
             protected void done() {
                 Boolean success = false;
@@ -265,16 +256,6 @@ public abstract class Installable {
                         }
 
                         App.launcher.reloadInstancesPanel();
-
-                        if (pack.isLoggingEnabled() && App.settings.enableLogs && !version.isDev) {
-                            if (isServer) {
-                                pack.addServerInstall(version.version);
-                            } else if (isUpdate) {
-                                pack.addUpdate(version.version);
-                            } else {
-                                pack.addInstall(version.version);
-                            }
-                        }
                     } else {
                         if (isReinstall) {
                             // #. {0} is the pack name and {1} is the pack version
@@ -304,16 +285,8 @@ public abstract class Installable {
                     }
                 }
 
-                if (this.curseForgeExtractedPath != null) {
-                    FileUtils.deleteDirectory(this.curseForgeExtractedPath);
-                }
-
                 if (this.multiMCExtractedPath != null) {
                     FileUtils.deleteDirectory(this.multiMCExtractedPath);
-                }
-
-                if (this.technicModpackExtractedPath != null) {
-                    FileUtils.deleteDirectory(this.technicModpackExtractedPath);
                 }
 
                 dialog.dispose();

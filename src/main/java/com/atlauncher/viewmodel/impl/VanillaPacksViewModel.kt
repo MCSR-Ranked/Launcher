@@ -17,10 +17,8 @@
  */
 package com.atlauncher.viewmodel.impl
 
-import com.apollographql.apollo.api.cache.http.HttpCachePolicy
-import com.apollographql.apollo.coroutines.await
-import com.apollographql.apollo.exception.ApolloException
 import com.atlauncher.App
+import com.atlauncher.data.MCVersionRow
 import com.atlauncher.data.installables.Installable
 import com.atlauncher.data.installables.VanillaInstallable
 import com.atlauncher.data.minecraft.VersionManifestVersion
@@ -28,22 +26,17 @@ import com.atlauncher.data.minecraft.VersionManifestVersionType
 import com.atlauncher.data.minecraft.loaders.LoaderType
 import com.atlauncher.data.minecraft.loaders.LoaderVersion
 import com.atlauncher.data.minecraft.loaders.fabric.FabricLoader
-import com.atlauncher.data.minecraft.loaders.forge.ForgeLoader
 import com.atlauncher.data.minecraft.loaders.legacyfabric.LegacyFabricLoader
 import com.atlauncher.data.minecraft.loaders.quilt.QuiltLoader
 import com.atlauncher.evnt.listener.SettingsListener
 import com.atlauncher.evnt.manager.SettingsManager
 import com.atlauncher.exceptions.InvalidMinecraftVersion
-import com.atlauncher.graphql.GetLoaderVersionsForMinecraftVersionQuery
 import com.atlauncher.managers.ConfigManager
 import com.atlauncher.managers.InstanceManager
 import com.atlauncher.managers.LogManager
 import com.atlauncher.managers.MinecraftManager
-import com.atlauncher.network.GraphqlClient
-import com.atlauncher.utils.Pair
 import com.atlauncher.utils.Utils
 import com.atlauncher.viewmodel.base.IVanillaPacksViewModel
-import com.atlauncher.data.MCVersionRow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -52,8 +45,6 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.ISODateTimeFormat
 import org.mini2Dx.gettext.GetText
 import java.awt.Font
-import java.util.concurrent.TimeUnit
-import java.util.stream.Collectors
 
 
 /**
@@ -142,12 +133,6 @@ class VanillaPacksViewModel : IVanillaPacksViewModel, SettingsListener {
         }
     }
 
-    override val isForgeVisible by lazy {
-        selectedMinecraftVersionFlow.map { version ->
-            !forgeDisabledMCVersions.contains(version)
-        }
-    }
-
     override val isQuiltVisible by lazy {
         selectedMinecraftVersionFlow.map { version ->
             !quiltDisabledMCVersions.contains(version)
@@ -159,15 +144,10 @@ class VanillaPacksViewModel : IVanillaPacksViewModel, SettingsListener {
         it == LoaderType.FABRIC
     }
     override val loaderTypeFabricEnabled = MutableStateFlow(true)
-
-    override val loaderTypeForgeSelected: Flow<Boolean> = selectedLoaderType.map {
-        it == LoaderType.FORGE
-    }
     override val loaderTypeLegacyFabricSelected: Flow<Boolean> =
         selectedLoaderType.map {
             it == LoaderType.LEGACY_FABRIC
         }
-    override val loaderTypeForgeEnabled = MutableStateFlow(true)
     override val loaderTypeLegacyFabricEnabled = MutableStateFlow(true)
 
     override val loaderTypeNoneSelected: Flow<Boolean> = selectedLoaderType.map {
@@ -338,13 +318,12 @@ class VanillaPacksViewModel : IVanillaPacksViewModel, SettingsListener {
         !(a && (b.count { it.value } == 1))
     }
 
-    override fun setSelectedMinecraftVersion(newVersion: String?) {
-        selectedMinecraftVersionFlow.value = newVersion
+    override fun setSelectedMinecraftVersion(valueAt: String?) {
+        selectedMinecraftVersionFlow.value = valueAt
     }
 
     override val showFabricOption: Boolean by lazy { ConfigManager.getConfigItem("loaders.fabric.enabled", true) }
 
-    override val showForgeOption: Boolean by lazy { ConfigManager.getConfigItem("loaders.forge.enabled", true) }
     override val showLegacyFabricOption: Boolean by lazy {
         ConfigManager.getConfigItem(
             "loaders.legacyfabric.enabled",
@@ -382,12 +361,6 @@ class VanillaPacksViewModel : IVanillaPacksViewModel, SettingsListener {
     private val legacyFabricDisabledMCVersions: List<String> by lazy {
         ConfigManager.getConfigItem(
             "loaders.fabric.disabledMinecraftVersions", emptyList()
-        )
-    }
-
-    private val forgeDisabledMCVersions: List<String> by lazy {
-        ConfigManager.getConfigItem(
-            "loaders.forge.disabledMinecraftVersions", emptyList()
         )
     }
 
@@ -466,27 +439,15 @@ class VanillaPacksViewModel : IVanillaPacksViewModel, SettingsListener {
                 setLoaderGroupEnabled(false)
 
                 // Legacy Forge doesn't support servers easily
-                val enableCreateServers = (loaderType !== LoaderType.FORGE || !Utils.matchVersion(
+                val enableCreateServers = (!Utils.matchVersion(
                     selectedMinecraftVersion, "1.5", true, true
                 ))
-                val loaders = if (ConfigManager.getConfigItem("useGraphql.vanillaLoaderVersions", false) == true) {
-                    apolloLoad(loaderType, selectedMinecraftVersion, enableCreateServers)
-                } else {
-                    legacyLoad(loaderType, selectedMinecraftVersion, enableCreateServers)
-                }
+                val loaders = legacyLoad(loaderType, selectedMinecraftVersion, enableCreateServers)
 
                 loaderVersions.value = loaders
 
                 if (loaders.isNotEmpty()) {
-                    selectedLoaderVersion.value =
-                        when (loaderType) {
-                            LoaderType.FORGE -> {
-                                loaders.firstOrNull { it.recommended } ?: loaders.first()
-                            }
-                            else -> {
-                                loaders.first()
-                            }
-                        }
+                    selectedLoaderVersion.value = loaders.first()
                 }
 
 
@@ -497,107 +458,9 @@ class VanillaPacksViewModel : IVanillaPacksViewModel, SettingsListener {
         }
     }
 
-    suspend fun apolloLoad(
-        selectedLoader: LoaderType, selectedMinecraftVersion: String?, enableCreateServers: Boolean
-    ): Array<LoaderVersion> {
-        try {
-            val response = GraphqlClient.apolloClient.query(
-                GetLoaderVersionsForMinecraftVersionQuery(
-                    selectedMinecraftVersion!!
-                )
-            ).toBuilder().httpCachePolicy(
-                HttpCachePolicy.Policy(
-                    HttpCachePolicy.FetchStrategy.CACHE_FIRST, 5, TimeUnit.MINUTES, false
-                )
-            ).build().await()
-
-            val loaderVersionsList: MutableList<LoaderVersion> = ArrayList()
-            when (selectedLoader) {
-                LoaderType.FABRIC -> {
-                    loaderVersionsList.addAll(response.data!!.loaderVersions().fabric().stream()
-                        .filter { fv: GetLoaderVersionsForMinecraftVersionQuery.Fabric ->
-                            !disabledFabricVersions.contains(fv.version())
-                        }.map { version: GetLoaderVersionsForMinecraftVersionQuery.Fabric ->
-                            LoaderVersion(version.version(), false, "Fabric")
-                        }.collect(Collectors.toList())
-                    )
-                }
-
-                LoaderType.FORGE -> {
-                    loaderVersionsList.addAll(response.data!!.loaderVersions().forge().stream()
-                        .filter { fv: GetLoaderVersionsForMinecraftVersionQuery.Forge ->
-                            !disabledForgeVersions.contains(fv.version())
-                        }.map { version: GetLoaderVersionsForMinecraftVersionQuery.Forge ->
-                            val lv = LoaderVersion(
-                                version.version(), version.rawVersion(), version.recommended(), "Forge"
-                            )
-                            if (version.installerSha1Hash() != null && version.installerSize() != null) {
-                                lv.downloadables["installer"] = Pair(
-                                    version.installerSha1Hash(), version.installerSize()!!.toLong()
-                                )
-                            }
-                            if (version.universalSha1Hash() != null && version.universalSize() != null) {
-                                lv.downloadables["universal"] = Pair(
-                                    version.universalSha1Hash(), version.universalSize()!!.toLong()
-                                )
-                            }
-                            if (version.clientSha1Hash() != null && version.clientSize() != null) {
-                                lv.downloadables["client"] = Pair(
-                                    version.clientSha1Hash(), version.clientSize()!!.toLong()
-                                )
-                            }
-                            if (version.serverSha1Hash() != null && version.serverSize() != null) {
-                                lv.downloadables["server"] = Pair(
-                                    version.serverSha1Hash(), version.serverSize()!!.toLong()
-                                )
-                            }
-                            lv
-                        }.collect(Collectors.toList())
-                    )
-                }
-
-                LoaderType.QUILT -> {
-                    loaderVersionsList.addAll(response.data!!.loaderVersions().quilt().stream()
-                        .filter { fv: GetLoaderVersionsForMinecraftVersionQuery.Quilt ->
-                            !disabledQuiltVersions.contains(fv.version())
-                        }.map { version: GetLoaderVersionsForMinecraftVersionQuery.Quilt ->
-                            LoaderVersion(version.version(), false, "Quilt")
-                        }.collect(Collectors.toList())
-                    )
-                }
-
-                LoaderType.LEGACY_FABRIC -> {
-
-                    loaderVersionsList.addAll(response.data!!.loaderVersions().legacyfabric()
-                        .stream()
-                        .filter { fv -> !disabledLegacyFabricVersions.contains(fv.version()) }
-                        .map { version ->
-                            LoaderVersion(
-                                version.version(),
-                                false,
-                                "LegacyFabric"
-                            )
-                        }
-                        .collect(Collectors.toList())
-                    )
-                }
-            }
-            if (loaderVersionsList.size == 0) {
-                setLoaderGroupEnabled(true, enableCreateServers)
-                return arrayOf(noLoaderVersions)
-            }
-            return loaderVersionsList.toTypedArray()
-        } catch (e: ApolloException) {
-            LogManager.logStackTrace("Error fetching loading versions", e)
-            setLoaderGroupEnabled(true, enableCreateServers)
-            return arrayOf(errorLoadingVersions)
-        }
-    }
-
     private fun setLoaderGroupEnabled(enabled: Boolean, enableCreateServers: Boolean = enabled) {
         loaderTypeNoneEnabled.value = enabled
         loaderTypeFabricEnabled.value = enabled
-        loaderTypeForgeEnabled.value = enabled
         loaderTypeLegacyFabricEnabled.value = enabled
         loaderTypeQuiltEnabled.value = enabled
         createServerEnabled.value = enableCreateServers
@@ -623,12 +486,6 @@ class VanillaPacksViewModel : IVanillaPacksViewModel, SettingsListener {
         )
     }
 
-    private val disabledForgeVersions: List<String> by lazy {
-        ConfigManager.getConfigItem(
-            "loaders.forge.disabledVersions", emptyList()
-        )
-    }
-
     /**
      * Use legacy loading mechanic
      */
@@ -639,7 +496,6 @@ class VanillaPacksViewModel : IVanillaPacksViewModel, SettingsListener {
         loaderVersionsList.addAll(
             when (selectedLoader) {
                 LoaderType.FABRIC -> FabricLoader.getChoosableVersions(selectedMinecraftVersion)
-                LoaderType.FORGE -> ForgeLoader.getChoosableVersions(selectedMinecraftVersion)
                 LoaderType.QUILT -> QuiltLoader.getChoosableVersions(selectedMinecraftVersion)
                 LoaderType.LEGACY_FABRIC -> LegacyFabricLoader.getChoosableVersions(selectedMinecraftVersion)
             }

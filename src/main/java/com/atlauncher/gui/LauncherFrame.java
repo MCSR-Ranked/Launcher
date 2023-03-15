@@ -35,13 +35,10 @@ import javax.swing.WindowConstants;
 
 import com.atlauncher.App;
 import com.atlauncher.constants.Constants;
-import com.atlauncher.data.Pack;
-import com.atlauncher.data.PackVersion;
 import com.atlauncher.evnt.listener.RelocalizationListener;
 import com.atlauncher.evnt.manager.RelocalizationManager;
 import com.atlauncher.evnt.manager.TabChangeManager;
 import com.atlauncher.gui.components.LauncherBottomBar;
-import com.atlauncher.gui.dialogs.InstanceInstallerDialog;
 import com.atlauncher.gui.tabs.InstancesTab;
 import com.atlauncher.gui.tabs.SettingsTab;
 import com.atlauncher.gui.tabs.Tab;
@@ -49,11 +46,8 @@ import com.atlauncher.gui.tabs.VanillaPacksTab;
 import com.atlauncher.gui.tabs.accounts.AccountsTab;
 import com.atlauncher.gui.tabs.news.NewsTab;
 import com.atlauncher.gui.tabs.tools.ToolsTab;
-import com.atlauncher.managers.AccountManager;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.managers.PackManager;
 import com.atlauncher.managers.PerformanceManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.utils.Utils;
 
 public final class LauncherFrame extends JFrame implements RelocalizationListener {
@@ -117,48 +111,6 @@ public final class LauncherFrame extends JFrame implements RelocalizationListene
         }
 
         RelocalizationManager.addListener(this);
-
-        if (App.packToInstall != null) {
-            Pack pack = PackManager.getPackBySafeName(App.packToInstall);
-
-            if (pack != null && pack.isSemiPublic() && !PackManager.canViewSemiPublicPackByCode(pack.getCode())) {
-                LogManager.error("Error automatically installing " + pack.getName() + " as you don't have the "
-                        + "pack added to the launcher!");
-            } else {
-                if (AccountManager.getSelectedAccount() == null || pack == null) {
-                    LogManager
-                            .error("Error automatically installing " + (pack == null ? "pack" : pack.getName()) + "!");
-                } else {
-                    new InstanceInstallerDialog(pack);
-                }
-            }
-        } else if (App.packShareCodeToInstall != null) {
-            String[] parts = App.packShareCodeToInstall.split("\\|\\|\\|");
-
-            if (parts.length != 4) {
-                LogManager.error("Error automatically installing pack from share code!");
-            } else {
-                Pack pack = PackManager.getPackBySafeName(parts[0]);
-
-                if (pack != null && pack.isSemiPublic() && !PackManager.canViewSemiPublicPackByCode(pack.getCode())) {
-                    LogManager.error("Error automatically installing " + pack.getName() + " as you don't have the "
-                            + "pack added to the launcher!");
-                } else {
-                    if (pack == null) {
-                        LogManager.error("Error automatically installing pack from share code!");
-                    } else {
-                        PackVersion version = pack.getVersionByName(parts[1]);
-
-                        if (version == null) {
-                            LogManager.error("Error automatically installing " + pack.getName() + " from share code!");
-                        } else {
-                            new InstanceInstallerDialog(pack, version, parts[2], Boolean.parseBoolean(parts[3]));
-                        }
-                    }
-                }
-
-            }
-        }
 
         addComponentListener(new ComponentAdapter() {
 
@@ -225,12 +177,7 @@ public final class LauncherFrame extends JFrame implements RelocalizationListene
         tabbedPane.setOpaque(true);
         tabbedPane.setSelectedIndex(App.settings.selectedTabOnStartup);
 
-        tabbedPane.addChangeListener(e -> {
-            Analytics.sendScreenView(((Tab) tabbedPane.getSelectedComponent()).getAnalyticsScreenViewName());
-            TabChangeManager.post();
-        });
-
-        Analytics.sendScreenView(((Tab) tabbedPane.getSelectedComponent()).getAnalyticsScreenViewName());
+        tabbedPane.addChangeListener(e -> TabChangeManager.post());
     }
 
     @Override

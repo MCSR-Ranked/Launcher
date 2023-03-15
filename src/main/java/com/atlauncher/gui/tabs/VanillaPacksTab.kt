@@ -18,14 +18,12 @@
 package com.atlauncher.gui.tabs
 
 import com.atlauncher.App
-import com.atlauncher.builders.HTMLBuilder
 import com.atlauncher.constants.UIConstants
 import com.atlauncher.data.MCVersionRow
 import com.atlauncher.data.minecraft.loaders.LoaderType
 import com.atlauncher.data.minecraft.loaders.LoaderVersion
 import com.atlauncher.evnt.listener.RelocalizationListener
 import com.atlauncher.evnt.manager.RelocalizationManager
-import com.atlauncher.managers.DialogManager
 import com.atlauncher.utils.ComboItem
 import com.atlauncher.viewmodel.base.IVanillaPacksViewModel
 import com.atlauncher.viewmodel.impl.VanillaPacksViewModel
@@ -35,8 +33,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.mini2Dx.gettext.GetText
 import java.awt.*
-import java.awt.event.ActionEvent
-import java.awt.event.ActionListener
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.*
@@ -273,7 +269,7 @@ class VanillaPacksTab : JPanel(BorderLayout()), Tab, RelocalizationListener {
                 loaderTypeLegacyFabricRadioButton.isVisible = it
             }
         }
-        loaderTypeLegacyFabricRadioButton.addActionListener { e: ActionEvent? ->
+        loaderTypeLegacyFabricRadioButton.addActionListener {
             viewModel.setLoaderType(
                 LoaderType.LEGACY_FABRIC
             )
@@ -299,7 +295,7 @@ class VanillaPacksTab : JPanel(BorderLayout()), Tab, RelocalizationListener {
                 loaderTypeFabricRadioButton.isVisible = it
             }
         }
-        loaderTypeFabricRadioButton.addActionListener { e: ActionEvent? ->
+        loaderTypeFabricRadioButton.addActionListener {
             viewModel.setLoaderType(
                 LoaderType.FABRIC
             )

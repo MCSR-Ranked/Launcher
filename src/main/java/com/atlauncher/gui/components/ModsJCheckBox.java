@@ -29,7 +29,6 @@ import org.mini2Dx.gettext.GetText;
 
 import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.data.DisableableMod;
-import com.atlauncher.data.ModPlatform;
 import com.atlauncher.data.json.Mod;
 import com.atlauncher.data.modrinth.ModrinthDonationUrl;
 import com.atlauncher.data.modrinth.ModrinthProject;
@@ -135,16 +134,6 @@ public class ModsJCheckBox extends JCheckBox {
         contextMenu.add(fileItem);
         contextMenu.add(new JPopupMenu.Separator());
 
-        if (getDisableableMod().hasFullCurseForgeInformation()) {
-            // #. {0} is the platform to open the website for (e.g. CurseForge/Modrinth)
-            JMenuItem openOnCurseForge = new JMenuItem(GetText.tr("Open On {0}", "CurseForge"));
-            openOnCurseForge
-                    .addActionListener(e -> OS.openWebBrowser(getDisableableMod().curseForgeProject.getWebsiteUrl()));
-            contextMenu.add(openOnCurseForge);
-
-            contextMenu.add(new JPopupMenu.Separator());
-        }
-
         if (getDisableableMod().isFromModrinth()) {
             ModrinthProject modrinthMod = getDisableableMod().modrinthProject;
 
@@ -229,61 +218,7 @@ public class ModsJCheckBox extends JCheckBox {
         });
         contextMenu.add(remove);
 
-        if (getDisableableMod().isFromCurseForge() && getDisableableMod().isFromModrinth()) {
-            contextMenu.add(new JPopupMenu.Separator());
-
-            // #. {0} is the platform to reinstall the mod from (e.g. CurseForge/Modrinth)
-            JMenuItem reinstallFromCurseForge = new JMenuItem(GetText.tr("Reinstall From {0}", "CurseForge"));
-            reinstallFromCurseForge.addActionListener(e -> {
-                getDisableableMod().reinstall(dialog, dialog.instance, ModPlatform.CURSEFORGE);
-
-                dialog.reloadPanels();
-            });
-            contextMenu.add(reinstallFromCurseForge);
-
-            // #. {0} is the platform to reinstall the mod from (e.g. CurseForge/Modrinth)
-            JMenuItem reinstallFromModrinth = new JMenuItem(GetText.tr("Reinstall From {0}", "Modrinth"));
-            reinstallFromModrinth.addActionListener(e -> {
-                getDisableableMod().reinstall(dialog, dialog.instance, ModPlatform.MODRINTH);
-
-                dialog.reloadPanels();
-            });
-            contextMenu.add(reinstallFromModrinth);
-
-            contextMenu.add(new JPopupMenu.Separator());
-
-            // #. {0} is the platform to check for updates from (e.g. CurseForge/Modrinth)
-            JMenuItem checkForUpdatesOnCurseForge = new JMenuItem(GetText.tr("Check For Updates On {0}", "CurseForge"));
-            checkForUpdatesOnCurseForge.addActionListener(e -> {
-                boolean updated = false;
-
-                updated = getDisableableMod().checkForUpdate(dialog, dialog.instance, ModPlatform.CURSEFORGE);
-
-                if (!updated) {
-                    DialogManager.okDialog().setTitle(GetText.tr("No Updates Found"))
-                            .setContent(GetText.tr("No updates were found.")).show();
-                }
-
-                dialog.reloadPanels();
-            });
-            contextMenu.add(checkForUpdatesOnCurseForge);
-
-            // #. {0} is the platform to check for updates from (e.g. CurseForge/Modrinth)
-            JMenuItem checkForUpdatesOnModrinth = new JMenuItem(GetText.tr("Check For Updates On {0}", "Modrinth"));
-            checkForUpdatesOnModrinth.addActionListener(e -> {
-                boolean updated = false;
-
-                updated = getDisableableMod().checkForUpdate(dialog, dialog.instance, ModPlatform.MODRINTH);
-
-                if (!updated) {
-                    DialogManager.okDialog().setTitle(GetText.tr("No Updates Found"))
-                            .setContent(GetText.tr("No updates were found.")).show();
-                }
-
-                dialog.reloadPanels();
-            });
-            contextMenu.add(checkForUpdatesOnModrinth);
-        } else if (getDisableableMod().isFromCurseForge() || getDisableableMod().isFromModrinth()) {
+        if (getDisableableMod().isFromModrinth()) {
             contextMenu.add(new JPopupMenu.Separator());
 
             JMenuItem reinstall = new JMenuItem(GetText.tr("Reinstall"));

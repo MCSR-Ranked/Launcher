@@ -39,29 +39,23 @@ import org.mini2Dx.gettext.GetText;
 import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.constants.Constants;
 import com.atlauncher.data.DownloadableFile;
+import com.atlauncher.data.Instance;
 import com.atlauncher.data.LauncherVersion;
 import com.atlauncher.data.modcheck.ModCheckManager;
 import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.gui.tabs.InstancesTab;
-import com.atlauncher.gui.tabs.PacksBrowserTab;
-import com.atlauncher.gui.tabs.ServersTab;
 import com.atlauncher.gui.tabs.news.NewsTab;
 import com.atlauncher.managers.AccountManager;
 import com.atlauncher.managers.ConfigManager;
-import com.atlauncher.managers.CurseForgeUpdateManager;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.InstanceManager;
 import com.atlauncher.managers.LWJGLManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.MinecraftManager;
-import com.atlauncher.managers.ModpacksChUpdateManager;
 import com.atlauncher.managers.ModrinthModpackUpdateManager;
 import com.atlauncher.managers.NewsManager;
 import com.atlauncher.managers.PackManager;
 import com.atlauncher.managers.PerformanceManager;
-import com.atlauncher.managers.ServerManager;
-import com.atlauncher.managers.TechnicModpackUpdateManager;
-import com.atlauncher.network.Analytics;
 import com.atlauncher.network.DownloadPool;
 import com.atlauncher.utils.Java;
 import com.atlauncher.utils.OS;
@@ -69,7 +63,6 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
-import net.arikia.dev.drpc.DiscordRPC;
 import okhttp3.OkHttpClient;
 
 public class Launcher {
@@ -135,10 +128,6 @@ public class Launcher {
         }
 
         checkForExternalPackUpdates();
-
-        if (!App.settings.firstTimeRun && App.settings.enableLogs && App.settings.enableAnalytics) {
-            Analytics.startSession();
-        }
         PerformanceManager.end();
     }
 
@@ -167,7 +156,6 @@ public class Launcher {
             }
             File newFile = FileSystem.TEMP.resolve(saveAs).toFile();
             LogManager.info("Downloading Launcher Update");
-            Analytics.sendEvent("Update", "Launcher");
 
             ProgressDialog<Boolean> progressDialog = new ProgressDialog<>(GetText.tr("Downloading Launcher Update"), 1,
                     GetText.tr("Downloading Launcher Update"));
@@ -311,16 +299,7 @@ public class Launcher {
         }
 
         updateThread = new Thread(() -> {
-            if (InstanceManager.getInstances().stream().anyMatch(i -> i.isModpacksChPack())) {
-                ModpacksChUpdateManager.checkForUpdates();
-            }
-            if (InstanceManager.getInstances().stream().anyMatch(i -> i.isCurseForgePack())) {
-                CurseForgeUpdateManager.checkForUpdates();
-            }
-            if (InstanceManager.getInstances().stream().anyMatch(i -> i.isTechnicPack())) {
-                TechnicModpackUpdateManager.checkForUpdates();
-            }
-            if (InstanceManager.getInstances().stream().anyMatch(i -> i.isModrinthPack())) {
+            if (InstanceManager.getInstances().stream().anyMatch(Instance::isModrinthPack)) {
                 ModrinthModpackUpdateManager.checkForUpdates();
             }
         });
@@ -476,10 +455,6 @@ public class Launcher {
     public void killMinecraft() {
         if (this.minecraftProcess != null) {
             LogManager.error("Killing Minecraft");
-
-            if (App.discordInitialized) {
-                DiscordRPC.discordClearPresence();
-            }
 
             this.minecraftProcess.destroy();
             this.minecraftProcess = null;

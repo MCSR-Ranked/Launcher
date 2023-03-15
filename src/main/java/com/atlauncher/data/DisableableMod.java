@@ -25,35 +25,25 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.joda.time.format.ISODateTimeFormat;
 import org.mini2Dx.gettext.GetText;
 
 import com.atlauncher.App;
-import com.atlauncher.data.curseforge.CurseForgeFile;
-import com.atlauncher.data.curseforge.CurseForgeProject;
 import com.atlauncher.data.minecraft.FabricMod;
 import com.atlauncher.data.minecraft.MCMod;
 import com.atlauncher.data.modcheck.ModCheckManager;
 import com.atlauncher.data.modcheck.ModCheckProject;
 import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthVersion;
-import com.atlauncher.exceptions.InvalidMinecraftVersion;
-import com.atlauncher.gui.dialogs.CurseForgeProjectFileSelectorDialog;
 import com.atlauncher.gui.dialogs.ModrinthVersionSelectorDialog;
 import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.managers.MinecraftManager;
-import com.atlauncher.network.Analytics;
-import com.atlauncher.utils.CurseForgeApi;
 import com.atlauncher.utils.ModrinthApi;
 import com.atlauncher.utils.Pair;
 import com.atlauncher.utils.Utils;
 import com.google.gson.annotations.SerializedName;
-import com.pistacium.modcheck.mod.ModData;
-import com.pistacium.modcheck.mod.resource.ModResource;
 
 @SuppressWarnings("serial")
 public class DisableableMod implements Serializable {
@@ -70,18 +60,6 @@ public class DisableableMod implements Serializable {
     public boolean wasSelected = true; // Default to it being selected on install
     public boolean skipped = false; // For browser download mods if they were skipped or not
 
-    @SerializedName(value = "curseForgeProjectId", alternate = { "curseModId" })
-    public Integer curseForgeProjectId;
-
-    @SerializedName(value = "curseForgeFileId", alternate = { "curseFileId" })
-    public Integer curseForgeFileId;
-
-    @SerializedName(value = "curseForgeProject", alternate = { "curseMod" })
-    public CurseForgeProject curseForgeProject;
-
-    @SerializedName(value = "curseForgeFile", alternate = { "curseFile" })
-    public CurseForgeFile curseForgeFile;
-
     @SerializedName(value = "modrinthProject", alternate = { "modrinthMod" })
     public ModrinthProject modrinthProject;
     public ModrinthVersion modrinthVersion;
@@ -91,8 +69,7 @@ public class DisableableMod implements Serializable {
 
     public DisableableMod(String name, String version, boolean optional, String file, String path, Type type,
             Color colour, String description, boolean disabled, boolean userAdded, boolean wasSelected, boolean skipped,
-            Integer curseForgeModId, Integer curseForgeFileId, CurseForgeProject curseForgeProject,
-            CurseForgeFile curseForgeFile, ModrinthProject modrinthProject, ModrinthVersion modrinthVersion, ModCheckProject modCheckProject) {
+            ModrinthProject modrinthProject, ModrinthVersion modrinthVersion, ModCheckProject modCheckProject) {
         this.name = name;
         this.version = version;
         this.optional = optional;
@@ -105,74 +82,38 @@ public class DisableableMod implements Serializable {
         this.userAdded = userAdded;
         this.wasSelected = wasSelected;
         this.skipped = skipped;
-        this.curseForgeProjectId = curseForgeModId;
-        this.curseForgeFileId = curseForgeFileId;
-        this.curseForgeProject = curseForgeProject;
-        this.curseForgeFile = curseForgeFile;
         this.modrinthProject = modrinthProject;
         this.modrinthVersion = modrinthVersion;
         this.modCheckProject = modCheckProject;
     }
 
     public DisableableMod(String name, String version, boolean optional, String file, String path, Type type,
-            Color colour, String description, boolean disabled, boolean userAdded, boolean wasSelected, boolean skipped,
-            Integer curseForgeModId, Integer curseForgeFileId, CurseForgeProject curseForgeProject,
-            CurseForgeFile curseForgeFile) {
+            Color colour, String description, boolean disabled, boolean userAdded, boolean wasSelected, boolean skipped) {
         this(name, version, optional, file, path, type, colour, description, disabled, userAdded, wasSelected, skipped,
-                curseForgeModId, curseForgeFileId, curseForgeProject, curseForgeFile, null, null, null);
-    }
-
-    public DisableableMod(String name, String version, boolean optional, String file, Type type, Color colour,
-            String description, boolean disabled, boolean userAdded, boolean wasSelected, boolean skipped,
-            Integer curseForgeModId,
-            Integer curseForgeFileId, CurseForgeProject curseForgeProject, CurseForgeFile curseForgeFile) {
-        this(name, version, optional, file, null, type, colour, description, disabled, userAdded, wasSelected, skipped,
-                curseForgeModId, curseForgeFileId, curseForgeProject, curseForgeFile, null, null, null);
-    }
-
-    public DisableableMod(String name, String version, boolean optional, String file, Type type, Color colour,
-            String description, boolean disabled, boolean userAdded, boolean wasSelected, boolean skipped,
-            CurseForgeProject curseForgeProject, CurseForgeFile curseForgeFile) {
-        this(name, version, optional, file, null, type, colour, description, disabled, userAdded, wasSelected, skipped,
-                curseForgeProject.id, curseForgeFile.id, curseForgeProject, curseForgeFile);
-    }
-
-    public DisableableMod(String name, String version, boolean optional, String file, Type type, Color colour,
-            String description, boolean disabled, boolean userAdded, boolean wasSelected, boolean skipped,
-            ModrinthProject modrinthProject,
-            ModrinthVersion modrinthVersion) {
-        this(name, version, optional, file, null, type, colour, description, disabled, userAdded, wasSelected, skipped,
-                null,
-                null, null, null, modrinthProject, modrinthVersion, null);
-    }
-
-    public DisableableMod(String name, String version, boolean optional, String file, Type type, Color colour,
-            String description, boolean disabled, boolean userAdded, boolean wasSelected, boolean skipped,
-            Integer curseForgeModId,
-            Integer curseForgeFileId) {
-        this(name, version, optional, file, null, type, colour, description, disabled, userAdded, wasSelected, skipped,
-                curseForgeModId, curseForgeFileId, null, null);
-    }
-
-    public DisableableMod(String name, String version, boolean optional, String file, Type type, Color colour,
-            String description, boolean disabled, boolean userAdded, boolean wasSelected, boolean skipped) {
-        this(name, version, optional, file, null, type, colour, description, disabled, userAdded, wasSelected, skipped,
-                null,
                 null, null, null);
     }
 
     public DisableableMod(String name, String version, boolean optional, String file, Type type, Color colour,
+            String description, boolean disabled, boolean userAdded, boolean wasSelected, boolean skipped,
+            ModrinthProject modrinthProject, ModrinthVersion modrinthVersion) {
+        this(name, version, optional, file, null, type, colour, description, disabled, userAdded, wasSelected, skipped,
+                modrinthProject, modrinthVersion, null);
+    }
+
+    public DisableableMod(String name, String version, boolean optional, String file, Type type, Color colour,
+            String description, boolean disabled, boolean userAdded, boolean wasSelected, boolean skipped) {
+        this(name, version, optional, file, null, type, colour, description, disabled, userAdded, wasSelected, skipped);
+    }
+
+    public DisableableMod(String name, String version, boolean optional, String file, Type type, Color colour,
                           String description, boolean disabled, boolean userAdded) {
-        this(name, version, optional, file, null, type, colour, description, disabled, userAdded, true, false, null,
-            null,
-            null, null);
+        this(name, version, optional, file, null, type, colour, description, disabled, userAdded, true, false);
     }
 
     public DisableableMod(String name, String version, boolean optional, String file, Type type, Color colour,
                           String description, boolean disabled, boolean userAdded, ModCheckProject modCheckProject) {
-        this(name, version, optional, file, null, type, colour, description, disabled, userAdded, true, false, null,
-            null,
-            null, null, null, null, modCheckProject);
+        this(name, version, optional, file, null, type, colour, description, disabled, userAdded, true, false,
+            null, null, modCheckProject);
     }
 
     public DisableableMod() {
@@ -222,23 +163,7 @@ public class DisableableMod implements Serializable {
     }
 
     public boolean isUpdatable() {
-        return this.isFromCurseForge() || this.isFromModrinth() || this.isFromModCheck();
-    }
-
-    public boolean isFromCurseForge() {
-        return this.curseForgeProjectId != null && this.curseForgeFileId != null;
-    }
-
-    public boolean hasFullCurseForgeInformation() {
-        return this.curseForgeProject != null && this.curseForgeFile != null;
-    }
-
-    public Integer getCurseForgeModId() {
-        return this.curseForgeProjectId;
-    }
-
-    public Integer getCurseForgeFileId() {
-        return this.curseForgeFileId;
+        return this.isFromModrinth() || this.isFromModCheck();
     }
 
     public boolean isFromModrinth() {
@@ -357,97 +282,8 @@ public class DisableableMod implements Serializable {
     }
 
     public boolean checkForUpdate(Window parent, Instance instance, ModPlatform platform) {
-        Analytics.sendEvent(instance.launcher.pack + " - " + instance.launcher.version, "UpdateMods", "Instance");
-
-        if (platform == ModPlatform.CURSEFORGE || (platform == null && isFromCurseForge()
-                && (!isFromModrinth() || App.settings.defaultModPlatform == ModPlatform.CURSEFORGE))) {
-            ProgressDialog<Object> dialog = new ProgressDialog<>(
-                    // #. {0} is the platform were checking for updates (e.g. CurseForge/Modrinth)
-                    GetText.tr("Checking For Update On {0}", "CurseForge"), 0,
-                    // #. {0} is the platform were checking for updates (e.g. CurseForge/Modrinth)
-                    GetText.tr("Checking For Update On {0}", "CurseForge"),
-                    "Cancelled checking for update on CurseForge", parent);
-            dialog.addThread(new Thread(() -> {
-                List<CurseForgeFile> curseForgeFiles = CurseForgeApi.getFilesForProject(curseForgeProjectId);
-
-                if (curseForgeFiles == null) {
-                    dialog.setReturnValue(false);
-                    dialog.close();
-                    return;
-                }
-
-                Stream<CurseForgeFile> curseForgeFilesStream = curseForgeFiles.stream()
-                        .sorted(Comparator.comparingInt((CurseForgeFile file) -> file.id).reversed());
-
-                if (App.settings.addModRestriction == AddModRestriction.STRICT) {
-                    curseForgeFilesStream = curseForgeFilesStream
-                            .filter(file -> file.gameVersions.contains(instance.id));
-                }
-
-                if (App.settings.addModRestriction == AddModRestriction.LAX) {
-                    try {
-                        List<String> minecraftVersionsToSearch = MinecraftManager.getMajorMinecraftVersions(instance.id)
-                                .stream().map(mv -> mv.id).collect(Collectors.toList());
-
-                        curseForgeFilesStream = curseForgeFilesStream.filter(
-                                file -> file.gameVersions.stream()
-                                        .anyMatch(gv -> minecraftVersionsToSearch.contains(gv)));
-                    } catch (InvalidMinecraftVersion e) {
-                        LogManager.logStackTrace(e);
-                    }
-                }
-
-                // filter out files not for our loader
-                curseForgeFilesStream = curseForgeFilesStream.filter(cf -> {
-                    if (cf.gameVersions.contains("Fabric") && instance.launcher.loaderVersion != null
-                            && (instance.launcher.loaderVersion.isFabric()
-                                    || instance.launcher.loaderVersion.isLegacyFabric()
-                                    || instance.launcher.loaderVersion.isQuilt())) {
-                        return true;
-                    }
-
-                    if (cf.gameVersions.contains("Forge") && instance.launcher.loaderVersion != null
-                            && instance.launcher.loaderVersion.isForge()) {
-                        return true;
-                    }
-
-                    if (cf.gameVersions.contains("Quilt") && instance.launcher.loaderVersion != null
-                            && instance.launcher.loaderVersion.isQuilt()) {
-                        return true;
-                    }
-
-                    // if there's no loaders, assume the mod is untagged so we should show it
-                    if (!cf.gameVersions.contains("Fabric") && !cf.gameVersions.contains("Forge")
-                            && !cf.gameVersions.contains("Quilt")) {
-                        return true;
-                    }
-
-                    return false;
-                });
-
-                if (curseForgeFilesStream.noneMatch(file -> file.id > curseForgeFileId)) {
-                    dialog.setReturnValue(false);
-                    dialog.close();
-                    return;
-                }
-
-                dialog.setReturnValue(CurseForgeApi.getProjectById(curseForgeProjectId));
-                dialog.close();
-            }));
-            dialog.start();
-
-            if (dialog.getReturnValue() instanceof Boolean) {
-                return ((Boolean) dialog.getReturnValue()) == true;
-            }
-
-            if (dialog.getReturnValue() == null) {
-                return false;
-            }
-
-            new CurseForgeProjectFileSelectorDialog(parent, (CurseForgeProject) dialog.getReturnValue(), instance,
-                    curseForgeFileId);
-        } else if (platform == ModPlatform.MODRINTH || platform == null && isFromModrinth()
-                && (!isFromCurseForge() || App.settings.defaultModPlatform == ModPlatform.MODRINTH)) {
+        if (platform == ModPlatform.MODRINTH || platform == null && isFromModrinth()
+                && App.settings.defaultModPlatform == ModPlatform.MODRINTH) {
             ProgressDialog<Pair<ModrinthProject, List<ModrinthVersion>>> dialog = new ProgressDialog<>(
                     // #. {0} is the platform were checking for updates (e.g. CurseForge/Modrinth)
                     GetText.tr("Checking For Update On {0}", "Modrinth"), 0,
@@ -515,25 +351,8 @@ public class DisableableMod implements Serializable {
     }
 
     public boolean reinstall(Window parent, Instance instance, ModPlatform platform) {
-        Analytics.sendEvent(instance.launcher.pack + " - " + instance.launcher.version, "ReinstallMods", "Instance");
-
-        if (platform == ModPlatform.CURSEFORGE || (platform == null && isFromCurseForge()
-                && (!isFromModrinth() || App.settings.defaultModPlatform == ModPlatform.CURSEFORGE))) {
-            ProgressDialog<CurseForgeProject> dialog = new ProgressDialog<>(
-                    // #. {0} is the platform were getting files from (e.g. CurseForge/Modrinth)
-                    GetText.tr("Getting Files From {0}", "CurseForge"),
-                    // #. {0} is the platform were getting files from (e.g. CurseForge/Modrinth)
-                    0, GetText.tr("Getting Files From {0}", "CurseForge"), "Cancelled getting files from CurseForge",
-                    parent);
-            dialog.addThread(new Thread(() -> {
-                dialog.setReturnValue(CurseForgeApi.getProjectById(curseForgeProjectId));
-                dialog.close();
-            }));
-            dialog.start();
-
-            new CurseForgeProjectFileSelectorDialog(parent, dialog.getReturnValue(), instance, curseForgeFileId, false);
-        } else if (platform == ModPlatform.MODRINTH || (platform == null && isFromModrinth()
-                && (!isFromCurseForge() || App.settings.defaultModPlatform == ModPlatform.MODRINTH))) {
+        if (platform == ModPlatform.MODRINTH || (platform == null && isFromModrinth()
+                && App.settings.defaultModPlatform == ModPlatform.MODRINTH)) {
             ProgressDialog<ModrinthProject> dialog = new ProgressDialog<>(
                     // #. {0} is the platform were getting files from (e.g. CurseForge/Modrinth)
                     GetText.tr("Getting Files From {0}", "Modrinth"), 0,

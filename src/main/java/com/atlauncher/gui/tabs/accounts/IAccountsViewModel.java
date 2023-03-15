@@ -17,13 +17,14 @@
  */
 package com.atlauncher.gui.tabs.accounts;
 
-import com.atlauncher.data.AbstractAccount;
-import com.atlauncher.data.MicrosoftAccount;
+import java.util.List;
+import java.util.function.Consumer;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.function.Consumer;
+import com.atlauncher.data.AbstractAccount;
+import com.atlauncher.data.MicrosoftAccount;
 
 /**
  * 12 / 06 / 2022

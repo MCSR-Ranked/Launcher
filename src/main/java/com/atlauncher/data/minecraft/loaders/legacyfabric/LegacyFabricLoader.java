@@ -37,18 +37,13 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import com.atlauncher.FileSystem;
-import com.atlauncher.Gsons;
 import com.atlauncher.data.minecraft.Arguments;
 import com.atlauncher.data.minecraft.Library;
 import com.atlauncher.data.minecraft.loaders.Loader;
 import com.atlauncher.data.minecraft.loaders.LoaderVersion;
-import com.atlauncher.graphql.GetLatestLegacyFabricLoaderVersionQuery;
-import com.atlauncher.graphql.GetLegacyFabricLoaderVersionQuery;
-import com.atlauncher.graphql.GetLegacyFabricLoaderVersionsForMinecraftVersionQuery;
 import com.atlauncher.managers.ConfigManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.network.Download;
-import com.atlauncher.network.GraphqlClient;
 import com.atlauncher.utils.Utils;
 import com.atlauncher.workers.InstanceInstaller;
 import com.google.gson.reflect.TypeToken;
@@ -81,26 +76,6 @@ public class LegacyFabricLoader implements Loader {
     }
 
     private LegacyFabricMetaProfile getLoader(String version) {
-        if (ConfigManager.getConfigItem("useGraphql.loaderVersionsNonForge", false) == true) {
-            GetLegacyFabricLoaderVersionQuery.Data response = GraphqlClient
-                    .callAndWait(GetLegacyFabricLoaderVersionQuery.builder().legacyFabricVersion(version)
-                            .minecraftVersion(this.minecraft).includeClientJson(
-                                    !instanceInstaller.isServer)
-                            .includeServerJson(instanceInstaller.isServer).build());
-
-            if (response == null || response.legacyFabricLoaderVersion() == null) {
-                return null;
-            }
-
-            if (instanceInstaller.isServer) {
-                return Gsons.MINECRAFT.fromJson(response.legacyFabricLoaderVersion().serverJson(),
-                        LegacyFabricMetaProfile.class);
-            }
-
-            return Gsons.MINECRAFT.fromJson(response.legacyFabricLoaderVersion().clientJson(),
-                    LegacyFabricMetaProfile.class);
-        }
-
         return Download.build()
                 .setUrl(String.format("https://meta.legacyfabric.net/v2/versions/loader/%s/%s/%s/json",
                         this.minecraft,
@@ -109,18 +84,6 @@ public class LegacyFabricLoader implements Loader {
     }
 
     public String getLatestVersion() {
-        if (ConfigManager.getConfigItem("useGraphql.loaderVersionsNonForge", false) == true) {
-            GetLatestLegacyFabricLoaderVersionQuery.Data response = GraphqlClient
-                    .callAndWait(new GetLatestLegacyFabricLoaderVersionQuery());
-
-            if (response == null || response.legacyFabricLoaderVersions() == null
-                    || response.legacyFabricLoaderVersions().size() == 0) {
-                return null;
-            }
-
-            return response.legacyFabricLoaderVersions().get(0).version();
-        }
-
         java.lang.reflect.Type type = new TypeToken<List<LegacyFabricMetaVersion>>() {
         }.getType();
 
@@ -277,22 +240,6 @@ public class LegacyFabricLoader implements Loader {
             List<String> disabledVersions = ConfigManager.getConfigItem(
                     "loaders.legacyfabric.disabledVersions",
                     new ArrayList<String>());
-
-            if (ConfigManager.getConfigItem("useGraphql.loaderVersionsNonForge", false) == true) {
-                GetLegacyFabricLoaderVersionsForMinecraftVersionQuery.Data response = GraphqlClient
-                        .callAndWait(new GetLegacyFabricLoaderVersionsForMinecraftVersionQuery(minecraft));
-
-                if (response == null || response.loaderVersions() == null
-                        || response.loaderVersions().legacyfabric() == null
-                        || response.loaderVersions().legacyfabric().size() == 0) {
-                    return null;
-                }
-
-                return response.loaderVersions().legacyfabric().stream()
-                        .filter(fv -> !disabledVersions.contains(fv.version()))
-                        .map(version -> new LoaderVersion(version.version(), false, "LegacyFabric"))
-                        .collect(Collectors.toList());
-            }
 
             java.lang.reflect.Type type = new TypeToken<List<LegacyFabricMetaVersion>>() {
             }.getType();

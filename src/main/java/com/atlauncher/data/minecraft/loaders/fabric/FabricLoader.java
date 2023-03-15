@@ -37,18 +37,13 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import com.atlauncher.FileSystem;
-import com.atlauncher.Gsons;
 import com.atlauncher.data.minecraft.Arguments;
 import com.atlauncher.data.minecraft.Library;
 import com.atlauncher.data.minecraft.loaders.Loader;
 import com.atlauncher.data.minecraft.loaders.LoaderVersion;
-import com.atlauncher.graphql.GetFabricLoaderVersionQuery;
-import com.atlauncher.graphql.GetFabricLoaderVersionsForMinecraftVersionQuery;
-import com.atlauncher.graphql.GetLatestFabricLoaderVersionQuery;
 import com.atlauncher.managers.ConfigManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.network.Download;
-import com.atlauncher.network.GraphqlClient;
 import com.atlauncher.utils.Utils;
 import com.atlauncher.workers.InstanceInstaller;
 import com.google.gson.reflect.TypeToken;
@@ -81,24 +76,6 @@ public class FabricLoader implements Loader {
     }
 
     private FabricMetaProfile getLoader(String version) {
-        if (ConfigManager.getConfigItem("useGraphql.loaderVersionsNonForge", false) == true) {
-            GetFabricLoaderVersionQuery.Data response = GraphqlClient
-                    .callAndWait(GetFabricLoaderVersionQuery.builder().fabricVersion(version)
-                            .minecraftVersion(this.minecraft).includeClientJson(
-                                    !instanceInstaller.isServer)
-                            .includeServerJson(instanceInstaller.isServer).build());
-
-            if (response == null || response.fabricLoaderVersion() == null) {
-                return null;
-            }
-
-            if (instanceInstaller.isServer) {
-                return Gsons.MINECRAFT.fromJson(response.fabricLoaderVersion().serverJson(), FabricMetaProfile.class);
-            }
-
-            return Gsons.MINECRAFT.fromJson(response.fabricLoaderVersion().clientJson(), FabricMetaProfile.class);
-        }
-
         return Download.build()
                 .setUrl(String.format("https://meta.fabricmc.net/v2/versions/loader/%s/%s/%s/json",
                         this.minecraft,
@@ -107,18 +84,6 @@ public class FabricLoader implements Loader {
     }
 
     public String getLatestVersion() {
-        if (ConfigManager.getConfigItem("useGraphql.loaderVersionsNonForge", false) == true) {
-            GetLatestFabricLoaderVersionQuery.Data response = GraphqlClient
-                    .callAndWait(new GetLatestFabricLoaderVersionQuery());
-
-            if (response == null || response.fabricLoaderVersions() == null
-                    || response.fabricLoaderVersions().size() == 0) {
-                return null;
-            }
-
-            return response.fabricLoaderVersions().get(0).version();
-        }
-
         java.lang.reflect.Type type = new TypeToken<List<FabricMetaVersion>>() {
         }.getType();
 
@@ -272,20 +237,6 @@ public class FabricLoader implements Loader {
     public static List<LoaderVersion> getChoosableVersions(String minecraft) {
         try {
             List<String> disabledVersions = ConfigManager.getConfigItem("loaders.fabric.disabledVersions", new ArrayList<>());
-
-            if (ConfigManager.getConfigItem("useGraphql.loaderVersionsNonForge", false)) {
-                GetFabricLoaderVersionsForMinecraftVersionQuery.Data response = GraphqlClient
-                        .callAndWait(new GetFabricLoaderVersionsForMinecraftVersionQuery(minecraft));
-
-                if (response == null || response.loaderVersions().fabric().size() == 0) {
-                    return null;
-                }
-
-                return response.loaderVersions().fabric().stream()
-                        .filter(fv -> !disabledVersions.contains(fv.version()))
-                        .map(version -> new LoaderVersion(version.version(), false, "Fabric"))
-                        .collect(Collectors.toList());
-            }
 
             java.lang.reflect.Type type = new TypeToken<List<FabricMetaVersion>>() {
             }.getType();

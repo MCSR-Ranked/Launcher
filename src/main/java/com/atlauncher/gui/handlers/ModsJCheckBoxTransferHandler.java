@@ -38,8 +38,6 @@ import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.data.DisableableMod;
 import com.atlauncher.data.ModPlatform;
 import com.atlauncher.data.Type;
-import com.atlauncher.data.curseforge.CurseForgeFingerprint;
-import com.atlauncher.data.curseforge.CurseForgeProject;
 import com.atlauncher.data.minecraft.FabricMod;
 import com.atlauncher.data.minecraft.MCMod;
 import com.atlauncher.data.modrinth.ModrinthProject;
@@ -49,7 +47,6 @@ import com.atlauncher.gui.dialogs.FileTypeDialog;
 import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.utils.CurseForgeApi;
 import com.atlauncher.utils.Hashing;
 import com.atlauncher.utils.ModrinthApi;
 import com.atlauncher.utils.Utils;
@@ -180,64 +177,6 @@ public class ModsJCheckBoxTransferHandler extends TransferHandler {
                     }
                 }
 
-                if (!App.settings.dontCheckModsOnCurseForge) {
-                    Map<Long, DisableableMod> murmurHashes = new HashMap<>();
-
-                    modsAdded.stream()
-                            .filter(dm -> dm.curseForgeProject == null && dm.curseForgeFile == null)
-                            .filter(dm -> dm.getFile(dialog.instance.ROOT, dialog.instance.id) != null).forEach(dm -> {
-                                try {
-                                    long hash = Hashing
-                                            .murmur(dm.getFile(dialog.instance.ROOT, dialog.instance.id).toPath());
-                                    murmurHashes.put(hash, dm);
-                                } catch (Throwable t) {
-                                    LogManager.logStackTrace(t);
-                                }
-                            });
-
-                    if (murmurHashes.size() != 0) {
-                        CurseForgeFingerprint fingerprintResponse = CurseForgeApi
-                                .checkFingerprints(murmurHashes.keySet().stream().toArray(Long[]::new));
-
-                        if (fingerprintResponse != null && fingerprintResponse.exactMatches != null) {
-                            int[] projectIdsFound = fingerprintResponse.exactMatches.stream().mapToInt(em -> em.id)
-                                    .toArray();
-
-                            if (projectIdsFound.length != 0) {
-                                Map<Integer, CurseForgeProject> foundProjects = CurseForgeApi
-                                        .getProjectsAsMap(projectIdsFound);
-
-                                if (foundProjects != null) {
-                                    fingerprintResponse.exactMatches.stream()
-                                            .filter(em -> em != null && em.file != null
-                                                    && murmurHashes.containsKey(em.file.packageFingerprint))
-                                            .forEach(foundMod -> {
-                                                DisableableMod dm = murmurHashes
-                                                        .get(foundMod.file.packageFingerprint);
-
-                                                // add CurseForge information
-                                                dm.curseForgeProjectId = foundMod.id;
-                                                dm.curseForgeFile = foundMod.file;
-                                                dm.curseForgeFileId = foundMod.file.id;
-
-                                                CurseForgeProject curseForgeProject = foundProjects
-                                                        .get(foundMod.id);
-
-                                                if (curseForgeProject != null) {
-                                                    dm.curseForgeProject = curseForgeProject;
-                                                    dm.name = curseForgeProject.name;
-                                                    dm.description = curseForgeProject.summary;
-                                                }
-
-                                                LogManager.debug("Found matching mod from CurseForge called "
-                                                        + dm.curseForgeFile.displayName);
-                                            });
-                                }
-                            }
-                        }
-                    }
-                }
-
                 if (!App.settings.dontCheckModsOnModrinth) {
                     Map<String, DisableableMod> sha1Hashes = new HashMap<>();
 
@@ -280,8 +219,7 @@ public class ModsJCheckBoxTransferHandler extends TransferHandler {
                                             dm.modrinthProject = project;
                                             dm.modrinthVersion = version;
 
-                                            if (!dm.isFromCurseForge()
-                                                    || App.settings.defaultModPlatform == ModPlatform.MODRINTH) {
+                                            if (App.settings.defaultModPlatform == ModPlatform.MODRINTH) {
                                                 dm.name = project.title;
                                                 dm.description = project.description;
                                             }

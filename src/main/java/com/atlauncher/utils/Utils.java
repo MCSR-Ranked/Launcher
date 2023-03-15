@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -43,7 +42,6 @@ import java.net.NetworkInterface;
 import java.net.Proxy;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
@@ -193,41 +191,6 @@ public class Utils {
 
     public static InputStream getResourceInputStream(String path) {
         return App.class.getResourceAsStream(path);
-    }
-
-    /**
-     * Upload paste.
-     *
-     * @param title the title
-     * @param log   the log
-     * @return the string
-     */
-    public static String uploadPaste(String title, String log) {
-        String line;
-        String result = "";
-        try {
-            String urlParameters = "";
-            urlParameters += "title=" + URLEncoder.encode(title, "ISO-8859-1") + "&";
-            urlParameters += "language=" + URLEncoder.encode("text", "ISO-8859-1") + "&";
-            urlParameters += "private=" + URLEncoder.encode("1", "ISO-8859-1") + "&";
-            urlParameters += "text=" + URLEncoder.encode(log, "ISO-8859-1");
-            URL url = new URL(Constants.PASTE_API_URL);
-            URLConnection conn = url.openConnection();
-            conn.addRequestProperty("User-Agent", Network.USER_AGENT);
-            conn.setDoOutput(true);
-            OutputStreamWriter writer = new OutputStreamWriter(conn.getOutputStream());
-            writer.write(urlParameters);
-            writer.flush();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            while ((line = reader.readLine()) != null) {
-                result = line;
-            }
-            writer.close();
-            reader.close();
-        } catch (IOException e1) {
-            LogManager.logStackTrace(e1);
-        }
-        return result;
     }
 
     /**
