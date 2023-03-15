@@ -264,11 +264,7 @@ public abstract class Installable {
                                     pack.getName(), version.version);
                         }
 
-                        if (isServer) {
-                            App.launcher.reloadServersPanel();
-                        } else {
-                            App.launcher.reloadInstancesPanel();
-                        }
+                        App.launcher.reloadInstancesPanel();
 
                         if (pack.isLoggingEnabled() && App.settings.enableLogs && !version.isDev) {
                             if (isServer) {
@@ -422,7 +418,7 @@ public abstract class Installable {
         rankedDialog.addThread(new Thread(() -> {
             ModrinthProject rankedModrinth = ModrinthApi.getProject("I9W1u5Ac");
             List<ModrinthVersion> rankedModrinthVersion = ModrinthApi.getVersions("I9W1u5Ac");
-            ModrinthVersion version = Objects.requireNonNull(rankedModrinthVersion.stream().filter(mv -> mv.gameVersions.contains(targetInstance.getMinecraftVersion())).sorted((c1, c2) -> new Random().nextInt(3) - 1).findFirst().orElse(null));
+            ModrinthVersion version = Objects.requireNonNull(rankedModrinthVersion.stream().filter(mv -> mv.gameVersions.contains(targetInstance.getMinecraftVersion())).findFirst().orElse(null));
             targetInstance.addFileFromModrinth(rankedModrinth, version, version.files.get(0), rankedDialog);
             rankedDialog.close();
         }));

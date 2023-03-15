@@ -80,9 +80,7 @@ public class Launcher {
     // UI things
     private JFrame parent; // Parent JFrame of the actual Launcher
     private InstancesTab instancesPanel; // The instances panel
-    private ServersTab serversPanel; // The instances panel
     private NewsTab newsPanel; // The news panel
-    private PacksBrowserTab packsBrowserPanel; // The packs browser panel
 
     // Update thread
     private Thread updateThread;
@@ -450,24 +448,6 @@ public class Launcher {
     public void reloadInstancesPanel() {
         InstanceManager.post();
     }
-
-    public void setServersPanel(ServersTab serversPanel) {
-        this.serversPanel = serversPanel;
-    }
-
-    public void reloadServersPanel() {
-        ServerManager.post();
-    }
-
-    /**
-     * Sets the panel used for the Packs Browser
-     *
-     * @param packsBrowserPanel Packs Browser Panel
-     */
-    public void setPacksBrowserPanel(PacksBrowserTab packsBrowserPanel) {
-        this.packsBrowserPanel = packsBrowserPanel;
-    }
-
     /**
      * Sets the panel used for News
      *
@@ -482,20 +462,6 @@ public class Launcher {
      */
     public void reloadNewsPanel() {
         this.newsPanel.reload(); // Reload the news panel
-    }
-
-    /**
-     * Reloads the panel used for the Packs browser
-     */
-    public void reloadPacksBrowserPanel() {
-        this.packsBrowserPanel.reload(); // Reload the packs browser panel
-    }
-
-    /**
-     * Refreshes the panel used for thePacks browser
-     */
-    public void refreshPacksBrowserPanel() {
-        this.packsBrowserPanel.refresh(); // Refresh the packs browser panel
     }
 
     public void showKillMinecraft(Process minecraft) {

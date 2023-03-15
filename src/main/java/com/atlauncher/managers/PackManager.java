@@ -240,7 +240,6 @@ public class PackManager {
                     }
                     App.settings.addedPacks.add(packCode);
                     App.settings.save();
-                    App.launcher.refreshPacksBrowserPanel();
                     return true;
                 }
             }
@@ -253,7 +252,6 @@ public class PackManager {
             if (Hashing.md5(code).equals(Hashing.toHashCode(packCode))) {
                 App.settings.addedPacks.remove(packCode);
                 App.settings.save();
-                App.launcher.refreshPacksBrowserPanel();
             }
         }
     }
