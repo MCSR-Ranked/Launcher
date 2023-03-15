@@ -62,7 +62,7 @@ public class LWJGLManager {
     }
 
     public static boolean usesLegacyLWJGL(MinecraftVersion minecraftVersion) {
-        return Data.LWJGL_VERSIONS.legacyLwjglVersions.contains(minecraftVersion.id);
+        return Data.LWJGL_VERSIONS != null && Data.LWJGL_VERSIONS.legacyLwjglVersions.contains(minecraftVersion.id);
     }
 
     public static LWJGLLibrary getLegacyLWJGLLibrary() {
