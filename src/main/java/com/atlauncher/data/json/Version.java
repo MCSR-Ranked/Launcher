@@ -22,11 +22,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.atlauncher.annot.Json;
-import com.atlauncher.data.DisableableMod;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.workers.InstanceInstaller;
 import com.google.gson.annotations.SerializedName;

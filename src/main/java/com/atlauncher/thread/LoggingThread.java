@@ -19,9 +19,9 @@ package com.atlauncher.thread;
 
 import java.util.concurrent.BlockingQueue;
 
-import com.atlauncher.evnt.LogEvent;
-
 import org.apache.logging.log4j.Logger;
+
+import com.atlauncher.evnt.LogEvent;
 
 public final class LoggingThread extends Thread {
     private final BlockingQueue<LogEvent> queue;

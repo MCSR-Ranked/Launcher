@@ -17,14 +17,16 @@
  */
 package com.atlauncher.viewmodel.base;
 
-import com.atlauncher.data.Instance;
-import com.atlauncher.utils.sort.InstanceSortingStrategy;
-import org.jetbrains.annotations.NotNull;
-
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.atlauncher.data.Instance;
+import com.atlauncher.utils.sort.InstanceSortingStrategy;
 
 /**
  * 20 / 11 / 2022

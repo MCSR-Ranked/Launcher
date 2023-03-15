@@ -17,10 +17,10 @@
  */
 package com.atlauncher.viewmodel.base;
 
-import com.atlauncher.data.Server;
-
 import java.util.List;
 import java.util.function.Consumer;
+
+import com.atlauncher.data.Server;
 
 /**
  * 19 / 11 / 2022

@@ -34,7 +34,6 @@ import com.atlauncher.data.Instance;
 import com.atlauncher.gui.components.JLabelWithHover;
 import com.atlauncher.managers.AccountManager;
 import com.atlauncher.utils.ComboItem;
-import com.atlauncher.utils.OS;
 import com.atlauncher.utils.Utils;
 
 @SuppressWarnings("serial")

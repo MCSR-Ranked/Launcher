@@ -22,7 +22,6 @@ import java.awt.GridBagLayout;
 
 import javax.swing.JPanel;
 
-import com.atlauncher.viewmodel.base.IInstancesTabViewModel;
 import org.mini2Dx.gettext.GetText;
 
 import com.atlauncher.builders.HTMLBuilder;
@@ -32,6 +31,7 @@ import com.atlauncher.evnt.manager.RelocalizationManager;
 import com.atlauncher.gui.card.InstanceCard;
 import com.atlauncher.gui.card.NilCard;
 import com.atlauncher.gui.tabs.InstancesTab;
+import com.atlauncher.viewmodel.base.IInstancesTabViewModel;
 
 public final class InstancesListPanel extends JPanel
         implements RelocalizationListener {

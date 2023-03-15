@@ -27,7 +27,6 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
-import com.atlauncher.viewmodel.base.IInstancesTabViewModel;
 import org.mini2Dx.gettext.GetText;
 
 import com.atlauncher.App;
@@ -37,6 +36,7 @@ import com.atlauncher.gui.dialogs.ImportInstanceDialog;
 import com.atlauncher.gui.tabs.InstancesTab;
 import com.atlauncher.utils.sort.InstanceSortingStrategies;
 import com.atlauncher.utils.sort.InstanceSortingStrategy;
+import com.atlauncher.viewmodel.base.IInstancesTabViewModel;
 
 public final class InstancesNavigationPanel extends JPanel implements RelocalizationListener {
     private final InstancesTab parent;

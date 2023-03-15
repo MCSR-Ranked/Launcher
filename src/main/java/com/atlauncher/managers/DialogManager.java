@@ -28,9 +28,9 @@ import javax.swing.Icon;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 
-import com.atlauncher.App;
-
 import org.mini2Dx.gettext.GetText;
+
+import com.atlauncher.App;
 
 public final class DialogManager {
     public static final int OPTION_TYPE = 0;

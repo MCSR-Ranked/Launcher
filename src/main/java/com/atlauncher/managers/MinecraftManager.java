@@ -37,7 +37,6 @@ import com.atlauncher.data.minecraft.VersionManifestVersionType;
 import com.atlauncher.exceptions.InvalidMinecraftVersion;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonIOException;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
 public class MinecraftManager {

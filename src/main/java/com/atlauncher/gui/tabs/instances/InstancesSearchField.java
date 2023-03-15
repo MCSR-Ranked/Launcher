@@ -24,10 +24,10 @@ import java.util.regex.Pattern;
 
 import javax.swing.JTextField;
 
-import com.atlauncher.viewmodel.base.IInstancesTabViewModel;
 import org.mini2Dx.gettext.GetText;
 
 import com.atlauncher.gui.tabs.InstancesTab;
+import com.atlauncher.viewmodel.base.IInstancesTabViewModel;
 import com.formdev.flatlaf.icons.FlatSearchIcon;
 
 public final class InstancesSearchField extends JTextField implements KeyListener {

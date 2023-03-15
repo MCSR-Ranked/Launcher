@@ -29,7 +29,6 @@ import org.mini2Dx.gettext.GetText;
 
 import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.data.DisableableMod;
-import com.atlauncher.data.ModPlatform;
 import com.atlauncher.data.json.Mod;
 import com.atlauncher.data.modrinth.ModrinthDonationUrl;
 import com.atlauncher.data.modrinth.ModrinthProject;

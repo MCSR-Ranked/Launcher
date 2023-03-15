@@ -37,7 +37,6 @@ import com.atlauncher.utils.Hashing;
 import com.atlauncher.utils.OS;
 import com.atlauncher.utils.Utils;
 import com.atlauncher.workers.InstanceInstaller;
-import com.google.gson.annotations.SerializedName;
 
 @Json
 public class Mod {

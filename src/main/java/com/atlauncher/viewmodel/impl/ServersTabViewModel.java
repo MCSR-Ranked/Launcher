@@ -17,14 +17,14 @@
  */
 package com.atlauncher.viewmodel.impl;
 
-import com.atlauncher.data.Server;
-import com.atlauncher.managers.ServerManager;
-import com.atlauncher.viewmodel.base.IServersTabViewModel;
-
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import com.atlauncher.data.Server;
+import com.atlauncher.managers.ServerManager;
+import com.atlauncher.viewmodel.base.IServersTabViewModel;
 
 /**
  * 19 / 11 / 2022

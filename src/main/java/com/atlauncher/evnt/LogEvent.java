@@ -21,13 +21,13 @@ import java.awt.Color;
 
 import javax.swing.UIManager;
 
+import org.apache.logging.log4j.Logger;
+
 import com.atlauncher.App;
 import com.atlauncher.FileSystem;
 import com.atlauncher.gui.components.Console;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.utils.Timestamper;
-
-import org.apache.logging.log4j.Logger;
 
 public final class LogEvent {
     public static final int CONSOLE = 0xA;

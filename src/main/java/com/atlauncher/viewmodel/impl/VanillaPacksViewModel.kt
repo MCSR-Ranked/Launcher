@@ -17,10 +17,8 @@
  */
 package com.atlauncher.viewmodel.impl
 
-import com.apollographql.apollo.api.cache.http.HttpCachePolicy
-import com.apollographql.apollo.coroutines.await
-import com.apollographql.apollo.exception.ApolloException
 import com.atlauncher.App
+import com.atlauncher.data.MCVersionRow
 import com.atlauncher.data.installables.Installable
 import com.atlauncher.data.installables.VanillaInstallable
 import com.atlauncher.data.minecraft.VersionManifestVersion
@@ -39,7 +37,6 @@ import com.atlauncher.managers.LogManager
 import com.atlauncher.managers.MinecraftManager
 import com.atlauncher.utils.Utils
 import com.atlauncher.viewmodel.base.IVanillaPacksViewModel
-import com.atlauncher.data.MCVersionRow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -48,8 +45,6 @@ import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.ISODateTimeFormat
 import org.mini2Dx.gettext.GetText
 import java.awt.Font
-import java.util.concurrent.TimeUnit
-import java.util.stream.Collectors
 
 
 /**

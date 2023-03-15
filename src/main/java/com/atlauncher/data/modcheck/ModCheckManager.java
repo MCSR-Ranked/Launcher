@@ -9,7 +9,6 @@ import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.pistacium.modcheck.mod.ModData;
-import com.pistacium.modcheck.mod.resource.ModResource;
 import com.pistacium.modcheck.mod.version.ModVersion;
 import com.pistacium.modcheck.util.ModCheckUtils;
 
