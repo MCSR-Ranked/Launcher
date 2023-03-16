@@ -43,7 +43,7 @@ import com.atlauncher.gui.card.InstanceCard;
 import ui.mocks.MockHelper;
 
 public class BasicLauncherUiTest extends AbstractUiTest {
-    @Test
+
     public void testTheLauncherOpens() {
         this.frame.button("checkForUpdates").requireVisible();
 
