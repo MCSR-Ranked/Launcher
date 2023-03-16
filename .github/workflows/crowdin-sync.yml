@@ -1,10 +1,6 @@
 name: Crowdin Sync
 
-on:
-  push:
-    branches: [master]
-    paths:
-      - 'src/main/java/com/atlauncher/**'
+on: [workflow_dispatch]
 
 jobs:
   synchronize-with-crowdin:
