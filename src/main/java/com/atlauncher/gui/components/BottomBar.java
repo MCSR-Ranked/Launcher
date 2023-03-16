@@ -1,6 +1,6 @@
 /*
- * ATLauncher - https://github.com/ATLauncher/ATLauncher
- * Copyright (C) 2013-2022 ATLauncher
+ * MCSR Ranked Launcher - https://github.com/RedLime/MCSR-Ranked-Launcher
+ * Copyright (C) 2023 ATLauncher
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.UIManager;
 
+import com.atlauncher.constants.Constants;
 import com.atlauncher.evnt.listener.ThemeListener;
 import com.atlauncher.evnt.manager.ThemeManager;
 import com.atlauncher.managers.LogManager;
@@ -58,19 +59,19 @@ public abstract class BottomBar extends JPanel implements ThemeListener {
 
     private void setupSocialButtonListeners() {
         discordIcon.addActionListener(e -> {
-            LogManager.info("Opening Up ATLauncher Discord");
+            LogManager.info("Opening Up " + Constants.LAUNCHER_NAME + " Discord");
             OS.openWebBrowser("https://mcsrranked.com/discord");
         });
         githubIcon.addActionListener(e -> {
-            LogManager.info("Opening Up ATLauncher GitHub Page");
+            LogManager.info("Opening Up " + Constants.LAUNCHER_NAME + " GitHub Page");
             OS.openWebBrowser("https://github.com/RedLime/MCSR-Ranked-Launcher");
         });
         twitterIcon.addActionListener(e -> {
-            LogManager.info("Opening Up ATLauncher Twitter Page");
+            LogManager.info("Opening Up " + Constants.LAUNCHER_NAME + " Twitter Page");
             OS.openWebBrowser("https://twitter.com/mcsr_ranked/");
         });
         patreonIcon.addActionListener(e -> {
-            LogManager.info("Opening Up ATLauncher Patreon Page");
+            LogManager.info("Opening Up " + Constants.LAUNCHER_NAME + " Patreon Page");
             OS.openWebBrowser("https://www.patreon.com/mcsrranked");
         });
     }

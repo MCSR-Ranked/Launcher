@@ -1,6 +1,6 @@
 /*
- * ATLauncher - https://github.com/ATLauncher/ATLauncher
- * Copyright (C) 2013-2022 ATLauncher
+ * MCSR Ranked Launcher - https://github.com/RedLime/MCSR-Ranked-Launcher
+ * Copyright (C) 2023 ATLauncher
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -329,7 +329,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
     private void downloadPackVersionJson() throws Exception {
         addPercent(5);
         // #. {0} is the platform the modpack is from
-        fireTask(GetText.tr("Generating Pack Version From {0}", "ATLauncher"));
+        fireTask(GetText.tr("Generating Pack Version From {0}", Constants.LAUNCHER_NAME));
         fireSubProgressUnknown();
 
         this.packVersion = com.atlauncher.network.Download.build().cached()

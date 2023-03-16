@@ -1,6 +1,6 @@
 /*
- * ATLauncher - https://github.com/ATLauncher/ATLauncher
- * Copyright (C) 2013-2022 ATLauncher
+ * MCSR Ranked Launcher - https://github.com/RedLime/MCSR-Ranked-Launcher
+ * Copyright (C) 2023 ATLauncher
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,7 +96,7 @@ public class GeneralSettingsTab extends AbstractSettingsTab {
 
         language = new JComboBox<>(
                 Language.locales.stream().filter(l -> l == Locale.ENGLISH || Language.languages.containsValue(l))
-                        .map(Locale::getDisplayName).toArray(String[]::new));
+                        .map(locale -> locale.getDisplayName(locale)).toArray(String[]::new));
         language.setSelectedItem(Language.selected);
         languagePanel.add(language);
 
@@ -328,7 +328,7 @@ public class GeneralSettingsTab extends AbstractSettingsTab {
         gbc.insets = UIConstants.LABEL_INSETS;
         gbc.anchor = GridBagConstraints.BASELINE_TRAILING;
         JLabelWithHover keepLauncherOpenLabel = new JLabelWithHover(GetText.tr("Keep Launcher Open") + "?", HELP_ICON,
-                GetText.tr("This determines if ATLauncher should stay open or exit after Minecraft has exited"));
+                GetText.tr("This determines if {0} should stay open or exit after Minecraft has exited", Constants.LAUNCHER_NAME));
         add(keepLauncherOpenLabel, gbc);
 
         gbc.gridx++;
@@ -367,7 +367,7 @@ public class GeneralSettingsTab extends AbstractSettingsTab {
         gbc.anchor = GridBagConstraints.BASELINE_TRAILING;
         JLabelWithHover enableTrayIconLabel = new JLabelWithHover(GetText.tr("Enable Tray Menu") + "?", HELP_ICON,
                 new HTMLBuilder().center().split(100).text(GetText.tr(
-                        "The Tray Menu is a little icon that shows in your system taskbar which allows you to perform different functions to do various things with the launcher such as hiding or showing the console, killing Minecraft or closing ATLauncher."))
+                        "The Tray Menu is a little icon that shows in your system taskbar which allows you to perform different functions to do various things with the launcher such as hiding or showing the console, killing Minecraft or closing {0}.", Constants.LAUNCHER_NAME))
                         .build());
         add(enableTrayIconLabel, gbc);
 

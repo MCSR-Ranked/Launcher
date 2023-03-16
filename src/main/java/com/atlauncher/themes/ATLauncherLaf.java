@@ -1,6 +1,6 @@
 /*
- * ATLauncher - https://github.com/ATLauncher/ATLauncher
- * Copyright (C) 2013-2022 ATLauncher
+ * MCSR Ranked Launcher - https://github.com/RedLime/MCSR-Ranked-Launcher
+ * Copyright (C) 2023 ATLauncher
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ import javax.swing.JMenu;
 import javax.swing.JPopupMenu;
 
 import com.atlauncher.App;
+import com.atlauncher.constants.Constants;
 import com.atlauncher.data.Language;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.utils.Resources;
@@ -120,12 +121,12 @@ public class ATLauncherLaf extends FlatLaf {
 
     @Override
     public String getName() {
-        return "ATLauncher";
+        return Constants.LAUNCHER_NAME;
     }
 
     @Override
     public String getDescription() {
-        return "Default theme of ATLauncher";
+        return "Default theme of " + Constants.LAUNCHER_NAME;
     }
 
     @Override

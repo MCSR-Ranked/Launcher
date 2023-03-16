@@ -1,6 +1,6 @@
 /*
- * ATLauncher - https://github.com/ATLauncher/ATLauncher
- * Copyright (C) 2013-2022 ATLauncher
+ * MCSR Ranked Launcher - https://github.com/RedLime/MCSR-Ranked-Launcher
+ * Copyright (C) 2023 ATLauncher
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ public class Language {
     public final static Map<String, Locale> languages = new LinkedHashMap<>();
     public final static List<Locale> localesWithoutFont = new ArrayList<>();
     public final static List<Locale> localesWithoutTabFont = new ArrayList<>();
-    public static String selected = Locale.ENGLISH.getDisplayName();
+    public static String selected = Locale.ENGLISH.getDisplayName(Locale.ENGLISH);
     public static Locale selectedLocale = Locale.ENGLISH;
 
     // add in the languages we have support for
@@ -92,8 +92,8 @@ public class Language {
         for (Locale locale : locales) {
             if (Utils.getResourceInputStream(
                     "/assets/lang/" + locale.getLanguage() + "-" + locale.getCountry() + ".po") != null) {
-                languages.put(locale.getDisplayName(), locale);
-                LogManager.debug("Loaded language " + locale.getDisplayName() + " with key of " + locale);
+                languages.put(locale.getDisplayName(locale), locale);
+                LogManager.debug("Loaded language " + locale.getDisplayName(locale) + " with key of " + locale);
             }
         }
     }
@@ -110,9 +110,9 @@ public class Language {
             locale = languages.get(language);
             selected = language;
         } else {
-            LogManager.info("Unknown language " + language + ". Defaulting to " + Locale.ENGLISH.getDisplayName());
+            LogManager.info("Unknown language " + language + ". Defaulting to " + Locale.ENGLISH.getDisplayName(Locale.ENGLISH));
             locale = Locale.ENGLISH;
-            selected = Locale.ENGLISH.getDisplayName();
+            selected = Locale.ENGLISH.getDisplayName(locale);
         }
 
         if (locale != Locale.ENGLISH) {
@@ -123,7 +123,7 @@ public class Language {
             } catch (IOException e) {
                 LogManager.logStackTrace("Failed loading language po file for " + language, e);
                 locale = Locale.ENGLISH;
-                selected = Locale.ENGLISH.getDisplayName();
+                selected = Locale.ENGLISH.getDisplayName(locale);
             }
         }
 

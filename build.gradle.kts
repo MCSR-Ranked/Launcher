@@ -40,7 +40,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-group = "com.atlauncher"
+group = "com.mcsrrankedlauncher"
 version = rootProject.file("src/main/resources/version").readText().trim().replace(".Beta", "")
 
 repositories {
@@ -113,17 +113,6 @@ application {
     )
 }
 
-apollo {
-    customTypeMapping.set(
-        mapOf(
-            "ID" to "java.lang.String",
-            "DateTime" to "java.util.Date"
-        )
-    )
-    @Suppress("OPT_IN_USAGE") // It's experimental, and that is fine
-    packageName.set("com.atlauncher.graphql")
-}
-
 extensions.configure<FactoryNamedDomainObjectContainer<GetTextSource>>("gettext") {
     create("translations") {
         srcDir = "src"
@@ -158,7 +147,7 @@ license {
 
 macAppBundle {
     mainClassName = "com.atlauncher.App"
-    appName = "ATLauncher"
+    appName = "MCSRRankedLauncher"
     appStyle = "universalJavaApplicationStub"
     runtimeConfigurationName = "shadow"
     jarTask = "shadowJar"
@@ -179,7 +168,7 @@ fun currentYear(): String {
 }
 
 launch4j {
-    outfile = "ATLauncher-${project.version}.exe"
+    outfile = "MCSRRankedLauncher-${project.version}.exe"
     jreMinVersion = project.java.targetCompatibility.toString()
     mainClassName = "com.atlauncher.App"
     icon = "${projectDir}/src/main/resources/assets/image/icon.ico"
@@ -230,7 +219,7 @@ tasks {
                 "SplashScreen-Image" to "/assets/image/splash-screen.png",
                 "Implementation-Title" to project.name,
                 "Implementation-Version" to archiveVersion,
-                "Implementation-Vender" to "ATLauncher",
+                "Implementation-Vender" to "MCSRRankedLauncher",
                 "Main-Class" to "com.atlauncher.App",
                 "Multi-Release" to "true"
             )
@@ -265,12 +254,12 @@ tasks {
     }
 
     copyToResourcesJava {
-        rename("ATLauncher-${project.version}.jar", "ATLauncher.jar")
+        rename("MCSRRankedLauncher-${project.version}.jar", "MCSRRankedLauncher.jar")
     }
 
     val copyArtifactsFinal = create("copyArtifactsFinal") {
         doFirst {
-            println("ATLauncher has been built. Distribution files are located in the dist directory.")
+            println("MCSRRankedLauncher has been built. Distribution files are located in the dist directory.")
         }
     }
 

@@ -7,5 +7,5 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-group = "com.atlauncher"
+group = "com.mcsrrankedlauncher"
 version = rootProject.file("src/main/resources/version").readText().trim().replace(".Beta", "")

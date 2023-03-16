@@ -1,6 +1,6 @@
 /*
- * ATLauncher - https://github.com/ATLauncher/ATLauncher
- * Copyright (C) 2013-2022 ATLauncher
+ * MCSR Ranked Launcher - https://github.com/RedLime/MCSR-Ranked-Launcher
+ * Copyright (C) 2023 ATLauncher
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +43,7 @@ import com.atlauncher.FileSystem;
 import com.atlauncher.Gsons;
 import com.atlauncher.annot.Json;
 import com.atlauncher.builders.HTMLBuilder;
+import com.atlauncher.constants.Constants;
 import com.atlauncher.data.minecraft.JavaRuntime;
 import com.atlauncher.data.minecraft.JavaRuntimes;
 import com.atlauncher.data.minecraft.JavaVersion;
@@ -232,7 +233,7 @@ public class Server {
             if (!close) {
                 DialogManager.okDialog().setTitle(GetText.tr("Server Launched"))
                         .setContent(new HTMLBuilder().center().text(GetText.tr(
-                                "The server has been launched in an external window.<br/><br/>You can close ATLauncher which will not stop the server."))
+                                "The server has been launched in an external window.<br/><br/>You can close {0} which will not stop the server.", Constants.LAUNCHER_NAME))
                                 .build())
                         .setType(DialogManager.INFO).show();
             } else {

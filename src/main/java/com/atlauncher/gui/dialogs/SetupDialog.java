@@ -1,6 +1,6 @@
 /*
- * ATLauncher - https://github.com/ATLauncher/ATLauncher
- * Copyright (C) 2013-2022 ATLauncher
+ * MCSR Ranked Launcher - https://github.com/RedLime/MCSR-Ranked-Launcher
+ * Copyright (C) 2023 ATLauncher
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,7 +86,7 @@ public class SetupDialog extends JDialog implements RelocalizationListener {
         gbc.gridx++;
         gbc.insets = UIConstants.FIELD_INSETS;
         gbc.anchor = GridBagConstraints.BASELINE_LEADING;
-        language = new JComboBox<>(Language.locales.stream().filter(l -> l == Locale.ENGLISH || Language.languages.containsValue(l)).map(Locale::getDisplayName).toArray(String[]::new));
+        language = new JComboBox<>(Language.locales.stream().filter(l -> l == Locale.ENGLISH || Language.languages.containsValue(l)).map(locale -> locale.getDisplayName(locale)).toArray(String[]::new));
         language.setSelectedItem(Language.selected);
         language.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {

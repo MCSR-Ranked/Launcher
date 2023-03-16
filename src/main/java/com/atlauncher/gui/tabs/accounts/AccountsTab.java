@@ -1,6 +1,6 @@
 /*
- * ATLauncher - https://github.com/ATLauncher/ATLauncher
- * Copyright (C) 2013-2022 ATLauncher
+ * MCSR Ranked Launcher - https://github.com/RedLime/MCSR-Ranked-Launcher
+ * Copyright (C) 2023 ATLauncher
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,7 @@ import javax.swing.event.HyperlinkEvent;
 import org.mini2Dx.gettext.GetText;
 
 import com.atlauncher.builders.HTMLBuilder;
+import com.atlauncher.constants.Constants;
 import com.atlauncher.constants.UIConstants;
 import com.atlauncher.data.AbstractAccount;
 import com.atlauncher.data.LoginResponse;
@@ -96,7 +97,7 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
         infoPanel.setBorder(BorderFactory.createEmptyBorder(60, 250, 0, 250));
 
         JEditorPane infoTextPane = new JEditorPane("text/html", new HTMLBuilder().center().text(GetText.tr(
-                "In order to login and use ATLauncher modpacks, " +
+                "In order to login and use {0} modpacks, " +
                         "you must authenticate with your existing " +
                         "Minecraft/Mojang account. You must own and have paid " +
                         "for the Minecraft Java edition " +
@@ -104,8 +105,8 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
                         "login here.<br><br>If you don't have an existing " +
                         "account, you can get one " +
                         "<a href=\"https://atl.pw/create-account\">by buying " +
-                        "Minecraft here</a>. ATLauncher doesn't work with cracked" +
-                        " accounts."))
+                        "Minecraft here</a>. {0} doesn't work with cracked" +
+                        " accounts.", Constants.LAUNCHER_NAME))
                 .build());
         infoTextPane.setEditable(false);
         infoTextPane.addHyperlinkListener(e -> {

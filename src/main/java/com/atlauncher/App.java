@@ -1,6 +1,6 @@
 /*
- * ATLauncher - https://github.com/ATLauncher/ATLauncher
- * Copyright (C) 2013-2022 ATLauncher
+ * MCSR Ranked Launcher - https://github.com/RedLime/MCSR-Ranked-Launcher
+ * Copyright (C) 2023 ATLauncher
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -388,7 +388,7 @@ public class App {
 
             if (OS.isWindows() && OS.isUsingAntivirus()) {
                 LogManager.warn(
-                        "A running antivirus process was found on your system. If you notice any issues running Minecraft or downloading files, please whitelist ATLauncher and its folder in your antivirus program/s listed below.");
+                        "A running antivirus process was found on your system. If you notice any issues running Minecraft or downloading files, please whitelist " + Constants.LAUNCHER_NAME + " and its folder in your antivirus program/s listed below.");
 
                 for (OSProcess process : OS.getAntivirusProcesses()) {
                     LogManager.info(String.format("Process %s (running at %s)", process.getName(),
@@ -411,7 +411,7 @@ public class App {
 
         if (OS.isLinux() && GraphicsEnvironment.isHeadless()) {
             DialogManager.okDialog().setTitle("Using Headless Java").setContent(new HTMLBuilder().center().text(
-                    "You're running ATLauncher with a headless version of Java installed on your system.<br/><br/>ATLauncher cannot run with a headless version of Java. Please uninstall it and install a non headless version of Java to continue.<br/><br/>If you're unsure how, please Google for instructions for your specific distro.")
+                    "You're running " + Constants.LAUNCHER_NAME + " with a headless version of Java installed on your system.<br/><br/>" + Constants.LAUNCHER_NAME + " cannot run with a headless version of Java. Please uninstall it and install a non headless version of Java to continue.<br/><br/>If you're unsure how, please Google for instructions for your specific distro.")
                     .build())
                     .setType(DialogManager.ERROR).show();
             System.exit(0);
@@ -440,7 +440,7 @@ public class App {
             matched = true;
 
             if (DialogManager.optionDialog().setTitle("Warning").setContent(new HTMLBuilder().center().text(
-                    "ATLauncher shouldn't be run from the Downloads folder.<br/><br/>Please put ATLauncher in it's own folder and run the launcher from there!")
+                    Constants.LAUNCHER_NAME + " shouldn't be run from the Downloads folder.<br/><br/>Please put " + Constants.LAUNCHER_NAME + " in it's own folder and run the launcher from there!")
                     .build()).addOption("Yes It's fine", true).addOption("Whoops. I'll change that now")
                     .setType(DialogManager.ERROR).show() != 0) {
                 System.exit(0);
@@ -450,7 +450,7 @@ public class App {
         if (matched) {
             if (DialogManager.optionDialog().setTitle("Warning")
                     .setContent(new HTMLBuilder().center()
-                            .text("Are you absolutely sure you've put ATLauncher in it's own folder?<br/><br/>If you "
+                            .text("Are you absolutely sure you've put " + Constants.LAUNCHER_NAME + " in it's own folder?<br/><br/>If you "
                                     + "haven't and you click 'Yes, delete my files', this may delete "
                                     + FileSystem.CONFIGS.getParent().toFile().listFiles().length
                                     + " files and folders.<br/><br/>Are you 100% sure?")
@@ -494,12 +494,12 @@ public class App {
 
     private static void checkForBadFolderInstall() {
         if (!settings.ignoreOneDriveWarning && FileSystem.BASE_DIR.toString().contains("OneDrive")) {
-            LogManager.warn("ATLauncher installed within OneDrive!");
+            LogManager.warn(Constants.LAUNCHER_NAME + " installed within OneDrive!");
 
             int ret = DialogManager.yesNoDialog().addOption(GetText.tr("Don't remind me again"))
-                    .setTitle(GetText.tr("ATLauncher installed within OneDrive"))
+                    .setTitle(GetText.tr(Constants.LAUNCHER_NAME + " installed within OneDrive"))
                     .setContent(new HTMLBuilder().center().text(GetText.tr(
-                            "We have detected that you're running ATLauncher from within OneDrive.<br/><br/>This can cause serious issues and you should move the folder outside of OneDrive.<br/><br/>Do you want to close the launcher and do this now?"))
+                            "We have detected that you're running {0} from within OneDrive.<br/><br/>This can cause serious issues and you should move the folder outside of OneDrive.<br/><br/>Do you want to close the launcher and do this now?", Constants.LAUNCHER_NAME))
                             .build())
                     .setType(DialogManager.WARNING).show();
 
@@ -514,12 +514,12 @@ public class App {
 
         if (OS.isWindows() && !settings.ignoreProgramFilesWarning
                 && FileSystem.BASE_DIR.toString().contains("Program Files")) {
-            LogManager.warn("ATLauncher installed within Program Files!");
+            LogManager.warn(Constants.LAUNCHER_NAME + " installed within Program Files!");
 
             int ret = DialogManager.yesNoDialog().addOption(GetText.tr("Don't remind me again"))
-                    .setTitle(GetText.tr("ATLauncher installed within Program Files"))
+                    .setTitle(GetText.tr("{0} installed within Program Files", Constants.LAUNCHER_NAME))
                     .setContent(new HTMLBuilder().center().text(GetText.tr(
-                            "We have detected that you're running ATLauncher from within Program Files.<br/><br/>This can cause serious issues and you should move the folder outside of Program Files.<br/><br/>Do you want to close the launcher and do this now?"))
+                            "We have detected that you're running {0} from within Program Files.<br/><br/>This can cause serious issues and you should move the folder outside of Program Files.<br/><br/>Do you want to close the launcher and do this now?", Constants.LAUNCHER_NAME))
                             .build())
                     .setType(DialogManager.WARNING).show();
 
@@ -537,11 +537,11 @@ public class App {
         try {
             if ((!testFile.exists() && !testFile.createNewFile())
                     || !FileSystem.BASE_DIR.resolve(".test").toFile().canWrite()) {
-                LogManager.error("ATLauncher cannot write files!");
+                LogManager.error(Constants.LAUNCHER_NAME + " cannot write files!");
 
-                DialogManager.okDialog().setTitle(GetText.tr("ATLauncher cannot write files"))
+                DialogManager.okDialog().setTitle(GetText.tr("{0} cannot write files", Constants.LAUNCHER_NAME))
                         .setContent(new HTMLBuilder().center().text(GetText.tr(
-                                "We have detected that ATLauncher cannot write files in it's current location.<br/><br/>We cannot continue to run, you must move this folder somewhere else with write access.<br/><br/>Try moving to a folder in your Desktop or another drive.<br/><br/>You can also try running ATLauncher as administrator, but this is not recommended."))
+                                "We have detected that {0} cannot write files in it's current location.<br/><br/>We cannot continue to run, you must move this folder somewhere else with write access.<br/><br/>Try moving to a folder in your Desktop or another drive.<br/><br/>You can also try running {0} as administrator, but this is not recommended.", Constants.LAUNCHER_NAME))
                                 .build())
                         .setType(DialogManager.ERROR).show();
 
@@ -549,11 +549,11 @@ public class App {
                 System.exit(0);
             }
         } catch (IOException e) {
-            LogManager.error("ATLauncher cannot write files!");
+            LogManager.error(Constants.LAUNCHER_NAME + " cannot write files!");
 
-            DialogManager.okDialog().setTitle(GetText.tr("ATLauncher cannot write files"))
+            DialogManager.okDialog().setTitle(GetText.tr("{0} cannot write files", Constants.LAUNCHER_NAME))
                     .setContent(new HTMLBuilder().center().text(GetText.tr(
-                            "We have detected that ATLauncher cannot write files in it's current location.<br/><br/>We cannot continue to run, you must move this folder somewhere else with write access.<br/><br/>Try moving to a folder in your Desktop or another drive.<br/><br/>You can also try running ATLauncher as administrator, but this is not recommended."))
+                            "We have detected that {0} cannot write files in it's current location.<br/><br/>We cannot continue to run, you must move this folder somewhere else with write access.<br/><br/>Try moving to a folder in your Desktop or another drive.<br/><br/>You can also try running {0} as administrator, but this is not recommended.", Constants.LAUNCHER_NAME))
                             .build())
                     .setType(DialogManager.ERROR).show();
 

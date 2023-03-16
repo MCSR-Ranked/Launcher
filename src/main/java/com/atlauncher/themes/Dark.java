@@ -1,6 +1,6 @@
 /*
- * ATLauncher - https://github.com/ATLauncher/ATLauncher
- * Copyright (C) 2013-2022 ATLauncher
+ * MCSR Ranked Launcher - https://github.com/RedLime/MCSR-Ranked-Launcher
+ * Copyright (C) 2023 ATLauncher
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
  */
 package com.atlauncher.themes;
 
+import com.atlauncher.constants.Constants;
+
 @SuppressWarnings("serial")
 public class Dark extends ATLauncherLaf {
     public static boolean install() {
@@ -32,7 +34,7 @@ public class Dark extends ATLauncherLaf {
 
     @Override
     public String getDescription() {
-        return "Dark theme of ATLauncher";
+        return "Dark theme of " + Constants.LAUNCHER_NAME;
     }
 
     @Override

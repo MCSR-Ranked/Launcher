@@ -1,6 +1,6 @@
 /*
- * ATLauncher - https://github.com/ATLauncher/ATLauncher
- * Copyright (C) 2013-2022 ATLauncher
+ * MCSR Ranked Launcher - https://github.com/RedLime/MCSR-Ranked-Launcher
+ * Copyright (C) 2023 ATLauncher
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ import javax.swing.JLabel;
 import org.mini2Dx.gettext.GetText;
 
 import com.atlauncher.builders.HTMLBuilder;
+import com.atlauncher.constants.Constants;
 
 @SuppressWarnings("serial")
 public class DebugModePanel extends AbstractToolPanel {
@@ -33,7 +34,7 @@ public class DebugModePanel extends AbstractToolPanel {
         super(GetText.tr("Debug Mode"));
 
         JLabel INFO_LABEL = new JLabel(new HTMLBuilder().center().split(70).text(GetText.tr(
-                "Use this to relaunch ATLauncher in debug mode. This can be used to get more debug logs in order to help diagnose issues with ATLauncher."))
+                "Use this to relaunch {0} in debug mode. This can be used to get more debug logs in order to help diagnose issues with {0}.", Constants.LAUNCHER_NAME))
                 .build());
         MIDDLE_PANEL.add(INFO_LABEL);
         BOTTOM_PANEL.add(LAUNCH_BUTTON);

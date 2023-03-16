@@ -1,6 +1,6 @@
 /*
- * ATLauncher - https://github.com/ATLauncher/ATLauncher
- * Copyright (C) 2013-2022 ATLauncher
+ * MCSR Ranked Launcher - https://github.com/RedLime/MCSR-Ranked-Launcher
+ * Copyright (C) 2023 ATLauncher
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@ public class NetworkCheckerToolPanel extends AbstractToolPanel implements Action
     public void actionPerformed(ActionEvent e) {
         int ret = DialogManager.yesNoDialog().setTitle(GetText.tr("Network Checker"))
                 .setContent(new HTMLBuilder().center().split(75).text(GetText.tr(
-                        "Please note that the data from this tool is sent to ATLauncher so we can diagnose possible issues in your setup. This test may take up to 10 minutes or longer to complete and you will be unable to do anything while it's running. Please also keep in mind that this test will use some of your bandwidth, it will use approximately 100MB.<br/><br/>Do you wish to continue?"))
+                        "Please note that the data from this tool is sent to {0} so we can diagnose possible issues in your setup. This test may take up to 10 minutes or longer to complete and you will be unable to do anything while it's running. Please also keep in mind that this test will use some of your bandwidth, it will use approximately 100MB.<br/><br/>Do you wish to continue?", Constants.LAUNCHER_NAME))
                         .build())
                 .setType(DialogManager.INFO).show();
 
@@ -77,7 +77,7 @@ public class NetworkCheckerToolPanel extends AbstractToolPanel implements Action
 
                 DialogManager.okDialog().setTitle(GetText.tr("Network Checker"))
                         .setContent(new HTMLBuilder().center().text(GetText.tr(
-                                "The network checker tool has completed and the data sent off to ATLauncher.<br/><br/>Thanks for your input to help understand and fix network related issues."))
+                                "The network checker tool has completed and the data sent off to {0}.<br/><br/>Thanks for your input to help understand and fix network related issues.", Constants.LAUNCHER_NAME))
                                 .build())
                         .setType(DialogManager.INFO).show();
             }
