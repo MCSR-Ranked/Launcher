@@ -37,6 +37,7 @@ public abstract class BottomBar extends JPanel implements ThemeListener {
     protected final JButton discordIcon = new SMButton("/assets/image/social/discord.png", "Discord");
     protected final JButton githubIcon = new SMButton("/assets/image/social/github.png", "GitHub");
     protected final JButton twitterIcon = new SMButton("/assets/image/social/twitter.png", "Twitter");
+    protected final JButton patreonIcon = new SMButton("/assets/image/social/patreon.png", "Patreon");
 
     protected final JPanel rightSide = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 8));
 
@@ -50,6 +51,7 @@ public abstract class BottomBar extends JPanel implements ThemeListener {
         this.rightSide.add(this.discordIcon);
         this.rightSide.add(this.githubIcon);
         this.rightSide.add(this.twitterIcon);
+        this.rightSide.add(this.patreonIcon);
 
         ThemeManager.addListener(this);
     }
@@ -66,6 +68,10 @@ public abstract class BottomBar extends JPanel implements ThemeListener {
         twitterIcon.addActionListener(e -> {
             LogManager.info("Opening Up ATLauncher Twitter Page");
             OS.openWebBrowser("https://twitter.com/mcsr_ranked/");
+        });
+        patreonIcon.addActionListener(e -> {
+            LogManager.info("Opening Up ATLauncher Patreon Page");
+            OS.openWebBrowser("https://www.patreon.com/mcsrranked");
         });
     }
 
