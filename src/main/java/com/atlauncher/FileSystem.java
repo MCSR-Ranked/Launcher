@@ -60,9 +60,7 @@ public final class FileSystem {
     public static final Path LIBRARIES = BASE_DIR.resolve("libraries");
 
     public static final Path DOWNLOADS = BASE_DIR.resolve("downloads");
-    public static final Path TECHNIC_DOWNLOADS = DOWNLOADS.resolve("technic");
     public static final Path INSTANCES = BASE_DIR.resolve("instances");
-    public static final Path SERVERS = BASE_DIR.resolve("servers");
     public static final Path TEMP = BASE_DIR.resolve("temp");
     public static final Path FAILED_DOWNLOADS = BASE_DIR.resolve("faileddownloads");
 
@@ -187,7 +185,6 @@ public final class FileSystem {
     private static void renameDirectories() throws IOException {
         renameDirectory(BASE_DIR.resolve("Backups"), BACKUPS);
         renameDirectory(BASE_DIR.resolve("Instances"), INSTANCES);
-        renameDirectory(BASE_DIR.resolve("Servers"), SERVERS);
         renameDirectory(BASE_DIR.resolve("Temp"), TEMP);
         renameDirectory(BASE_DIR.resolve("Downloads"), DOWNLOADS);
         renameDirectory(BASE_DIR.resolve("FailedDownloads"), FAILED_DOWNLOADS);
@@ -241,7 +238,6 @@ public final class FileSystem {
         FileUtils.createDirectory(LOGS);
         FileUtils.createDirectory(RUNTIMES);
         FileUtils.createDirectory(MINECRAFT_RUNTIMES);
-        FileUtils.createDirectory(SERVERS);
         FileUtils.createDirectory(TEMP);
 
         FileUtils.createDirectory(CONFIGS);
@@ -260,7 +256,6 @@ public final class FileSystem {
         FileUtils.createDirectory(RESOURCES_VIRTUAL_LEGACY);
 
         FileUtils.createDirectory(DOWNLOADS);
-        FileUtils.createDirectory(TECHNIC_DOWNLOADS);
         FileUtils.createDirectory(FAILED_DOWNLOADS);
     }
 

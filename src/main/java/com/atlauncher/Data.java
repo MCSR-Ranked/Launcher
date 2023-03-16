@@ -27,7 +27,6 @@ import com.atlauncher.data.Instance;
 import com.atlauncher.data.LWJGLVersions;
 import com.atlauncher.data.News;
 import com.atlauncher.data.Pack;
-import com.atlauncher.data.Server;
 import com.atlauncher.data.minecraft.JavaRuntimes;
 import com.atlauncher.data.minecraft.VersionManifestVersion;
 import com.atlauncher.data.modrinth.ModrinthVersion;
@@ -41,11 +40,7 @@ public final class Data {
 
     public static final List<News> NEWS = new LinkedList<>();
 
-    public static final List<Pack> PACKS = new LinkedList<>();
-
     public static final List<Instance> INSTANCES = new LinkedList<>();
-
-    public static final List<Server> SERVERS = new LinkedList<>();
 
     public static final Map<String, VersionManifestVersion> MINECRAFT = new HashMap<>();
     public static LWJGLVersions LWJGL_VERSIONS = null;

@@ -31,8 +31,6 @@ public interface Loader {
 
     void downloadAndExtractInstaller() throws Exception;
 
-    void runProcessors();
-
     List<Library> getInstallLibraries();
 
     List<Library> getLibraries();

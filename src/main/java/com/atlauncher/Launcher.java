@@ -52,7 +52,6 @@ import com.atlauncher.managers.InstanceManager;
 import com.atlauncher.managers.LWJGLManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.MinecraftManager;
-import com.atlauncher.managers.ModrinthModpackUpdateManager;
 import com.atlauncher.managers.NewsManager;
 import com.atlauncher.managers.PerformanceManager;
 import com.atlauncher.network.DownloadPool;
@@ -73,9 +72,6 @@ public class Launcher {
     private JFrame parent; // Parent JFrame of the actual Launcher
     private InstancesTab instancesPanel; // The instances panel
     private NewsTab newsPanel; // The news panel
-
-    // Update thread
-    private Thread updateThread;
 
     // Minecraft tracking variables
     private Process minecraftProcess = null; // The process minecraft is running on
@@ -124,7 +120,6 @@ public class Launcher {
             }
         }
 
-        checkForExternalPackUpdates();
         PerformanceManager.end();
     }
 
@@ -268,8 +263,6 @@ public class Launcher {
     public boolean checkForUpdatedFiles() {
         this.launcherFiles = null;
 
-        App.TASKPOOL.execute(this::checkForExternalPackUpdates);
-
         return hasUpdatedFiles();
     }
 
@@ -286,19 +279,6 @@ public class Launcher {
         }
 
         return downloads.stream().anyMatch(com.atlauncher.network.Download::needToDownload);
-    }
-
-    public void checkForExternalPackUpdates() {
-        if (updateThread != null && updateThread.isAlive()) {
-            updateThread.interrupt();
-        }
-
-        updateThread = new Thread(() -> {
-            if (InstanceManager.getInstances().stream().anyMatch(Instance::isModrinthPack)) {
-                ModrinthModpackUpdateManager.checkForUpdates();
-            }
-        });
-        updateThread.start();
     }
 
     public void updateData() {
@@ -327,17 +307,12 @@ public class Launcher {
                 downloadUpdatedFiles(); // Downloads updated files on the server
             }
             checkForLauncherUpdate();
-            checkForExternalPackUpdates();
 
             ConfigManager.loadConfig(); // Load the config
             NewsManager.loadNews(); // Load the news
             reloadNewsPanel(); // Reload news panel
-            //PackManager.loadPacks(); // Load the Packs available in the Launcher
-            //reloadPacksBrowserPanel();// Reload packs browser panel
-            //PackManager.loadUsers(); // Load the Testers and Allowed Players for the packs
             InstanceManager.loadInstances(); // Load the users installed Instances
             reloadInstancesPanel(); // Reload instances panel
-            //reloadServersPanel(); // Reload instances panel
             ModCheckManager.loadModList();
             dialog.setVisible(false); // Remove the dialog
             dialog.dispose(); // Dispose the dialog

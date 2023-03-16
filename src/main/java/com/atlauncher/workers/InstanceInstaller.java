@@ -51,7 +51,6 @@ import com.atlauncher.data.APIResponse;
 import com.atlauncher.data.DisableableMod;
 import com.atlauncher.data.Instance;
 import com.atlauncher.data.InstanceLauncher;
-import com.atlauncher.data.Server;
 import com.atlauncher.data.Type;
 import com.atlauncher.data.json.Delete;
 import com.atlauncher.data.json.Deletes;
@@ -84,7 +83,6 @@ import com.atlauncher.data.minecraft.loaders.LoaderVersion;
 import com.atlauncher.data.modrinth.ModrinthFile;
 import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthVersion;
-import com.atlauncher.data.modrinth.pack.ModrinthModpackManifest;
 import com.atlauncher.data.multimc.MultiMCComponent;
 import com.atlauncher.data.multimc.MultiMCManifest;
 import com.atlauncher.exceptions.LocalException;
@@ -92,7 +90,6 @@ import com.atlauncher.interfaces.NetworkProgressable;
 import com.atlauncher.managers.InstanceManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.MinecraftManager;
-import com.atlauncher.managers.ServerManager;
 import com.atlauncher.network.DownloadPool;
 import com.atlauncher.utils.ArchiveUtils;
 import com.atlauncher.utils.FileUtils;
@@ -119,13 +116,11 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
     public final String shareCode;
     public final boolean showModsChooser;
     public LoaderVersion loaderVersion;
-    public ModrinthModpackManifest modrinthManifest;
     public Path modrinthExtractedPath;
     public final MultiMCManifest multiMCManifest;
     public final Path multiMCExtractedPath;
 
     public boolean isReinstall;
-    public boolean isServer;
     public boolean changingLoader;
     public boolean instanceIsCorrupt;
     public boolean saveMods;
@@ -159,31 +154,25 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
     public Instance resultInstance;
 
     public InstanceInstaller(String name, com.atlauncher.data.Pack pack, com.atlauncher.data.PackVersion version,
-            boolean isReinstall, boolean isServer, boolean changingLoader, boolean saveMods, String shareCode,
+            boolean isReinstall, boolean changingLoader, boolean saveMods, String shareCode,
             boolean showModsChooser, LoaderVersion loaderVersion,
-            ModrinthModpackManifest modrinthManifest, Path modrinthExtractedPath, MultiMCManifest multiMCManifest,
+            Path modrinthExtractedPath, MultiMCManifest multiMCManifest,
             Path multiMCExtractedPath, JDialog dialog) {
         this.name = name;
         this.pack = pack;
         this.version = version;
         this.isReinstall = isReinstall;
-        this.isServer = isServer;
         this.changingLoader = changingLoader;
         this.saveMods = saveMods;
         this.shareCode = shareCode;
         this.showModsChooser = showModsChooser;
         this.dialog = dialog;
 
-        if (isServer) {
-            this.root = FileSystem.SERVERS.resolve(name.replaceAll("[^A-Za-z0-9]", ""));
-        } else {
-            this.root = FileSystem.INSTANCES.resolve(name.replaceAll("[^A-Za-z0-9]", ""));
-        }
+        this.root = FileSystem.INSTANCES.resolve(name.replaceAll("[^A-Za-z0-9]", ""));
 
         this.temp = FileSystem.TEMP.resolve(pack.getSafeName() + "_" + version.getSafeVersion());
 
         this.loaderVersion = loaderVersion;
-        this.modrinthManifest = modrinthManifest;
         this.modrinthExtractedPath = modrinthExtractedPath;
         this.multiMCManifest = multiMCManifest;
         this.multiMCExtractedPath = multiMCExtractedPath;
@@ -240,20 +229,12 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
                     return success(false);
                 }
 
-                if (!this.isServer) {
-                    saveInstanceJson();
-                } else {
-                    saveServerJson();
-                }
+                saveInstanceJson();
 
                 return success(true);
             }
 
-            if (pack.modrinthProject != null) {
-                generatePackVersionFromModrinth();
-            } else if (modrinthManifest != null) {
-                generatePackVersionFromModrinthManifest();
-            } else if (multiMCManifest != null) {
+            if (multiMCManifest != null) {
                 generatePackVersionFromMultiMC();
             } else if (pack.vanillaInstance) {
                 generatePackVersionForVanilla();
@@ -295,15 +276,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
                 return success(false);
             }
 
-            if (this.isServer && minecraftVersionManifest != null && minecraftVersionManifest.hasInitSettings()) {
-                initServerSettings();
-            }
-
-            if (!this.isServer) {
-                saveInstanceJson();
-            } else {
-                saveServerJson();
-            }
+            saveInstanceJson();
             return success(true);
         } catch (Exception e) {
             success(false);
@@ -315,9 +288,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
     }
 
     private String getAnalyticsCategory() {
-        if (this.modrinthManifest != null) {
-            return "ModrinthPack";
-        } else if (this.multiMCManifest != null) {
+        if (this.multiMCManifest != null) {
             return "MultiMCPack";
         } else if (this.pack.vanillaInstance) {
             return "Vanilla";
@@ -340,109 +311,6 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
         }
 
         this.packVersion.compileColours();
-
-        hideSubProgressBar();
-    }
-
-    private void generatePackVersionFromModrinth() throws Exception {
-        addPercent(5);
-
-        // #. {0} is the platform the modpack is from (e.g. CurseForge/Modrinth)
-        fireTask(GetText.tr("Downloading Manifest From {0}", "Modrinth"));
-        fireSubProgressUnknown();
-
-        ModrinthFile file = version._modrinthVersion.getPrimaryFile();
-
-        Path manifestFile = this.temp.resolve(file.filename.toLowerCase());
-
-        com.atlauncher.network.Download manifestDownload = com.atlauncher.network.Download.build().setUrl(file.url)
-            .downloadTo(manifestFile).withInstanceInstaller(this)
-            .withHttpClient(Network.createProgressClient(this));
-
-        if (file.hashes != null && file.hashes.containsKey("sha512")) {
-            manifestDownload = manifestDownload.hash(file.hashes.get("sha512"));
-        } else if (file.hashes != null && file.hashes.containsKey("sha1")) {
-            manifestDownload = manifestDownload.hash(file.hashes.get("sha1"));
-        }
-
-        if (file.size != null && file.size != 0) {
-            manifestDownload = manifestDownload.size(file.size);
-            this.setTotalBytes(file.size);
-        }
-
-        manifestDownload.downloadFile();
-
-        fireTask(GetText.tr("Extracting Manifest"));
-        fireSubProgressUnknown();
-
-        modrinthManifest = Gsons.MINECRAFT.fromJson(
-            new String(ArchiveUtils.getFile(manifestFile, "modrinth.index.json")),
-            ModrinthModpackManifest.class);
-        modrinthExtractedPath = this.temp.resolve("modrinthimport");
-
-        ArchiveUtils.extract(manifestFile, modrinthExtractedPath);
-        Files.delete(manifestFile);
-
-        generatePackVersionFromModrinthManifest();
-
-        hideSubProgressBar();
-    }
-
-    private void generatePackVersionFromModrinthManifest() throws Exception {
-        addPercent(5);
-        // #. {0} is the platform the modpack is from
-        fireTask(GetText.tr("Generating Pack Version From {0}", "Modrinth"));
-        fireSubProgressUnknown();
-
-        if (!modrinthManifest.game.equals("minecraft")) {
-            throw new Exception(
-                    "Cannot install as the manifest is for game " + modrinthManifest.game + " and not for Minecraft");
-        }
-
-        if (!modrinthManifest.dependencies.containsKey("minecraft")) {
-            throw new Exception("Cannot install as the manifest doesn't contain a minecraft dependency");
-        }
-
-        if (modrinthManifest.formatVersion != 1) {
-            LogManager.warn("Manifest is version " + modrinthManifest.formatVersion + " which may be an issue!");
-        }
-
-        this.packVersion = new Version();
-        packVersion.version = Optional.ofNullable(modrinthManifest.versionId).orElse("1.0.0");
-        packVersion.minecraft = modrinthManifest.dependencies.get("minecraft");
-        this.version.minecraftVersion = MinecraftManager
-                .getMinecraftVersion(modrinthManifest.dependencies.get("minecraft"));
-        packVersion.enableCurseForgeIntegration = true;
-        packVersion.enableEditingMods = true;
-
-        if (modrinthManifest.dependencies.containsKey("fabric-loader")
-                || modrinthManifest.dependencies.containsKey("quilt-loader")
-                || modrinthManifest.dependencies.containsKey("forge")) {
-            packVersion.loader = new com.atlauncher.data.json.Loader();
-
-            if (modrinthManifest.dependencies.containsKey("fabric-loader")) {
-                Map<String, Object> loaderMeta = new HashMap<>();
-                loaderMeta.put("minecraft", packVersion.minecraft);
-                loaderMeta.put("loader", modrinthManifest.dependencies.get("fabric-loader"));
-                packVersion.loader.metadata = loaderMeta;
-
-                // not technically supported, 1 example which seems to work
-                if (this.version.minecraftVersion.is1132OrOlder()) {
-                    packVersion.loader.className = "com.atlauncher.data.minecraft.loaders.legacyfabric.LegacyFabricLoader";
-                } else {
-                    packVersion.loader.className = "com.atlauncher.data.minecraft.loaders.fabric.FabricLoader";
-                }
-            } else if (modrinthManifest.dependencies.containsKey("quilt-loader")) {
-                Map<String, Object> loaderMeta = new HashMap<>();
-                loaderMeta.put("minecraft", packVersion.minecraft);
-                loaderMeta.put("loader", modrinthManifest.dependencies.get("quilt-loader"));
-                packVersion.loader.metadata = loaderMeta;
-                packVersion.loader.className = "com.atlauncher.data.minecraft.loaders.quilt.QuiltLoader";
-            }
-        }
-
-        packVersion.mods = modrinthManifest.files.parallelStream().map(file -> file.convertToMod(isServer))
-                .collect(Collectors.toList());
 
         hideSubProgressBar();
     }
@@ -594,8 +462,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
     }
 
     private void determineModsToBeInstalled() {
-        this.allMods = sortMods((this.isServer ? this.packVersion.getServerInstallMods(this)
-                : this.packVersion.getClientInstallMods(this)));
+        this.allMods = sortMods(this.packVersion.getClientInstallMods(this));
 
         boolean hasOptional = this.allMods.stream().anyMatch(Mod::isOptional);
 
@@ -814,11 +681,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
 
         restoreSelectFiles();
 
-        writeLog4j2XmlFileIfNeeded();
-
         writeLog4ShellExploitArgumentsForForgeScripts();
-
-        installServerBootScripts();
 
         return true;
     }
@@ -858,7 +721,6 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
             instanceLauncher.multiMCManifest = multiMCManifest;
             instanceLauncher.modrinthProject = this.pack.modrinthProject;
             instanceLauncher.modrinthVersion = this.version._modrinthVersion;
-            instanceLauncher.modrinthManifest = modrinthManifest;
             instanceLauncher.vanillaInstance = this.pack.vanillaInstance;
 
             if (multiMCManifest != null) {
@@ -894,11 +756,6 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
 
         InstanceManager.getInstances().add(instance);
 
-        // after adding, check for updates if an external pack
-        if (instance.isExternalPack()) {
-            App.launcher.checkForExternalPackUpdates();
-        }
-
         App.launcher.reloadInstancesPanel();
 
         this.resultInstance = instance;
@@ -929,27 +786,6 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
             } catch (Throwable ignored) {
             }
         }).start();
-    }
-
-    private void saveServerJson() {
-        Server server = new Server();
-
-        server.name = this.name;
-        server.pack = this.pack.name;
-        server.packId = this.pack.id;
-        server.version = this.packVersion.version;
-        server.isDev = this.version.isDev;
-        server.mods = this.modsInstalled;
-        server.isPatchedForLog4Shell = true;
-        server.javaVersion = this.minecraftVersion.javaVersion;
-
-        if (this.version.isDev) {
-            server.hash = this.version.hash;
-        }
-
-        server.save();
-
-        ServerManager.addServer(server);
     }
 
     private void determineMainClass() {
@@ -1054,7 +890,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
     protected void downloadResources() throws Exception {
         addPercent(5);
 
-        if (this.isServer || this.minecraftVersion.assetIndex == null) {
+        if (this.minecraftVersion.assetIndex == null) {
             return;
         }
 
@@ -1123,30 +959,24 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
         totalBytes = 0;
         downloadedBytes = 0;
 
-        MojangDownloads downloads = this.minecraftVersion.downloads;
-
-        MojangDownload mojangDownload = this.isServer ? downloads.server : downloads.client;
+        MojangDownload mojangDownload = this.minecraftVersion.downloads.client;
 
         setTotalBytes(mojangDownload.size);
 
         com.atlauncher.network.Download.build().setUrl(mojangDownload.url).hash(mojangDownload.sha1)
                 .size(mojangDownload.size).downloadTo(getMinecraftJarLibrary().toPath())
-                .copyTo(this.isServer ? getMinecraftJar().toPath() : null).withInstanceInstaller(this)
+                .withInstanceInstaller(this)
                 .withHttpClient(Network.createProgressClient(this)).downloadFile();
 
         hideSubProgressBar();
     }
 
     public File getMinecraftJar() {
-        if (isServer) {
-            return new File(this.root.toFile(), String.format("minecraft_server.%s.jar", this.minecraftVersion.id));
-        }
-
         return new File(this.root.toFile(), String.format("%s.jar", this.minecraftVersion.id));
     }
 
     public File getMinecraftJarLibrary() {
-        return getMinecraftJarLibrary(isServer ? "server" : "client");
+        return getMinecraftJarLibrary("client");
     }
 
     public File getMinecraftJarLibrary(String type) {
@@ -1156,7 +986,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
     private void downloadLoggingClient() throws Exception {
         addPercent(5);
 
-        if (this.isServer || this.minecraftVersion.logging == null) {
+        if (this.minecraftVersion.logging == null) {
             return;
         }
 
@@ -1178,7 +1008,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
 
         List<Library> packVersionLibraries = getPackVersionLibraries();
 
-        if (packVersionLibraries != null && packVersionLibraries.size() != 0) {
+        if (packVersionLibraries.size() != 0) {
             libraries.addAll(packVersionLibraries);
         }
 
@@ -1188,24 +1018,18 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
         }
 
         // lastly the Minecraft libraries if not on server
-        if (!isServer && (this.loader == null || this.loader.useMinecraftLibraries())) {
+        if (this.loader == null || this.loader.useMinecraftLibraries()) {
             libraries.addAll(this.minecraftVersion.libraries);
         }
 
         // fix Log4J exploits if not on server (servers seem sensitive to this process)
-        if (!isServer) {
-            libraries = libraries.stream().map(library -> {
-                library.fixLog4jVersion();
-
-                return library;
-            }).collect(Collectors.toList());
-        }
+        libraries = libraries.stream().peek(Library::fixLog4jVersion).collect(Collectors.toList());
 
         return libraries;
     }
 
     public String getMinecraftJarLibraryPath() {
-        return getMinecraftJarLibraryPath(isServer ? "server" : "client");
+        return getMinecraftJarLibraryPath("client");
     }
 
     public String getMinecraftJarLibraryPath(String type) {
@@ -1238,10 +1062,6 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
 
         // Now read in the library jars needed from the pack
         for (com.atlauncher.data.json.Library library : this.packVersion.getLibraries()) {
-            if (this.isServer && !library.forServer()) {
-                continue;
-            }
-
             if (library.depends != null) {
                 if (this.selectedMods.stream().noneMatch(mod -> mod.name.equalsIgnoreCase(library.depends))) {
                     continue;
@@ -1303,15 +1123,13 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
                             .withInstanceInstaller(this).withHttpClient(httpClient)));
         }
 
-        if (!this.isServer) {
-            this.getLibraries().stream().filter(Library::hasNativeForOS).forEach(library -> {
-                Download download = library.getNativeDownloadForOS();
+        this.getLibraries().stream().filter(Library::hasNativeForOS).forEach(library -> {
+            Download download = library.getNativeDownloadForOS();
 
-                pool.add(new com.atlauncher.network.Download().setUrl(download.url)
-                        .downloadTo(FileSystem.LIBRARIES.resolve(download.path)).hash(download.sha1).size(download.size)
-                        .withInstanceInstaller(this).withHttpClient(httpClient));
-            });
-        }
+            pool.add(new com.atlauncher.network.Download().setUrl(download.url)
+                .downloadTo(FileSystem.LIBRARIES.resolve(download.path)).hash(download.sha1).size(download.size)
+                .withInstanceInstaller(this).withHttpClient(httpClient));
+        });
 
         DownloadPool smallPool = pool.downsize();
 
@@ -1327,50 +1145,6 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
         addPercent(5);
         fireTask(GetText.tr("Organising Libraries"));
         fireSubProgressUnknown();
-
-        if (isServer) {
-            this.getLibraries().stream().filter(Library::shouldInstall)
-                    .filter(library -> library.downloads.artifact != null).forEach(library -> {
-                        File libraryFile = FileSystem.LIBRARIES.resolve(library.downloads.artifact.path).toFile();
-
-                        File serverFile = new File(this.root.resolve("libraries").toFile(),
-                                library.downloads.artifact.path);
-
-                        serverFile.getParentFile().mkdirs();
-
-                        Utils.copyFile(libraryFile, serverFile, true);
-                    });
-
-            if (this.loader != null && this.loader.getInstallLibraries() != null) {
-                this.loader.getInstallLibraries().stream().filter(library -> library.downloads.artifact != null)
-                        .forEach(library -> {
-                            if (isServer) {
-                                File libraryFile = FileSystem.LIBRARIES.resolve(library.downloads.artifact.path)
-                                        .toFile();
-
-                                File serverFile = new File(this.root.resolve("libraries").toFile(),
-                                        library.downloads.artifact.path);
-
-                                serverFile.getParentFile().mkdirs();
-
-                                Utils.copyFile(libraryFile, serverFile, true);
-                            }
-                        });
-            }
-
-            if (this.loader != null) {
-                Library forgeLibrary = this.loader.getLibraries().stream()
-                        .filter(library -> library.name.startsWith("net.minecraftforge:forge")).findFirst()
-                        .orElse(null);
-
-                if (forgeLibrary != null) {
-                    File extractedLibraryFile = FileSystem.LIBRARIES.resolve(forgeLibrary.downloads.artifact.path)
-                            .toFile();
-                    Utils.copyFile(extractedLibraryFile, new File(this.root.toFile(), this.loader.getServerJar()),
-                            true);
-                }
-            }
-        }
 
         hideSubProgressBar();
     }
@@ -1458,9 +1232,6 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
 
         fireTask(GetText.tr("Installing Loader (May Take Some Time)"));
         fireSubProgressUnknown();
-
-        // run any processors that the loader needs
-        this.loader.runProcessors();
 
         hideSubProgressBar();
     }
@@ -1630,19 +1401,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
             return;
         }
 
-        if (modrinthManifest != null) {
-            fireSubProgressUnknown();
-            fireTask(GetText.tr("Copying Overrides"));
-            Utils.copyDirectory(this.modrinthExtractedPath.resolve("overrides").toFile(), this.root.toFile(), false);
-
-            if (isServer && Files.isDirectory(this.modrinthExtractedPath.resolve("server-overrides"))) {
-                Utils.copyDirectory(this.modrinthExtractedPath.resolve("server-overrides").toFile(), this.root.toFile(),
-                        false);
-            } else if (!isServer && Files.isDirectory(this.modrinthExtractedPath.resolve("client-overrides"))) {
-                Utils.copyDirectory(this.modrinthExtractedPath.resolve("client-overrides").toFile(), this.root.toFile(),
-                        false);
-            }
-        } else if (multiMCManifest != null) {
+        if (multiMCManifest != null) {
             fireSubProgressUnknown();
             String minecraftFolder = Files.exists(multiMCExtractedPath.resolve(".minecraft")) ? ".minecraft"
                     : "minecraft";
@@ -1865,7 +1624,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
     }
 
     protected void prepareFilesystem() throws Exception {
-        if (isReinstall || isServer) {
+        if (isReinstall) {
             if (Files.isDirectory(this.root.resolve("bin"))) {
                 FileUtils.deleteDirectory(this.root.resolve("bin"));
             }
@@ -1946,13 +1705,8 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
 
         // make some new directories
         Path[] directories;
-        if (isServer) {
-            directories = new Path[] { this.root, this.root.resolve("mods"), this.temp,
-                    this.root.resolve("libraries") };
-        } else {
-            directories = new Path[] { this.root, this.root.resolve("mods"), this.root.resolve("disabledmods"),
-                    this.temp, this.temp.resolve("loader"), this.root.resolve("jarmods") };
-        }
+        directories = new Path[] { this.root, this.root.resolve("mods"), this.root.resolve("disabledmods"),
+            this.temp, this.temp.resolve("loader"), this.root.resolve("jarmods") };
 
         for (Path directory : directories) {
             if (!Files.exists(directory)) {
@@ -2027,41 +1781,8 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
         }
     }
 
-    private void installServerBootScripts() throws Exception {
-        if (!isServer || (this.loaderVersion != null && !this.loaderVersion.shouldInstallServerScripts())) {
-            return;
-        }
-
-        File batFile = new File(this.root.toFile(), "LaunchServer.bat");
-        File shFile = new File(this.root.toFile(), "LaunchServer.sh");
-        File tmpBatFile = new File(this.temp.toFile(), "LaunchServer.bat");
-        File tmpShFile = new File(this.temp.toFile(), "LaunchServer.sh");
-        File tmp1BatFile = new File(this.temp.toFile(), "LaunchServer1.bat");
-        File tmp1ShFile = new File(this.temp.toFile(), "LaunchServer1.sh");
-
-        // write out the server jar filename
-        Utils.replaceText(App.class.getResourceAsStream("/server-scripts/LaunchServer.bat"), tmpBatFile,
-                "%%SERVERJAR%%", getServerJar());
-        Utils.replaceText(App.class.getResourceAsStream("/server-scripts/LaunchServer.sh"), tmpShFile, "%%SERVERJAR%%",
-                getServerJar());
-
-        // replace/remove the server arguments (if any)
-        Utils.replaceText(new FileInputStream(tmpBatFile), tmp1BatFile, "%%ARGUMENTS%%",
-                this.packVersion.serverArguments);
-        Utils.replaceText(new FileInputStream(tmpShFile), tmp1ShFile, "%%ARGUMENTS%%",
-                this.packVersion.serverArguments);
-
-        // replace/remove the logging arguments for Log4Shell exploit (if any)
-        String log4ShellArguments = this.getLog4ShellArguments();
-        Utils.replaceText(new FileInputStream(tmp1BatFile), batFile, "%%LOG4SHELLARGUMENTS%%", log4ShellArguments);
-        Utils.replaceText(new FileInputStream(tmp1ShFile), shFile, "%%LOG4SHELLARGUMENTS%%", log4ShellArguments);
-
-        batFile.setExecutable(true);
-        shFile.setExecutable(true);
-    }
-
     private void writeLog4ShellExploitArgumentsForForgeScripts() throws Exception {
-        if (!isServer || (this.loaderVersion != null && this.loaderVersion.shouldInstallServerScripts())) {
+        if (this.loaderVersion != null && this.loaderVersion.shouldInstallServerScripts()) {
             return;
         }
 
@@ -2072,51 +1793,12 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
         }
     }
 
-    private void writeLog4j2XmlFileIfNeeded() throws Exception {
-        if (!isServer) {
-            return;
-        }
-
-        if (minecraftVersionManifest.isLog4ShellExploitable()) {
-            if (loaderVersion != null && loaderVersion.isForge()) {
-                Utils.writeResourceToFile(App.class.getResourceAsStream(minecraftVersionManifest.getLog4JFileForge()),
-                        root.resolve("log4j2.xml").toFile());
-            } else {
-                Utils.writeResourceToFile(App.class.getResourceAsStream(minecraftVersionManifest.getLog4JFile()),
-                        root.resolve("log4j2.xml").toFile());
-            }
-        }
-    }
-
     private String getLog4ShellArguments() throws Exception {
         if (minecraftVersionManifest.isLog4ShellExploitable()) {
             return "-Dlog4j2.formatMsgNoLookups=true -Dlog4j.configurationFile=log4j2.xml";
         }
 
         return "";
-    }
-
-    public String getServerJar() {
-        if (this.loader != null) {
-            return this.loader.getServerJar();
-        }
-
-        com.atlauncher.data.json.Mod forge = null;
-        com.atlauncher.data.json.Mod mcpc = null;
-        for (com.atlauncher.data.json.Mod mod : this.selectedMods) {
-            if (mod.getType() == com.atlauncher.data.json.ModType.forge) {
-                forge = mod;
-            } else if (mod.getType() == com.atlauncher.data.json.ModType.mcpc) {
-                mcpc = mod;
-            }
-        }
-        if (mcpc != null) {
-            return mcpc.getFile();
-        } else if (forge != null) {
-            return forge.getFile();
-        } else {
-            return "minecraft_server." + this.version.minecraftVersion.id + ".jar";
-        }
     }
 
     public boolean hasRecommendedMods() {

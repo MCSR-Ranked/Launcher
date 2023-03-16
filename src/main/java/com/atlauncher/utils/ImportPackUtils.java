@@ -30,8 +30,6 @@ import java.util.regex.Pattern;
 import com.atlauncher.FileSystem;
 import com.atlauncher.Gsons;
 import com.atlauncher.data.modrinth.ModrinthProject;
-import com.atlauncher.data.modrinth.ModrinthVersion;
-import com.atlauncher.data.modrinth.pack.ModrinthModpackManifest;
 import com.atlauncher.data.multimc.MultiMCInstanceConfig;
 import com.atlauncher.data.multimc.MultiMCManifest;
 import com.atlauncher.gui.dialogs.InstanceInstallerDialog;
@@ -109,72 +107,12 @@ public class ImportPackUtils {
 
             FileUtils.deleteDirectory(tmpDir);
 
-            if (ArchiveUtils.archiveContainsFile(file.toPath(), "modrinth.index.json")) {
-                return loadModrinthFormat(file);
-            }
-
             LogManager.error("Unknown format for importing");
         } catch (Throwable t) {
             LogManager.logStackTrace("Error in zip file for import", t);
         }
 
         return false;
-    }
-
-    public static boolean loadModrinthFormat(File file) {
-        if (!file.getName().endsWith(".mrpack")) {
-            LogManager.error("Cannot install as the file was not a mrpack file");
-            return false;
-        }
-
-        ModrinthVersion version = ModrinthApi.getVersionFromSha1Hash(Hashing.sha1(file.toPath()).toString());
-        if (version != null) {
-            try {
-                ModrinthProject project = ModrinthApi.getProject(version.projectId);
-
-                if (project != null) {
-                    new InstanceInstallerDialog(project, version);
-
-                    return true;
-                }
-            } catch (Exception e) {
-                LogManager.logStackTrace("Failed to install Modrinth pack", e);
-                return false;
-            }
-        }
-
-        Path tmpDir = FileSystem.TEMP.resolve("modrinthimport" + file.getName().toString().toLowerCase());
-
-        try {
-            ModrinthModpackManifest manifest = Gsons.MINECRAFT
-                    .fromJson(ArchiveUtils.getFile(file.toPath(), "modrinth.index.json"),
-                            ModrinthModpackManifest.class);
-
-            if (!manifest.game.equals("minecraft")) {
-                LogManager.error(
-                        "Cannot install as the manifest is for game " + manifest.game + " and not for Minecraft");
-                return false;
-            }
-
-            if (!manifest.dependencies.containsKey("minecraft")) {
-                LogManager.error("Cannot install as the manifest doesn't contain a minecraft dependency");
-                return false;
-            }
-
-            if (manifest.formatVersion != 1) {
-                LogManager.warn("Manifest is version " + manifest.formatVersion + " which may be an issue!");
-            }
-
-            ArchiveUtils.extract(file.toPath(), tmpDir);
-
-            new InstanceInstallerDialog(manifest, tmpDir);
-        } catch (Exception e) {
-            LogManager.logStackTrace("Failed to install Modrinth pack", e);
-            FileUtils.deleteDirectory(tmpDir);
-            return false;
-        }
-
-        return true;
     }
 
     public static boolean loadMultiMCFormat(Path extractedPath) {

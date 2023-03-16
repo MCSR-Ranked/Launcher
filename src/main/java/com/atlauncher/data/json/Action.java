@@ -32,8 +32,6 @@ public class Action {
     private ActionType type;
     private ActionAfter after;
     private String saveAs;
-    private boolean client;
-    private boolean server;
 
     public TheAction getAction() {
         return this.action;
@@ -49,14 +47,6 @@ public class Action {
 
     public String getSaveAs() {
         return this.saveAs;
-    }
-
-    public boolean isForClient() {
-        return this.client;
-    }
-
-    public boolean isForServer() {
-        return this.server;
     }
 
     public void convertMods(InstanceInstaller instanceInstaller) {
@@ -77,9 +67,6 @@ public class Action {
     }
 
     public void execute(InstanceInstaller instanceInstaller) {
-        if ((instanceInstaller.isServer && !server) || (!instanceInstaller.isServer && !client)) {
-            return;
-        }
         convertMods(instanceInstaller);
         Utils.deleteContents(instanceInstaller.temp.resolve("actions").toFile());
         instanceInstaller.fireTask("Executing Action");

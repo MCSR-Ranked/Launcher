@@ -73,7 +73,6 @@ import com.atlauncher.data.minecraft.loaders.quilt.QuiltLoader;
 import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthSearchHit;
 import com.atlauncher.data.modrinth.ModrinthVersion;
-import com.atlauncher.data.modrinth.pack.ModrinthModpackManifest;
 import com.atlauncher.data.multimc.MultiMCComponent;
 import com.atlauncher.data.multimc.MultiMCManifest;
 import com.atlauncher.exceptions.InvalidMinecraftVersion;
@@ -91,10 +90,8 @@ public class InstanceInstallerDialog extends JDialog {
     private int versionLength = 0;
     private int loaderVersionLength = 0;
     private boolean isReinstall = false;
-    private boolean isServer = false;
     private Pack pack;
     private Instance instance = null;
-    private ModrinthModpackManifest modrinthManifest = null;
     private ModrinthProject modrinthProject = null;
     private ModrinthVersion preselectedModrinthVersion = null;
     private MultiMCManifest multiMCManifest = null;
@@ -115,10 +112,6 @@ public class InstanceInstallerDialog extends JDialog {
     private final boolean isUpdate;
     private final PackVersion autoInstallVersion;
     private final Path extractedPath;
-
-    public InstanceInstallerDialog(ModrinthModpackManifest manifest, Path modrinthExtractedPath) {
-        this(manifest, false, false, null, null, false, modrinthExtractedPath, App.launcher.getParent(), null);
-    }
 
     public InstanceInstallerDialog(MultiMCManifest manifest, Path multiMCExtractedPath) {
         this(manifest, false, false, null, null, false, multiMCExtractedPath, App.launcher.getParent(), null);
@@ -167,11 +160,9 @@ public class InstanceInstallerDialog extends JDialog {
         this.preselectedModrinthVersion = preselectedModrinthVersion;
 
         if (object instanceof Pack) {
-            handlePackInstall(object, isServer);
+            handlePackInstall(object);
         } else if (object instanceof ModrinthSearchHit || object instanceof ModrinthProject) {
             handleModrinthInstall(object);
-        } else if (object instanceof ModrinthModpackManifest) {
-            handleModrinthImport(object);
         } else if (object instanceof MultiMCManifest) {
             handleMultiMcImport(object);
         } else {
@@ -256,7 +247,7 @@ public class InstanceInstallerDialog extends JDialog {
 
         gbc = this.setupLoaderVersionsDropdown(gbc);
 
-        if (!this.isServer && isReinstall) {
+        if (this.isReinstall) {
             gbc.gridx = 0;
             gbc.gridy++;
             gbc.insets = UIConstants.LABEL_INSETS;
@@ -300,11 +291,6 @@ public class InstanceInstallerDialog extends JDialog {
                     installable = new ModrinthInstallable(pack, packVersion, loaderVersion);
 
                     installable.modrinthProject = modrinthProject;
-                } else if (modrinthManifest != null) {
-                    installable = new ModrinthManifestInstallable(pack, packVersion, loaderVersion);
-
-                    installable.modrinthManifest = modrinthManifest;
-                    installable.modrinthExtractedPath = extractedPath;
                 } else if (multiMCManifest != null) {
                     installable = new MultiMCInstallable(pack, packVersion, loaderVersion);
 
@@ -324,7 +310,6 @@ public class InstanceInstallerDialog extends JDialog {
                 installable.instanceName = nameField.getText();
                 installable.isReinstall = isReinstall;
                 installable.isUpdate = isUpdate;
-                installable.isServer = isServer;
                 installable.saveMods = !isServer && isReinstall && saveModsCheckbox.isSelected();
 
                 setVisible(false);
@@ -350,15 +335,10 @@ public class InstanceInstallerDialog extends JDialog {
         setVisible(true);
     }
 
-    private void handlePackInstall(Object object, final boolean isServer) {
+    private void handlePackInstall(Object object) {
         pack = (Pack) object;
         // #. {0} is the name of the pack the user is installing
         setTitle(GetText.tr("Installing {0}", pack.getName()));
-        if (isServer) {
-            // #. {0} is the name of the pack the user is installing
-            setTitle(GetText.tr("Installing {0} Server", pack.getName()));
-            this.isServer = true;
-        }
     }
 
     private void handleVanillaInstall() {
@@ -475,35 +455,6 @@ public class InstanceInstallerDialog extends JDialog {
         setTitle(GetText.tr("Installing {0}", modrinthProject.title));
     }
 
-    private void handleModrinthImport(Object object) {
-        modrinthManifest = (ModrinthModpackManifest) object;
-
-        pack = new Pack();
-        pack.name = modrinthManifest.name;
-
-        PackVersion packVersion = new PackVersion();
-        packVersion.version = Optional.ofNullable(modrinthManifest.versionId).orElse("1.0.0");
-
-        try {
-            packVersion.minecraftVersion = MinecraftManager
-                    .getMinecraftVersion(modrinthManifest.dependencies.get("minecraft"));
-        } catch (InvalidMinecraftVersion e) {
-            LogManager.error(e.getMessage());
-            return;
-        }
-
-        packVersion.hasLoader = modrinthManifest.dependencies.containsKey("fabric-loader")
-                || modrinthManifest.dependencies.containsKey("quilt-loader")
-                || modrinthManifest.dependencies.containsKey("forge");
-
-        pack.versions = Collections.singletonList(packVersion);
-
-        isReinstall = false;
-
-        // #. {0} is the name of the pack the user is installing
-        setTitle(GetText.tr("Installing {0}", modrinthManifest.name));
-    }
-
     private void handleMultiMcImport(Object object) {
         multiMCManifest = (MultiMCManifest) object;
 
@@ -544,9 +495,7 @@ public class InstanceInstallerDialog extends JDialog {
     private void handleInstanceInstall(Object object) {
         instance = (Instance) object;
 
-        if (instance.isModrinthPack()) {
-            handleModrinthInstall(instance.launcher.modrinthProject);
-        } else if (instance.launcher.vanillaInstance) {
+        if (instance.launcher.vanillaInstance) {
             handleVanillaInstall();
         } else {
             pack = instance.getPack();
@@ -580,7 +529,7 @@ public class InstanceInstallerDialog extends JDialog {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 updateLoaderVersions((PackVersion) e.getItem());
 
-                if (!isServer && isReinstall) {
+                if (isReinstall) {
                     PackVersion packVersion = ((PackVersion) e.getItem());
                     Optional<VersionManifestVersion> minecraftVersion = Optional
                             .ofNullable(packVersion.minecraftVersion);
@@ -621,17 +570,9 @@ public class InstanceInstallerDialog extends JDialog {
         versionsDropDown.removeAllItems();
 
         if (pack.isTester()) {
-            for (PackVersion pv : pack.getDevVersions()) {
-                if (!isServer || (isServer && pv.minecraftVersion.hasServer())) {
-                    versions.add(pv);
-                }
-            }
+            versions.addAll(pack.getDevVersions());
         }
-        for (PackVersion pv : pack.getVersions()) {
-            if (!isServer || (isServer && pv.minecraftVersion.hasServer())) {
-                versions.add(pv);
-            }
-        }
+        versions.addAll(pack.getVersions());
         PackVersion forUpdate = null;
         for (PackVersion version : versions) {
             if ((!version.isDev) && (forUpdate == null)) {

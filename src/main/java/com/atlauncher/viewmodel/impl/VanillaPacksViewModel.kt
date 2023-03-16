@@ -174,7 +174,7 @@ class VanillaPacksViewModel : IVanillaPacksViewModel, SettingsListener {
         return map
     }
 
-    private fun install(isServer: Boolean) {
+    private fun install() {
         val installable: Installable
         try {
             val selectedLoaderVersion = selectedLoaderVersion.value
@@ -189,7 +189,6 @@ class VanillaPacksViewModel : IVanillaPacksViewModel, SettingsListener {
             )
             installable.instanceName = name
             installable.isReinstall = false
-            installable.isServer = isServer
             val success = installable.startInstall()
             if (success) {
                 // - Reset the view, currently disabled
@@ -371,11 +370,11 @@ class VanillaPacksViewModel : IVanillaPacksViewModel, SettingsListener {
     }
 
     override fun createServer() {
-        install(true)
+        install()
     }
 
     override fun createInstance() {
-        install(false)
+        install()
     }
 
     override fun onSettingsSaved() {

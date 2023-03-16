@@ -135,6 +135,8 @@ public class InstanceManager {
     }
 
     public static void setInstanceVisbility(Instance instance, boolean collapsed) {
+        if (AccountManager.getSelectedAccount() == null) return;
+
         if (collapsed) {
             // Closed It
             if (!AccountManager.getSelectedAccount().collapsedInstances.contains(instance.launcher.name)) {

@@ -105,14 +105,11 @@ import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthProjectType;
 import com.atlauncher.data.modrinth.ModrinthSide;
 import com.atlauncher.data.modrinth.ModrinthVersion;
-import com.atlauncher.data.modrinth.pack.ModrinthModpackFile;
-import com.atlauncher.data.modrinth.pack.ModrinthModpackManifest;
 import com.atlauncher.data.multimc.MultiMCComponent;
 import com.atlauncher.data.multimc.MultiMCManifest;
 import com.atlauncher.data.multimc.MultiMCRequire;
 import com.atlauncher.exceptions.CommandException;
 import com.atlauncher.exceptions.InvalidMinecraftVersion;
-import com.atlauncher.exceptions.InvalidPack;
 import com.atlauncher.gui.dialogs.InstanceInstallerDialog;
 import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.gui.dialogs.RenameInstanceDialog;
@@ -123,7 +120,6 @@ import com.atlauncher.managers.InstanceManager;
 import com.atlauncher.managers.LWJGLManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.MinecraftManager;
-import com.atlauncher.managers.ModrinthModpackUpdateManager;
 import com.atlauncher.managers.PerformanceManager;
 import com.atlauncher.mclauncher.MCLauncher;
 import com.atlauncher.network.DownloadPool;
@@ -215,12 +211,6 @@ public class Instance extends MinecraftVersion {
         if (launcher.vanillaInstance) {
             // must be reinstalled
             return false;
-        } else if (this.isExternalPack()) {
-            if (isModrinthPack()) {
-                ModrinthVersion latestVersion = Data.MODRINTH_INSTANCE_LATEST_VERSION.get(this);
-
-                return latestVersion != null && !latestVersion.id.equals(this.launcher.modrinthVersion.id);
-            }
         } else {
             Pack pack = this.getPack();
 
@@ -329,12 +319,6 @@ public class Instance extends MinecraftVersion {
 
         if (launcher.vanillaInstance) {
             return;
-        } else if (isExternalPack()) {
-            if (isModrinthPack()) {
-                version = ModrinthModpackUpdateManager.getLatestVersion(this).id;
-            } else {
-                return;
-            }
         } else {
             if (this.launcher.isDev) {
                 version = getLatestVersion().hash;
@@ -360,10 +344,6 @@ public class Instance extends MinecraftVersion {
         }
 
         if (isExternalPack()) {
-            if (isModrinthPack()) {
-                return hasUpdateBeenIgnored(ModrinthModpackUpdateManager.getLatestVersion(this).id);
-            }
-
             return false;
         }
 
@@ -1344,11 +1324,7 @@ public class Instance extends MinecraftVersion {
 
     public boolean export(String name, String version, String author, InstanceExportFormat format, String saveTo,
             List<String> overrides) {
-        if (format == InstanceExportFormat.MODRINTH) {
-            return exportAsModrinthZip(name, version, author, saveTo, overrides);
-        } else if (format == InstanceExportFormat.CURSEFORGE_AND_MODRINTH) {
-            return exportAsModrinthZip(name, version, author, saveTo, overrides);
-        } else if (format == InstanceExportFormat.MULTIMC) {
+        if (format == InstanceExportFormat.MULTIMC) {
             return exportAsMultiMcZip(name, version, author, saveTo, overrides);
         }
 
@@ -1643,156 +1619,6 @@ public class Instance extends MinecraftVersion {
         return true;
     }
 
-    public boolean exportAsModrinthZip(String name, String version, String author, String saveTo,
-            List<String> overrides) {
-        String safePathName = name.replaceAll("[\\\"?:*<>|]", "");
-        Path to = Paths.get(saveTo).resolve(String.format("%s %s.mrpack", safePathName, version));
-        ModrinthModpackManifest manifest = new ModrinthModpackManifest();
-
-        // for any mods not from Modrinth, scan for them on Modrinth
-        if (!App.settings.dontCheckModsOnModrinth) {
-            List<DisableableMod> nonModrinthMods = this.launcher.mods.parallelStream()
-                    .filter(m -> !m.disabled && !m.isFromModrinth() && m.getFile(this).exists())
-                    .collect(Collectors.toList());
-
-            String[] sha1Hashes = nonModrinthMods.parallelStream()
-                    .map(m -> Hashing.sha1(m.getFile(this).toPath()).toString()).toArray(String[]::new);
-
-            Map<String, ModrinthVersion> modrinthVersions = ModrinthApi.getVersionsFromSha1Hashes(sha1Hashes);
-
-            if (modrinthVersions.size() != 0) {
-                Map<String, ModrinthProject> modrinthProjects = ModrinthApi.getProjectsAsMap(
-                        modrinthVersions.values().parallelStream().map(mv -> mv.projectId).toArray(String[]::new));
-
-                nonModrinthMods.parallelStream().forEach(mod -> {
-                    String hash = Hashing.sha1(mod.getFile(this).toPath()).toString();
-
-                    if (modrinthVersions.containsKey(hash)) {
-                        ModrinthVersion modrinthVersion = modrinthVersions.get(hash);
-
-                        mod.modrinthVersion = modrinthVersion;
-
-                        LogManager.debug("Found matching version from Modrinth called " + mod.modrinthVersion.name);
-
-                        if (modrinthProjects.containsKey(modrinthVersions.get(hash).projectId)) {
-                            mod.modrinthProject = modrinthProjects.get(modrinthVersion.projectId);
-                        }
-                    }
-                });
-                this.save();
-            }
-        }
-
-        manifest.formatVersion = 1;
-        manifest.game = "minecraft";
-        manifest.versionId = version;
-        manifest.name = name;
-        manifest.summary = this.launcher.description;
-        manifest.files = this.launcher.mods.parallelStream()
-                .filter(m -> !m.disabled && m.modrinthVersion != null && m.getFile(this).exists()).map(mod -> {
-                    Path modPath = mod.getFile(this).toPath();
-
-                    ModrinthModpackFile file = new ModrinthModpackFile();
-                    file.path = this.ROOT.relativize(modPath).toString().replace("\\", "/");
-
-                    String sha1Hash = Hashing.sha1(modPath).toString();
-
-                    file.hashes = new HashMap<>();
-                    file.hashes.put("sha1", sha1Hash);
-                    file.hashes.put("sha512", Hashing.sha512(modPath).toString());
-
-                    file.env = new HashMap<>();
-
-                    if (mod.modrinthProject != null) {
-                        file.env.put("client",
-                                mod.modrinthProject.clientSide == ModrinthSide.UNSUPPORTED ? "unsupported"
-                                        : "required");
-                        file.env.put("server",
-                                mod.modrinthProject.serverSide == ModrinthSide.UNSUPPORTED ? "unsupported"
-                                        : "required");
-                    } else {
-                        file.env.put("client", "required");
-                        file.env.put("server", "required");
-                    }
-
-                    file.fileSize = modPath.toFile().length();
-
-                    file.downloads = new ArrayList<>();
-                    file.downloads.add(HttpUrl.get(mod.modrinthVersion.getFileBySha1(sha1Hash).url).toString());
-
-                    return file;
-                }).collect(Collectors.toList());
-        manifest.dependencies = new HashMap<>();
-
-        manifest.dependencies.put("minecraft", this.id);
-
-        if (this.launcher.loaderVersion != null) {
-            manifest.dependencies.put(this.launcher.loaderVersion.getTypeForModrinthExport(),
-                    this.launcher.loaderVersion.version);
-        }
-
-        // create temp directory to put this in
-        Path tempDir = FileSystem.TEMP.resolve(this.getSafeName() + "-export");
-        FileUtils.createDirectory(tempDir);
-
-        // create modrinth.index.json
-        try (FileOutputStream fos = new FileOutputStream(tempDir.resolve("modrinth.index.json").toFile());
-                OutputStreamWriter osw = new OutputStreamWriter(fos,
-                        StandardCharsets.UTF_8)) {
-            Gsons.MINECRAFT.toJson(manifest, osw);
-        } catch (JsonIOException | IOException e) {
-            LogManager.logStackTrace("Failed to save modrinth.index.json", e);
-
-            FileUtils.deleteDirectory(tempDir);
-
-            return false;
-        }
-
-        // copy over the overrides folder
-        Path overridesPath = tempDir.resolve("overrides");
-        FileUtils.createDirectory(overridesPath);
-
-        for (String path : overrides) {
-            if (!path.equalsIgnoreCase(safePathName + ".zip") && getRoot().resolve(path).toFile().exists()
-                    && (getRoot().resolve(path).toFile().isFile()
-                            || getRoot().resolve(path).toFile().list().length != 0)) {
-                if (getRoot().resolve(path).toFile().isDirectory()) {
-                    Utils.copyDirectory(getRoot().resolve(path).toFile(), overridesPath.resolve(path).toFile());
-                } else {
-                    Utils.copyFile(getRoot().resolve(path).toFile(), overridesPath.resolve(path).toFile(), true);
-                }
-            }
-        }
-
-        // remove files that come from Modrinth or aren't disabled
-        launcher.mods.stream().filter(m -> !m.disabled && m.modrinthVersion != null).forEach(mod -> {
-            File file = mod.getFile(this, overridesPath);
-
-            if (file.exists()) {
-                FileUtils.delete(file.toPath());
-            }
-        });
-
-        for (String path : overrides) {
-            // if no files, remove the directory
-            if (overridesPath.resolve(path).toFile().isDirectory()
-                    && overridesPath.resolve(path).toFile().list().length == 0) {
-                FileUtils.deleteDirectory(overridesPath.resolve(path));
-            }
-        }
-
-        // if overrides folder itself is empty, then remove it
-        if (overridesPath.toFile().list().length == 0) {
-            FileUtils.deleteDirectory(overridesPath);
-        }
-
-        ArchiveUtils.createZip(tempDir, to);
-
-        FileUtils.deleteDirectory(tempDir);
-
-        return true;
-    }
-
     public boolean rename(String newName) {
         String oldName = this.launcher.name;
         File oldDir = getRoot().toFile();
@@ -1908,17 +1734,8 @@ public class Instance extends MinecraftVersion {
         return launcher.requiredPermGen;
     }
 
-    public boolean isModrinthImport() {
-        return launcher.modrinthManifest != null && launcher.modrinthProject == null;
-    }
-
     public boolean isMultiMcImport() {
         return launcher.multiMCManifest != null;
-    }
-
-    public boolean isModrinthPack() {
-        return launcher.modrinthManifest != null && launcher.modrinthProject != null
-                && launcher.modrinthVersion != null;
     }
 
     public boolean isVanillaInstance() {
@@ -1926,25 +1743,14 @@ public class Instance extends MinecraftVersion {
     }
 
     public boolean isExternalPack() {
-        return isModrinthImport()
-                || isMultiMcImport() ||isModrinthPack();
+        return isMultiMcImport();
     }
 
     public boolean isUpdatableExternalPack() {
-        return isExternalPack() && (
-                (isModrinthPack()
-                        && ConfigManager.getConfigItem("platforms.modrinth.modpacksEnabled", true)));
+        return isExternalPack();
     }
 
     public String getAnalyticsCategory() {
-        if (isModrinthPack()) {
-            return "ModrinthPack";
-        }
-
-        if (isModrinthImport()) {
-            return "ModrinthImport";
-        }
-
         if (isMultiMcImport()) {
             return "MultiMcImport";
         }
@@ -1954,17 +1760,6 @@ public class Instance extends MinecraftVersion {
         }
 
         return "Instance";
-    }
-
-    public boolean hasWebsite() {
-        return isModrinthPack();
-    }
-
-    public String getWebsiteUrl() {
-        if (isModrinthPack()) {
-            return String.format("https://modrinth.com/modpack/%s", launcher.modrinthProject.slug);
-        }
-        return null;
     }
 
     public void update() {
@@ -2152,7 +1947,6 @@ public class Instance extends MinecraftVersion {
             installable.instanceName = launcher.name;
             installable.isReinstall = true;
             installable.changingLoader = true;
-            installable.isServer = false;
             installable.saveMods = true;
 
             success = installable.startInstall();
@@ -2198,7 +1992,6 @@ public class Instance extends MinecraftVersion {
             installable.instanceName = launcher.name;
             installable.isReinstall = true;
             installable.addingLoader = true;
-            installable.isServer = false;
             installable.saveMods = true;
 
             success = installable.startInstall();
@@ -2332,7 +2125,6 @@ public class Instance extends MinecraftVersion {
             installable.instanceName = launcher.name;
             installable.isReinstall = true;
             installable.removingLoader = true;
-            installable.isServer = false;
             installable.saveMods = true;
 
             success = installable.startInstall();
@@ -2440,10 +2232,6 @@ public class Instance extends MinecraftVersion {
     }
 
     public String getVersionOfPack() {
-        if (isModrinthPack()) {
-            return String.format("%s (%s)", launcher.modrinthVersion.name, launcher.modrinthVersion.versionNumber);
-        }
-
         return launcher.version;
     }
 

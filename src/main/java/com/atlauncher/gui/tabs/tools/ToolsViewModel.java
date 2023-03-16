@@ -81,12 +81,6 @@ public class ToolsViewModel implements IToolsViewModel, SettingsListener, Accoun
     @Override
     public void clearDownloads() {
         for (File file : FileSystem.DOWNLOADS.toFile().listFiles()) {
-            if (!file.equals(FileSystem.TECHNIC_DOWNLOADS.toFile())) {
-                Utils.delete(file);
-            }
-        }
-
-        for (File file : FileSystem.TECHNIC_DOWNLOADS.toFile().listFiles()) {
             Utils.delete(file);
         }
 

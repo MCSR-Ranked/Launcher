@@ -33,7 +33,6 @@ import org.mini2Dx.gettext.GetText;
 import com.atlauncher.FileSystem;
 import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.gui.tabs.InstancesTab;
-import com.atlauncher.gui.tabs.ServersTab;
 import com.atlauncher.managers.AccountManager;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.LogManager;
@@ -76,12 +75,6 @@ public abstract class AbstractAccount implements Serializable {
      * any.
      */
     public List<String> collapsedInstances = new ArrayList<>();
-
-    /**
-     * The server names this account has collapsed in the {@link ServersTab}, if
-     * any.
-     */
-    public List<String> collapsedServers = new ArrayList<>();
 
     public abstract String getAccessToken();
 

@@ -352,11 +352,7 @@ public class Mod {
     }
 
     public boolean download(InstanceInstaller installer, int attempt) {
-        if (installer.isServer && this.serverUrl != null) {
-            return downloadServer(installer, attempt);
-        } else {
-            return downloadClient(installer, attempt);
-        }
+        return downloadClient(installer, attempt);
     }
 
     public boolean downloadClient(InstanceInstaller installer, int attempt) {
@@ -656,32 +652,12 @@ public class Mod {
     }
 
     public void install(InstanceInstaller installer) {
-        File fileLocation;
-        ModType thisType;
-        if (installer.isServer && this.serverUrl != null) {
-            fileLocation = FileSystem.DOWNLOADS.resolve(getServerFile()).toFile();
-            thisType = this.serverType;
-        } else {
-            fileLocation = FileSystem.DOWNLOADS.resolve(getFile()).toFile();
-            thisType = this.type;
-        }
+        File fileLocation = FileSystem.DOWNLOADS.resolve(getFile()).toFile();
+        ModType thisType = this.type;
         switch (thisType) {
             case jar:
             case forge:
-                if (installer.isServer && thisType == ModType.forge) {
-                    Utils.copyFile(fileLocation, installer.root.toFile());
-                    break;
-                } else if (installer.isServer && thisType == ModType.jar) {
-                    Utils.unzip(fileLocation, installer.temp.resolve("jar").toFile());
-                    break;
-                }
                 Utils.copyFile(fileLocation, installer.root.resolve("jarmods").toFile());
-                break;
-            case mcpc:
-                if (installer.isServer) {
-                    Utils.copyFile(fileLocation, installer.root.toFile());
-                    break;
-                }
                 break;
             case texturepack:
                 if (!installer.root.resolve("texturepacks").toFile().exists()) {
@@ -857,30 +833,14 @@ public class Mod {
     }
 
     public File getInstalledFile(InstanceInstaller installer) {
-        ModType thisType;
-        String file;
+        ModType thisType = this.type;
+        String file = getFile();
         File base = null;
-        if (installer.isServer) {
-            file = getServerFile();
-            thisType = this.serverType;
-        } else {
-            file = getFile();
-            thisType = this.type;
-        }
+
         switch (thisType) {
             case jar:
             case forge:
-                if (installer.isServer && thisType == ModType.forge) {
-                    base = installer.root.toFile();
-                    break;
-                }
                 base = installer.root.resolve("jarmods").toFile();
-                break;
-            case mcpc:
-                if (installer.isServer) {
-                    base = installer.root.toFile();
-                    break;
-                }
                 break;
             case texturepack:
                 base = installer.root.resolve("texturepacks").toFile();

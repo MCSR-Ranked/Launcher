@@ -83,7 +83,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
     private final JButton exportButton = new JButton(GetText.tr("Export"));
     private final JButton addButton = new JButton(GetText.tr("Add Mods"));
     private final JButton editButton = new JButton(GetText.tr("Edit Mods"));
-    private final JButton openWebsite = new JButton(GetText.tr("Open Website"));
     private final JButton openButton = new JButton(GetText.tr("Open Folder"));
     private final JButton settingsButton = new JButton(GetText.tr("Settings"));
 
@@ -204,15 +203,12 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
             this.updateButton.setVisible(instance.isUpdatable());
         }
 
-        this.openWebsite.setVisible(instance.hasWebsite());
-
         bottom.add(this.addButton);
 
         if (instance.launcher.enableEditingMods) {
             bottom.add(this.editButton);
         }
 
-        bottom.add(this.openWebsite);
         bottom.add(this.openButton);
 
         rightPanel.setLayout(new BorderLayout());
@@ -407,7 +403,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
             new EditModsDialog(instance);
             exportButton.setVisible(instance.canBeExported());
         });
-        this.openWebsite.addActionListener(e -> OS.openWebBrowser(instance.getWebsiteUrl()));
         this.openButton.addActionListener(e -> OS.openFileExplorer(instance.getRoot()));
         this.settingsButton.addActionListener(e -> {
             new InstanceSettingsDialog(instance);
@@ -630,7 +625,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
         this.deleteButton.setText(GetText.tr("Delete"));
         this.addButton.setText(GetText.tr("Add Mods"));
         this.editButton.setText(GetText.tr("Edit Mods"));
-        this.openWebsite.setText(GetText.tr("Open Website"));
         this.openButton.setText(GetText.tr("Open Folder"));
         this.settingsButton.setText(GetText.tr("Settings"));
 

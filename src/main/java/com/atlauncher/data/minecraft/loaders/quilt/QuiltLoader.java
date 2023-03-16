@@ -73,8 +73,7 @@ public class QuiltLoader implements Loader {
     private QuiltMetaProfile getLoader(String version) {
         return Download.build()
                 .setUrl(String.format("https://meta.quiltmc.org/v3/versions/loader/%s/%s/%s/json", this.minecraft,
-                        version,
-                        instanceInstaller.isServer ? "server" : "profile"))
+                        version, "profile"))
                 .asClass(QuiltMetaProfile.class);
     }
 
@@ -121,63 +120,6 @@ public class QuiltLoader implements Loader {
     @Override
     public void downloadAndExtractInstaller() throws Exception {
 
-    }
-
-    @Override
-    public void runProcessors() {
-        if (!this.instanceInstaller.isServer) {
-            return;
-        }
-
-        makeServerLaunchJar();
-    }
-
-    private void makeServerLaunchJar() {
-        File file = new File(this.instanceInstaller.root.toFile(), "quilt-server-launch.jar");
-        if (file.exists()) {
-            Utils.delete(file);
-        }
-
-        try {
-
-            FileOutputStream outputStream = new FileOutputStream(file);
-            ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
-
-            List<File> libraryFiles = this.getLibraryFiles();
-
-            Set<String> addedEntries = new HashSet<>();
-            {
-                addedEntries.add("META-INF/MANIFEST.MF");
-                zipOutputStream.putNextEntry(new ZipEntry("META-INF/MANIFEST.MF"));
-
-                Manifest manifest = new Manifest();
-                manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-                manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS,
-                        this.version.launcherMainClass == null
-                                ? "org.quiltmc.loader.impl.launch.server.QuiltServerLauncher"
-                                : this.version.launcherMainClass);
-                manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, getLibraries().stream()
-                        .map(library -> instanceInstaller.root
-                                .relativize(instanceInstaller.root.resolve("libraries")
-                                        .resolve(library.downloads.artifact.path))
-                                .normalize().toString())
-                        .collect(Collectors.joining(" ")));
-                manifest.write(zipOutputStream);
-
-                zipOutputStream.closeEntry();
-            }
-
-            zipOutputStream.close();
-            outputStream.close();
-
-            FileOutputStream propertiesOutputStream = new FileOutputStream(
-                    new File(this.instanceInstaller.root.toFile(), "quilt-server-launcher.properties"));
-            propertiesOutputStream.write(("serverJar=" + this.instanceInstaller.getMinecraftJar().getName() + "\n")
-                    .getBytes(StandardCharsets.UTF_8));
-            propertiesOutputStream.close();
-        } catch (IOException e) {
-            LogManager.logStackTrace(e);
-        }
     }
 
     @Override

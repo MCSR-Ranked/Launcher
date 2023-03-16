@@ -48,21 +48,18 @@ import com.atlauncher.data.modcheck.ModCheckManager;
 import com.atlauncher.data.modcheck.ModCheckProject;
 import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthVersion;
-import com.atlauncher.data.modrinth.pack.ModrinthModpackManifest;
 import com.atlauncher.data.multimc.MultiMCManifest;
 import com.atlauncher.gui.LauncherFrame;
 import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.InstanceManager;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.managers.ServerManager;
 import com.atlauncher.utils.FileUtils;
 import com.atlauncher.utils.ModrinthApi;
 import com.atlauncher.workers.InstanceInstaller;
 
 public abstract class Installable {
     public String instanceName;
-    public boolean isServer = false;
     public boolean isUpdate = false;
     public boolean isReinstall = false;
     public boolean addingLoader = false;
@@ -76,7 +73,6 @@ public abstract class Installable {
     public boolean showModsChooser = true;
     public Path curseExtractedPath;
     public ModrinthProject modrinthProject;
-    public ModrinthModpackManifest modrinthManifest;
     public Path modrinthExtractedPath;
     public MultiMCManifest multiMCManifest;
     public Path multiMCExtractedPath;
@@ -88,27 +84,15 @@ public abstract class Installable {
     public abstract LoaderVersion getLoaderVersion();
 
     public boolean startInstall() {
-        if (!isReinstall && !isServer && InstanceManager.isInstance(instanceName)) {
+        if (!isReinstall && InstanceManager.isInstance(instanceName)) {
             DialogManager.okDialog().setTitle(GetText.tr("Error")).setContent(new HTMLBuilder().center()
                     .text(GetText.tr("An instance already exists with that name.<br/><br/>Rename it and try again."))
                     .build()).setType(DialogManager.ERROR).show();
             return false;
-        } else if (!isReinstall && !isServer && instanceName.replaceAll("[^A-Za-z0-9]", "").length() == 0) {
+        } else if (!isReinstall && instanceName.replaceAll("[^A-Za-z0-9]", "").length() == 0) {
             DialogManager.okDialog().setTitle(GetText.tr("Error"))
                     .setContent(new HTMLBuilder().center()
                             .text(GetText.tr("Instance name is invalid. It must contain at least 1 letter or number."))
-                            .build())
-                    .setType(DialogManager.ERROR).show();
-            return false;
-        } else if (!isReinstall && isServer && ServerManager.isServer(instanceName)) {
-            DialogManager.okDialog().setTitle(GetText.tr("Error")).setContent(new HTMLBuilder().center()
-                    .text(GetText.tr("A server already exists with that name.<br/><br/>Rename it and try again."))
-                    .build()).setType(DialogManager.ERROR).show();
-            return false;
-        } else if (!isReinstall && isServer && instanceName.replaceAll("[^A-Za-z0-9]", "").length() == 0) {
-            DialogManager.okDialog().setTitle(GetText.tr("Error"))
-                    .setContent(new HTMLBuilder().center()
-                            .text(GetText.tr("Server name is invalid. It must contain at least 1 letter or number."))
                             .build())
                     .setType(DialogManager.ERROR).show();
             return false;
@@ -162,10 +146,10 @@ public abstract class Installable {
 
         LoaderVersion loaderVersion = getLoaderVersion();
 
-        boolean saveMods = !isServer && isReinstall && this.saveMods;
+        boolean saveMods = isReinstall && this.saveMods;
 
-        final InstanceInstaller instanceInstaller = new InstanceInstaller(instanceName, pack, version, isReinstall,
-                isServer, changingLoader, saveMods, null, showModsChooser, loaderVersion, modrinthManifest, modrinthExtractedPath, multiMCManifest,
+        final InstanceInstaller instanceInstaller = new InstanceInstaller(instanceName, pack, version, isReinstall, changingLoader,
+            saveMods, null, showModsChooser, loaderVersion, modrinthExtractedPath, multiMCManifest,
                 multiMCExtractedPath, dialog) {
 
             protected void done() {
@@ -246,10 +230,6 @@ public abstract class Installable {
                         } else if (isReinstall) {
                             // #. {0} is the pack name and {1} is the pack version
                             text = GetText.tr("{0} {1} has been reinstalled.", pack.getName(), version.version);
-                        } else if (isServer) {
-                            // #. {0} is the pack name and {1} is the pack version
-                            text = GetText.tr("{0} {1} server has been installed.<br/><br/>Find it in the servers tab.",
-                                    pack.getName(), version.version);
                         } else {
                             // #. {0} is the pack name and {1} is the pack version
                             text = GetText.tr("{0} {1} has been installed.<br/><br/>Find it in the instances tab.",
@@ -461,18 +441,8 @@ public abstract class Installable {
         }
 
         if (isReinstall) {
-            if (isServer) {
-                // #. {0} is the name of the pack
-                return GetText.tr("Reinstalling {0} Server", name);
-            }
-
             // #. {0} is the name of the pack
             return GetText.tr("Reinstalling {0}", name);
-        }
-
-        if (isServer) {
-            // #. {0} is the name of the pack
-            return GetText.tr("Installing {0} Server", name);
         }
 
         // #. {0} is the name of the pack

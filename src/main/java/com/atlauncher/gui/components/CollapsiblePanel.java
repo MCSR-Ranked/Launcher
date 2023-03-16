@@ -45,14 +45,12 @@ import javax.swing.border.TitledBorder;
 import com.atlauncher.App;
 import com.atlauncher.data.Instance;
 import com.atlauncher.data.Pack;
-import com.atlauncher.data.Server;
 import com.atlauncher.evnt.listener.RelocalizationListener;
 import com.atlauncher.evnt.listener.ThemeListener;
 import com.atlauncher.evnt.manager.RelocalizationManager;
 import com.atlauncher.evnt.manager.ThemeManager;
 import com.atlauncher.managers.AccountManager;
 import com.atlauncher.managers.InstanceManager;
-import com.atlauncher.managers.ServerManager;
 import com.atlauncher.utils.Utils;
 
 /**
@@ -71,7 +69,6 @@ public class CollapsiblePanel extends JPanel implements ThemeListener, Relocaliz
     JButton arrow = createArrowButton();// the arrow
     JPanel panel;
     Pack pack = null;
-    Server server = null;
     Instance instance = null;
     boolean collapsed; // stores current state of the collapsible panel
 
@@ -139,20 +136,6 @@ public class CollapsiblePanel extends JPanel implements ThemeListener, Relocaliz
         commonConstructor();
         if (AccountManager.getSelectedAccount() != null) {
             if (AccountManager.getSelectedAccount().collapsedInstances.contains(instance.launcher.name)) {
-                setCollapsed(true);
-            }
-        }
-    }
-
-    public CollapsiblePanel(Server server) {
-        this.server = server;
-        arrow.setText(server.name + " (" + server.pack + " " + server.version + ")");
-        arrow.setForeground(UIManager.getColor("CollapsiblePanel.normal"));
-        titleComponent = arrow;
-        collapsed = false;
-        commonConstructor();
-        if (AccountManager.getSelectedAccount() != null) {
-            if (AccountManager.getSelectedAccount().collapsedServers.contains(server.name)) {
                 setCollapsed(true);
             }
         }
@@ -290,8 +273,6 @@ public class CollapsiblePanel extends JPanel implements ThemeListener, Relocaliz
             setCollapsed(!isCollapsed());
             if (instance != null) {
                 InstanceManager.setInstanceVisbility(instance, isCollapsed());
-            } else if (server != null) {
-                ServerManager.setServerVisibility(server, isCollapsed());
             }
         }
 
@@ -299,8 +280,6 @@ public class CollapsiblePanel extends JPanel implements ThemeListener, Relocaliz
             setCollapsed(!isCollapsed());
             if (instance != null) {
                 InstanceManager.setInstanceVisbility(instance, isCollapsed());
-            } else if (server != null) {
-                ServerManager.setServerVisibility(server, isCollapsed());
             }
         }
     }
