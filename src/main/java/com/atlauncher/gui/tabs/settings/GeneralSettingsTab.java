@@ -68,7 +68,6 @@ public class GeneralSettingsTab extends AbstractSettingsTab {
     private final JCheckBox keepLauncherOpen;
     private final JCheckBox enableConsole;
     private final JCheckBox enableTrayIcon;
-    private final JCheckBox enableDiscordIntegration;
     private JCheckBox enableFeralGamemode;
     private final JCheckBox disableCustomFonts;
     private final JCheckBox rememberWindowSizePosition;
@@ -380,16 +379,6 @@ public class GeneralSettingsTab extends AbstractSettingsTab {
         }
         add(enableTrayIcon, gbc);
 
-        gbc.gridx++;
-        gbc.insets = UIConstants.CHECKBOX_FIELD_INSETS;
-        gbc.anchor = GridBagConstraints.BASELINE_LEADING;
-        enableDiscordIntegration = new JCheckBox();
-        if (App.settings.enableDiscordIntegration) {
-            enableDiscordIntegration.setSelected(true);
-        }
-        enableDiscordIntegration.setEnabled(!OS.isArm());
-        add(enableDiscordIntegration, gbc);
-
         // Enable Feral Gamemode
 
         if (OS.isLinux()) {
@@ -561,7 +550,6 @@ public class GeneralSettingsTab extends AbstractSettingsTab {
         App.settings.keepLauncherOpen = keepLauncherOpen.isSelected();
         App.settings.enableConsole = enableConsole.isSelected();
         App.settings.enableTrayMenu = enableTrayIcon.isSelected();
-        App.settings.enableDiscordIntegration = enableDiscordIntegration.isSelected();
 
         if (customDownloadsPath.getText().equalsIgnoreCase(FileSystem.getUserDownloadsPath(false).toString())) {
             App.settings.customDownloadsPath = null;
