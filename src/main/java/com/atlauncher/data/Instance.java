@@ -124,7 +124,6 @@ import com.atlauncher.managers.LWJGLManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.MinecraftManager;
 import com.atlauncher.managers.ModrinthModpackUpdateManager;
-import com.atlauncher.managers.PackManager;
 import com.atlauncher.managers.PerformanceManager;
 import com.atlauncher.mclauncher.MCLauncher;
 import com.atlauncher.network.DownloadPool;
@@ -209,15 +208,7 @@ public class Instance extends MinecraftVersion {
     }
 
     public Pack getPack() {
-        if (this.isExternalPack() || this.isVanillaInstance()) {
-            return null;
-        }
-
-        try {
-            return PackManager.getPackByID(this.launcher.packId);
-        } catch (InvalidPack e) {
-            return null;
-        }
+        return null;
     }
 
     public boolean hasUpdate() {

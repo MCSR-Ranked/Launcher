@@ -107,7 +107,7 @@ public class ServersTab extends JPanel implements Tab, RelocalizationListener {
 
             if (panel.getComponentCount() == 0) {
                 nilCard = new NilCard(new HTMLBuilder().text(
-                    GetText.tr("There are no servers to display.<br/><br/>Install one from the Packs tab.")).build());
+                    GetText.tr("There are no servers to display.<br/><br/>Install one from the Instances tab.")).build());
                 panel.add(nilCard, gbc);
             }
 
@@ -135,7 +135,7 @@ public class ServersTab extends JPanel implements Tab, RelocalizationListener {
 
         if (nilCard != null) {
             nilCard.setMessage(new HTMLBuilder().text(
-                    GetText.tr("There are no servers to display.<br/><br/>Install one from the Packs tab.")).build());
+                    GetText.tr("There are no servers to display.<br/><br/>Install one from the Instances tab.")).build());
         }
     }
 }

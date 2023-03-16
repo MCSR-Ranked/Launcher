@@ -231,13 +231,11 @@ public class GeneralSettingsTab extends AbstractSettingsTab {
         gbc.anchor = GridBagConstraints.BASELINE_LEADING;
         selectedTabOnStartup = new JComboBox<>();
         selectedTabOnStartup.addItem(new ComboItem<>(0, GetText.tr("News")));
-        selectedTabOnStartup.addItem(new ComboItem<>(1, GetText.tr("Vanilla Packs")));
-        selectedTabOnStartup.addItem(new ComboItem<>(2, GetText.tr("Packs")));
-        selectedTabOnStartup.addItem(new ComboItem<>(3, GetText.tr("Instances")));
-        selectedTabOnStartup.addItem(new ComboItem<>(4, GetText.tr("Servers")));
-        selectedTabOnStartup.addItem(new ComboItem<>(5, GetText.tr("Accounts")));
-        selectedTabOnStartup.addItem(new ComboItem<>(6, GetText.tr("Tools")));
-        selectedTabOnStartup.addItem(new ComboItem<>(7, GetText.tr("Settings")));
+        selectedTabOnStartup.addItem(new ComboItem<>(1, GetText.tr("Instances")));
+        selectedTabOnStartup.addItem(new ComboItem<>(2, GetText.tr("Create Instance")));
+        selectedTabOnStartup.addItem(new ComboItem<>(3, GetText.tr("Accounts")));
+        selectedTabOnStartup.addItem(new ComboItem<>(4, GetText.tr("Tools")));
+        selectedTabOnStartup.addItem(new ComboItem<>(5, GetText.tr("Settings")));
         selectedTabOnStartup.setSelectedItem(App.settings.selectedTabOnStartup);
 
         for (int i = 0; i < selectedTabOnStartup.getItemCount(); i++) {
@@ -389,7 +387,7 @@ public class GeneralSettingsTab extends AbstractSettingsTab {
             gbc.insets = UIConstants.LABEL_INSETS;
             gbc.anchor = GridBagConstraints.BASELINE_TRAILING;
             JLabelWithHover enableFeralGamemodeLabel = new JLabelWithHover(GetText.tr("Enable Feral Gamemode") + "?",
-                    HELP_ICON, GetText.tr("This will enable Feral Gamemode for packs launched."));
+                    HELP_ICON, GetText.tr("This will enable Feral Gamemode for instances launched."));
             add(enableFeralGamemodeLabel, gbc);
 
             gbc.gridx++;
@@ -402,7 +400,7 @@ public class GeneralSettingsTab extends AbstractSettingsTab {
 
             if (!gameModeExistsInPath) {
                 enableFeralGamemodeLabel.setToolTipText(GetText.tr(
-                        "This will enable Feral Gamemode for packs launched (disabled because gamemoderun not found in PATH, please install Feral Gamemode or add it to your PATH)."));
+                        "This will enable Feral Gamemode for instances launched (disabled because gamemoderun not found in PATH, please install Feral Gamemode or add it to your PATH)."));
                 enableFeralGamemodeLabel.setEnabled(false);
 
                 enableFeralGamemode.setEnabled(false);

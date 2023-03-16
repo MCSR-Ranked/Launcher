@@ -37,7 +37,7 @@ public final class InstancesListPanel extends JPanel
         implements RelocalizationListener {
     private static NilCard createNilCard() {
         return new NilCard(new HTMLBuilder()
-                .text(GetText.tr("There are no instances to display.<br/><br/>Install one from the Packs tab."))
+                .text(GetText.tr("There are no instances to display.<br/><br/>Install one from the Instances tab."))
                 .build());
     }
 
@@ -82,7 +82,7 @@ public final class InstancesListPanel extends JPanel
     @Override
     public void onRelocalization() {
         this.nilCard.setMessage(new HTMLBuilder()
-                .text(GetText.tr("There are no instances to display.<br/><br/>Install one from the Packs tab."))
+                .text(GetText.tr("There are no instances to display.<br/><br/>Install one from the Instances tab."))
                 .build());
     }
 }

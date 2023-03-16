@@ -54,7 +54,6 @@ import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.MinecraftManager;
 import com.atlauncher.managers.ModrinthModpackUpdateManager;
 import com.atlauncher.managers.NewsManager;
-import com.atlauncher.managers.PackManager;
 import com.atlauncher.managers.PerformanceManager;
 import com.atlauncher.network.DownloadPool;
 import com.atlauncher.utils.Java;
@@ -108,8 +107,6 @@ public class Launcher {
 
         //ServerManager.loadServers(); // Load the users installed servers
 
-        PackManager.removeUnusedImages(); // remove unused pack images
-
         ModCheckManager.loadModList();
 
         if (OS.isWindows() && !Java.is64Bit() && OS.is64Bit()) {
@@ -117,7 +114,7 @@ public class Launcher {
 
             int ret = DialogManager.yesNoDialog().setTitle(GetText.tr("Running 32 Bit Java on 64 Bit Windows"))
                     .setContent(new HTMLBuilder().center().text(GetText.tr(
-                            "We have detected that you're running 64 bit Windows but not 64 bit Java.<br/><br/>This will cause severe issues playing all packs if not fixed.<br/><br/>Do you want to close the launcher and learn how to fix this issue now?"))
+                            "We have detected that you're running 64 bit Windows but not 64 bit Java.<br/><br/>This will cause severe issues playing all instances if not fixed.<br/><br/>Do you want to close the launcher and learn how to fix this issue now?"))
                             .build())
                     .setType(DialogManager.ERROR).show();
 

@@ -51,7 +51,6 @@ import com.atlauncher.exceptions.InvalidPack;
 import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.LogManager;
-import com.atlauncher.managers.PackManager;
 import com.atlauncher.utils.ArchiveUtils;
 import com.atlauncher.utils.OS;
 import com.atlauncher.utils.Utils;
@@ -85,11 +84,7 @@ public class Server {
     }
 
     public Pack getPack() {
-        try {
-            return PackManager.getPackByID(this.packId);
-        } catch (InvalidPack e) {
-            return null;
-        }
+        return null;
     }
 
     public void launch(boolean close) {

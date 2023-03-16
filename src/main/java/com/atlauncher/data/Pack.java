@@ -29,7 +29,6 @@ import com.atlauncher.constants.Constants;
 import com.atlauncher.data.json.Version;
 import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.managers.AccountManager;
-import com.atlauncher.managers.PackManager;
 import com.atlauncher.utils.Utils;
 
 public class Pack {
@@ -180,19 +179,6 @@ public class Pack {
     }
 
     public boolean canInstall() {
-        if (this.type == PackType.PRIVATE) {
-            if (isTester() || (hasVersions() && isAllowedPlayer())) {
-                return true;
-            }
-        } else if (this.type == PackType.SEMIPUBLIC && this.code != null) {
-            if (isTester() || (hasVersions() && PackManager.canViewSemiPublicPackByCode(this.code))) {
-                return true;
-            }
-        } else {
-            if (isTester() || hasVersions()) {
-                return true;
-            }
-        }
         return false;
     }
 

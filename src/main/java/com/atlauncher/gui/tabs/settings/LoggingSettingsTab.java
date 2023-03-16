@@ -70,7 +70,7 @@ public class LoggingSettingsTab extends AbstractSettingsTab {
         gbc.anchor = GridBagConstraints.BASELINE_TRAILING;
         JLabelWithHover enableLoggingLabel = new JLabelWithHover(GetText.tr("Enable Logging") + "?", HELP_ICON,
                 new HTMLBuilder().center().split(100).text(GetText.tr(
-                        "The Launcher sends back anonymous usage and error logs to our servers in order to make the Launcher and Packs better. If you don't want this to happen then simply disable this option."))
+                        "The Launcher sends back anonymous usage and error logs to our servers in order to make the Launcher and Instances better. If you don't want this to happen then simply disable this option."))
                         .build());
         add(enableLoggingLabel, gbc);
 
