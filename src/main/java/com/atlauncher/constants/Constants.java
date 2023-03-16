@@ -59,8 +59,8 @@ public class Constants {
     public static String API_HOST = "api." + BASE_LAUNCHER_DOMAIN;
 
     // CDN domains, endpoints, etc
-    public static String BASE_CDN_PROTOCOL = "http://";
-    public static String BASE_CDN_DOMAIN = "localhost:4561";
+    public static String BASE_CDN_PROTOCOL = "https://";
+    public static String BASE_CDN_DOMAIN = "mcsrranked.com";
     public static String BASE_CDN_PATH = "";
     public static String DOWNLOAD_SERVER = BASE_CDN_PROTOCOL + BASE_CDN_DOMAIN + BASE_CDN_PATH;
     public static String DOWNLOAD_HOST = BASE_CDN_DOMAIN;
