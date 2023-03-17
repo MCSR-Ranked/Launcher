@@ -1,24 +1,18 @@
-# ATLauncher
+# MCSR Ranked Launcher
 
-![Application](https://github.com/ATLauncher/ATLauncher/workflows/Application/badge.svg?branch=master)
-[![Discord](https://discordapp.com/api/guilds/117047818136322057/embed.png?style=shield)](https://atl.pw/discord)
+![Application](https://github.com/RedLime/MCSR-Ranked-Launcher/workflows/Application/badge.svg?branch=master)
+[![Discord](https://discordapp.com/api/guilds/1056779246728658984/embed.png?style=shield)](https://mcsrranked.com/discord)
 
 ## What is it
 
-ATLauncher is a launcher for Minecraft which integrates multiple different modpacks to allow you to download and install
-modpacks easily and quickly.
+Fork of ATLauncher
+
+Minecraft Launcher that made for running MCSR Ranked easier and quickly.
 
 ## Links
 
--   [ATLauncher Website](https://atlauncher.com)
--   [ATLauncher Discord](https://atl.pw/discord)
--   [ATLauncher Facebook](https://www.facebook.com/ATLauncher)
--   [ATLauncher Reddit](https://www.reddit.com/r/ATLauncher)
--   [ATLauncher Twitter](https://twitter.com/ATLauncher)
-
-## Contributing to ATLauncher
-
-Take a look at [CONTRIBUTING.md](CONTRIBUTING.md)
+-   [MCSR Ranked Website](https://mcsrranked.com/)
+-   [MCSR Ranked Discord](https://mcsrranked.com/discord)
 
 ## Testing
 
@@ -26,7 +20,7 @@ Please see the [TESTING.md](TESTING.md) file for information on how we write tes
 
 ## Prerequisites
 
-In order to build ATLauncher, you will need any Java version 8 or above. Java 8 is recommended since we compile to Java
+In order to build MCSR Ranked Launcher, you will need any Java version 8 or above. Java 8 is recommended since we compile to Java
 8 compatability regardless.
 
 Everything else that's needed for the project is provided by Gradle, and accessed using the Gradle wrapper which can be
@@ -94,7 +88,7 @@ this to all new files you create.
 
 ## Create Custom Themes
 
-ATLauncher supports custom themes. The process is fairly straight forward, but may require a lot of trial and error.
+Originally, ATLauncher supports custom themes. The process is fairly straight forward, but may require a lot of trial and error.
 
 First you must create a `MyThemeName.java` in the `src/main/java/com/atlauncher/themes/` directory. Your theme should
 extend one of the base ATLauncher themes depending on what you need:
@@ -146,14 +140,11 @@ in your `.properties` file.
 To get started with the code and plug in your own data, you need to edit the
 `/src/main/java/com/atlauncher/constants/Constants.java` file.
 
-By using this source code you don't get permissions to use our CDN/files/assets/modpacks. See the License section at the
-bottom for more.
-
-Most of of them should be self explanatory, if not please stop by our [Discord](https://atl.pw/discord) and ask in the
+Most of them should be self-explanatory, if not please stop by [ATLauncher Discord](https://atl.pw/discord) and ask in the
 `#development` channel if you need help understanding any of the values.
 
-A couple values in the constants file are specific for ATLauncher and shouldn't be used in any forks. These are the
-CurseForge Core api key and the Microsoft Login Client ID.
+A couple values in the constants file are specific for ATLauncher or MCSR Ranked Launcher and shouldn't be used in any forks. These are the
+Microsoft Login Client ID.
 
 You can apply for a CurseForge Core key through
 [this link](https://forms.monday.com/forms/dce5ccb7afda9a1c21dab1a1aa1d84eb) and a Microsoft Login Client ID through
@@ -188,60 +179,7 @@ stream should be removed from the version so that everything will automatically 
 
 ## Translating
 
-ATLauncher is written for English speakers. All our translations are community run by those who take their time and
-submit updates to the text in a different language.
-
-If you wish to help translate ATLauncher, please visit our page on [Crowdin](https://crowdin.com/project/atlauncher) and
-start translating.
-
-### Updating the template file
-
-Every push to master will automatically add any new strings that need translating via GitHub actions.
-
-#### Manual Steps
-
-If new strings are added to the launcher, the template file will need to be updated in order to take into account the
-new strings.
-
-In order to do this, run `./gradlew generatePots` which will scan the source files and create a
-`build/gettext/translations.pot` file.
-
-Note that out of the box, this will not generate in the correct format. You must run the `deduplicateTranslations` script in
-the `scripts/deduplicateTranslations` folder which will use Docker to fix the `translations.pot` file.
-
-This file can then be uploaded to Crowdin by ATLauncher staff to give access to the translators.
-
-### Adding new languages from Crowdin
-
-Running [this action](https://github.com/ATLauncher/ATLauncher/actions/workflows/download-translations.yml) will
-download all approved translations strings and make a commit to master with then changed language files.
-
-#### Manual Steps
-
-Once a language has been translated enough to add support to the launcher (or update support) there's a few steps we
-need to take.
-
-First grab the built project from Crowdin, and then grab out the translation to add/update. For this example, let's take
-German.
-
-Pop this file in the `scripts/processTranslations/in` directory and then run the `scripts/processTranslations.bat` or
-`scripts/processTranslations.sh` file to fix them up and output them into the `scripts/processTranslations/out`
-directory.
-
-Now take the converted files from the `scripts/processTranslations/out` directory and put them in the
-`src\main\resources\assets\lang` directory.
-
-Now open `src\main\java\com\atlauncher\data\Language.java` and in the static block at the top, add in the language:
-
-```java
-// add in the languages we have support for
-static {
-    locales.add(Locale.ENGLISH);
-    locales.add(new Locale("de", "DE"));
-}
-```
-
-Now the launcher should have the option to change to the language/s.
+Not support yet.
 
 ## License
 
@@ -251,7 +189,3 @@ This work is licensed under the GNU General Public License v3.0. To view a copy 
 A simple way to keep in terms of the license is by forking this repository and leaving it open source under the same
 license. We love free software, seeing people use our code and then not share the code, breaking the license, is
 saddening. So please take a look at the license and respect what we're doing.
-
-Also, while we cannot enforce this under the license, you cannot use our CDN/files/assets/modpacks on your own launcher.
-Again we cannot enforce this under the license, but needless to say, we'd be very unhappy if you did that and really
-would like to leave cease and desist letters as a last resort.
