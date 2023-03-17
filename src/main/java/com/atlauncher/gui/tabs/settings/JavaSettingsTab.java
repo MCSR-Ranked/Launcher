@@ -217,7 +217,7 @@ public class JavaSettingsTab extends AbstractSettingsTab implements Relocalizati
                     int ret = DialogManager.okDialog().setTitle(GetText.tr("Warning"))
                             .setType(DialogManager.WARNING)
                             .setContent(GetText.tr(
-                                    "Setting maximum memory above 8GB is not recommended for most modpacks and can cause issues."))
+                                    "Setting maximum memory above 8GB is not recommended for most instances and can cause issues."))
                             .addOption(GetText.tr("More Explanation"))
                             .show();
 
