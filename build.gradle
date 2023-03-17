@@ -54,8 +54,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'net.java.dev.jna:jna:5.11.0'
-    implementation 'net.java.dev.jna:jna-platform:5.11.0'
+    implementation 'net.java.dev.jna:jna:5.13.0'
+    implementation 'net.java.dev.jna:jna-platform:5.13.0'
     implementation 'com.google.code.gson:gson:2.9.0'
     implementation 'com.google.guava:guava:31.1-jre'
     implementation 'org.tukaani:xz:1.9'
@@ -66,7 +66,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.9.3'
     implementation 'com.squareup.okhttp3:okhttp-tls:4.9.3'
     implementation 'net.mikehardy:google-analytics-java:2.0.11'
-    implementation 'io.sentry:sentry:6.1.4'
+    implementation 'io.sentry:sentry:6.4.0'
     implementation 'com.github.RyanTheAllmighty.gettext:gettext-lib:88ae68d897'
     implementation 'org.apache.logging.log4j:log4j-api:2.17.2'
     implementation 'org.apache.logging.log4j:log4j-core:2.17.2'
@@ -120,19 +120,11 @@ jar {
                 'SplashScreen-Image': '/assets/image/splash-screen.png',
                 'Implementation-Title': project.name,
                 'Implementation-Version': archiveVersion,
-                'Implementation-Vender': 'ATLauncher',
+                'Implementation-Vender': 'MCSRRankedLauncher',
                 'Main-Class': 'com.atlauncher.App',
                 'Multi-Release': 'true'
         )
     }
-}
-
-apollo {
-    customTypeMapping = [
-        "ID" : "java.lang.String",
-        "DateTime" : "java.util.Date"
-    ]
-    packageName = "com.atlauncher.graphql"
 }
 
 gettext {
@@ -169,13 +161,6 @@ license {
 
 shadowJar {
     classifier = null
-    minimize {
-        exclude(dependency('org.apache.logging.log4j:.*:.*'))
-        exclude(dependency('com.formdev:.*:.*'))
-        exclude(dependency('com.github.jnr:.*:.*'))
-        exclude(dependency('com.github.hypfvieh:.*:.*'))
-        exclude(dependency('org.apache.commons:commons-compress:.*'))
-    }
 
     // these are included by dbus-java which is only used on Linux
     exclude("jni/x86_64-Windows/")
@@ -195,7 +180,7 @@ shadowJar {
 
 macAppBundle {
     mainClassName = 'com.atlauncher.App'
-    appName = 'ATLauncher'
+    appName = 'MCSRRankedLauncher'
     appStyle = 'universalJavaApplicationStub'
     runtimeConfigurationName = 'shadow'
     jarTask = 'shadowJar'
@@ -210,7 +195,7 @@ macAppBundle {
 }
 
 copyToResourcesJava {
-    rename("ATLauncher-${project.version}.jar", "ATLauncher.jar")
+    rename("MCSRRankedLauncher-${project.version}.jar", "MCSRRankedLauncher.jar")
 }
 
 def currentYear() {
@@ -220,7 +205,7 @@ def currentYear() {
 }
 
 launch4j {
-    outfile = "ATLauncher-${project.version}.exe"
+    outfile = "MCSRRankedLauncher-${project.version}.exe"
     jreMinVersion = "${project.targetCompatibility.toString()}"
     mainClassName = 'com.atlauncher.App'
     icon = "${projectDir}/src/main/resources/assets/image/icon.ico"
@@ -282,7 +267,7 @@ task createMacApp(type: Zip) {
 }
 
 copyArtifacts.finalizedBy {
-    println 'ATLauncher has been built. Distribution files are located in the dist directory.'
+    println 'MCSRRankedLauncher has been built. Distribution files are located in the dist directory.'
 }
 
 clean.doFirst {
