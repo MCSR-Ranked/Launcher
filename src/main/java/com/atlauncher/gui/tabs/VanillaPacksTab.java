@@ -20,6 +20,7 @@ package com.atlauncher.gui.tabs;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -85,19 +86,16 @@ public final class VanillaPacksTab extends JPanel implements Tab {
     private boolean descriptionFieldDirty = false;
 
     private final JCheckBox minecraftVersionReleasesFilterCheckbox = new JCheckBox(GetText.tr("Releases"));
-    private final JCheckBox minecraftVersionExperimentsFilterCheckbox = new JCheckBox(GetText.tr("Experiments"));
-    private final JCheckBox minecraftVersionSnapshotsFilterCheckbox = new JCheckBox(GetText.tr("Snapshots"));
-    private final JCheckBox minecraftVersionBetasFilterCheckbox = new JCheckBox(GetText.tr("Betas"));
-    private final JCheckBox minecraftVersionAlphasFilterCheckbox = new JCheckBox(GetText.tr("Alphas"));
+//    private final JCheckBox minecraftVersionSnapshotsFilterCheckbox = new JCheckBox(GetText.tr("Snapshots"));
 
     private JTable minecraftVersionTable;
     private DefaultTableModel minecraftVersionTableModel;
 
     private final ButtonGroup loaderTypeButtonGroup = new ButtonGroup();
-    private final JRadioButton loaderTypeNoneRadioButton = new JRadioButton(GetText.tr("None"));
+//    private final JRadioButton loaderTypeNoneRadioButton = new JRadioButton(GetText.tr("None"));
     private final JRadioButton loaderTypeFabricRadioButton = new JRadioButton("Fabric");
-    private final JRadioButton loaderTypeLegacyFabricRadioButton = new JRadioButton("Legacy Fabric");
-    private final JRadioButton loaderTypeQuiltRadioButton = new JRadioButton("Quilt");
+//    private final JRadioButton loaderTypeLegacyFabricRadioButton = new JRadioButton("Legacy Fabric");
+//    private final JRadioButton loaderTypeQuiltRadioButton = new JRadioButton("Quilt");
 
     private final JComboBox<ComboItem<LoaderVersion>> loaderVersionsDropDown = new JComboBox<>();
     private final JButton createInstanceButton = new JButton(GetText.tr("Create Instance"));
@@ -108,6 +106,7 @@ public final class VanillaPacksTab extends JPanel implements Tab {
 
         setupMainPanel();
         setupBottomPanel();
+        this.createInstanceButton.setFont(new Font(this.createInstanceButton.getName(), Font.BOLD, this.createInstanceButton.getFont().getSize() + 4));
     }
 
     private void setupMainPanel() {
@@ -243,72 +242,8 @@ public final class VanillaPacksTab extends JPanel implements Tab {
                 reloadMinecraftVersionsTable();
             }
         });
-        if (ConfigManager.getConfigItem("minecraft.release.enabled", true) == true) {
+        if (ConfigManager.getConfigItem("minecraft.release.enabled", true)) {
             minecraftVersionFilterPanel.add(minecraftVersionReleasesFilterCheckbox);
-        }
-
-        minecraftVersionExperimentsFilterCheckbox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (minecraftVersionExperimentsFilterCheckbox.isSelected()) {
-                    minecraftVersionTypeFilters.add(VersionManifestVersionType.EXPERIMENT);
-                } else {
-                    minecraftVersionTypeFilters.remove(VersionManifestVersionType.EXPERIMENT);
-                }
-
-                reloadMinecraftVersionsTable();
-            }
-        });
-        if (ConfigManager.getConfigItem("minecraft.experiment.enabled", true) == true) {
-            minecraftVersionFilterPanel.add(minecraftVersionExperimentsFilterCheckbox);
-        }
-
-        minecraftVersionSnapshotsFilterCheckbox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (minecraftVersionSnapshotsFilterCheckbox.isSelected()) {
-                    minecraftVersionTypeFilters.add(VersionManifestVersionType.SNAPSHOT);
-                } else {
-                    minecraftVersionTypeFilters.remove(VersionManifestVersionType.SNAPSHOT);
-                }
-
-                reloadMinecraftVersionsTable();
-            }
-        });
-        if (ConfigManager.getConfigItem("minecraft.snapshot.enabled", true) == true) {
-            minecraftVersionFilterPanel.add(minecraftVersionSnapshotsFilterCheckbox);
-        }
-
-        minecraftVersionBetasFilterCheckbox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (minecraftVersionBetasFilterCheckbox.isSelected()) {
-                    minecraftVersionTypeFilters.add(VersionManifestVersionType.OLD_BETA);
-                } else {
-                    minecraftVersionTypeFilters.remove(VersionManifestVersionType.OLD_BETA);
-                }
-
-                reloadMinecraftVersionsTable();
-            }
-        });
-        if (ConfigManager.getConfigItem("minecraft.old_alpha.enabled", true) == true) {
-            minecraftVersionFilterPanel.add(minecraftVersionBetasFilterCheckbox);
-        }
-
-        minecraftVersionAlphasFilterCheckbox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (minecraftVersionAlphasFilterCheckbox.isSelected()) {
-                    minecraftVersionTypeFilters.add(VersionManifestVersionType.OLD_ALPHA);
-                } else {
-                    minecraftVersionTypeFilters.remove(VersionManifestVersionType.OLD_ALPHA);
-                }
-
-                reloadMinecraftVersionsTable();
-            }
-        });
-        if (ConfigManager.getConfigItem("minecraft.old_beta.enabled", true) == true) {
-            minecraftVersionFilterPanel.add(minecraftVersionAlphasFilterCheckbox);
         }
 
         minecraftVersionPanel.add(minecraftVersionFilterPanel);
@@ -336,47 +271,21 @@ public final class VanillaPacksTab extends JPanel implements Tab {
         gbc.insets = UIConstants.LABEL_INSETS;
         gbc.anchor = GridBagConstraints.EAST;
 
-        JLabel loaderTypeLabel = new JLabel(GetText.tr("Loader") + "?");
+        JLabel loaderTypeLabel = new JLabel(GetText.tr("Loader"));
         mainPanel.add(loaderTypeLabel, gbc);
 
         gbc.gridx++;
         gbc.insets = UIConstants.FIELD_INSETS;
         gbc.anchor = GridBagConstraints.BASELINE_LEADING;
 
-        loaderTypeButtonGroup.add(loaderTypeNoneRadioButton);
         loaderTypeButtonGroup.add(loaderTypeFabricRadioButton);
-        loaderTypeButtonGroup.add(loaderTypeLegacyFabricRadioButton);
-        loaderTypeButtonGroup.add(loaderTypeQuiltRadioButton);
 
         JPanel loaderTypePanel = new JPanel(new FlowLayout());
-        loaderTypePanel.add(loaderTypeNoneRadioButton);
+        loaderTypePanel.add(loaderTypeFabricRadioButton);
 
-        if (ConfigManager.getConfigItem("loaders.fabric.enabled", true) == true) {
-            loaderTypePanel.add(loaderTypeFabricRadioButton);
-        }
-
-        if (ConfigManager.getConfigItem("loaders.legacyfabric.enabled", true) == true) {
-            loaderTypePanel.add(loaderTypeLegacyFabricRadioButton);
-        }
-
-        if (ConfigManager.getConfigItem("loaders.quilt.enabled", false) == true) {
-            loaderTypePanel.add(loaderTypeQuiltRadioButton);
-        }
-
-        loaderTypeNoneRadioButton.addActionListener(e -> {
-            selectedLoaderTypeChanged(null);
-        });
-        loaderTypeFabricRadioButton.addActionListener(e -> {
-            selectedLoaderTypeChanged(LoaderType.FABRIC);
-        });
-        loaderTypeLegacyFabricRadioButton.addActionListener(e -> {
-            selectedLoaderTypeChanged(LoaderType.LEGACY_FABRIC);
-        });
-        loaderTypeQuiltRadioButton.addActionListener(e -> {
-            selectedLoaderTypeChanged(LoaderType.QUILT);
-        });
-
-        loaderTypeNoneRadioButton.setSelected(true);
+        loaderTypeFabricRadioButton.addActionListener(e -> selectedLoaderTypeChanged(LoaderType.FABRIC));
+        loaderTypeFabricRadioButton.setSelected(true);
+        selectedLoaderTypeChanged(LoaderType.FABRIC);
 
         mainPanel.add(loaderTypePanel, gbc);
 
@@ -461,13 +370,6 @@ public final class VanillaPacksTab extends JPanel implements Tab {
             loaderTypeFabricRadioButton.setVisible(
                     !ConfigManager.getConfigItem("loaders.fabric.disabledMinecraftVersions", new ArrayList<String>())
                             .contains(newSelectedMinecraftVersion));
-            loaderTypeLegacyFabricRadioButton.setVisible(
-                    !ConfigManager
-                            .getConfigItem("loaders.legacyfabric.disabledMinecraftVersions", new ArrayList<String>())
-                            .contains(newSelectedMinecraftVersion));
-            loaderTypeQuiltRadioButton.setVisible(
-                    !ConfigManager.getConfigItem("loaders.quilt.disabledMinecraftVersions", new ArrayList<String>())
-                            .contains(newSelectedMinecraftVersion));
 
             // refresh the loader versions if we have one selected
             LoaderType selectedLoaderType = getSelectedLoader();
@@ -481,15 +383,6 @@ public final class VanillaPacksTab extends JPanel implements Tab {
         if (loaderTypeFabricRadioButton.isSelected()) {
             return LoaderType.FABRIC;
         }
-
-        if (loaderTypeLegacyFabricRadioButton.isSelected()) {
-            return LoaderType.LEGACY_FABRIC;
-        }
-
-        if (loaderTypeQuiltRadioButton.isSelected()) {
-            return LoaderType.QUILT;
-        }
-
         return null;
     }
 
@@ -532,14 +425,6 @@ public final class VanillaPacksTab extends JPanel implements Tab {
         // update checkboxes so not all of them can be unchecked
         minecraftVersionReleasesFilterCheckbox.setEnabled(
                 !(minecraftVersionReleasesFilterCheckbox.isSelected() && minecraftVersionTypeFilters.size() == 1));
-        minecraftVersionExperimentsFilterCheckbox.setEnabled(
-                !(minecraftVersionExperimentsFilterCheckbox.isSelected() && minecraftVersionTypeFilters.size() == 1));
-        minecraftVersionSnapshotsFilterCheckbox.setEnabled(
-                !(minecraftVersionSnapshotsFilterCheckbox.isSelected() && minecraftVersionTypeFilters.size() == 1));
-        minecraftVersionBetasFilterCheckbox.setEnabled(
-                !(minecraftVersionBetasFilterCheckbox.isSelected() && minecraftVersionTypeFilters.size() == 1));
-        minecraftVersionAlphasFilterCheckbox.setEnabled(
-                !(minecraftVersionAlphasFilterCheckbox.isSelected() && minecraftVersionTypeFilters.size() == 1));
     }
 
     private void selectedLoaderTypeChanged(LoaderType selectedLoader) {
@@ -563,10 +448,7 @@ public final class VanillaPacksTab extends JPanel implements Tab {
 
         loaderVersionsDropDown.addItem(new ComboItem<LoaderVersion>(null, GetText.tr("Getting Loader Versions")));
 
-        loaderTypeNoneRadioButton.setEnabled(false);
         loaderTypeFabricRadioButton.setEnabled(false);
-        loaderTypeLegacyFabricRadioButton.setEnabled(false);
-        loaderTypeQuiltRadioButton.setEnabled(false);
         loaderVersionsDropDown.setEnabled(false);
         createInstanceButton.setEnabled(false);
 
@@ -584,10 +466,7 @@ public final class VanillaPacksTab extends JPanel implements Tab {
             if (loaderVersions.size() == 0) {
                 loaderVersionsDropDown.removeAllItems();
                 loaderVersionsDropDown.addItem(new ComboItem<LoaderVersion>(null, GetText.tr("No Versions Found")));
-                loaderTypeNoneRadioButton.setEnabled(true);
                 loaderTypeFabricRadioButton.setEnabled(true);
-                loaderTypeLegacyFabricRadioButton.setEnabled(true);
-                loaderTypeQuiltRadioButton.setEnabled(true);
                 createInstanceButton.setEnabled(true);
                 return;
             }
@@ -613,10 +492,7 @@ public final class VanillaPacksTab extends JPanel implements Tab {
 
             loaderVersionsDropDown.setPreferredSize(new Dimension(loaderVersionLength, 23));
 
-            loaderTypeNoneRadioButton.setEnabled(true);
             loaderTypeFabricRadioButton.setEnabled(true);
-            loaderTypeLegacyFabricRadioButton.setEnabled(true);
-            loaderTypeQuiltRadioButton.setEnabled(true);
             loaderVersionsDropDown.setEnabled(true);
             createInstanceButton.setEnabled(true);
 
@@ -661,7 +537,6 @@ public final class VanillaPacksTab extends JPanel implements Tab {
                 nameFieldDirty = false;
                 descriptionFieldDirty = false;
 
-                loaderTypeNoneRadioButton.setSelected(true);
                 selectedLoaderTypeChanged(null);
 
                 minecraftVersionTable.setRowSelectionInterval(0, 0);
@@ -673,11 +548,11 @@ public final class VanillaPacksTab extends JPanel implements Tab {
 
     @Override
     public String getTitle() {
-        return GetText.tr("Vanilla Packs");
+        return GetText.tr("Create Instance");
     }
 
     @Override
     public String getAnalyticsScreenViewName() {
-        return "Vanilla Packs";
+        return "Create Instance";
     }
 }
