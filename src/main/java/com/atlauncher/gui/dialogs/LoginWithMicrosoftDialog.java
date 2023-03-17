@@ -20,8 +20,6 @@ package com.atlauncher.gui.dialogs;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -57,12 +55,11 @@ import com.atlauncher.utils.OS;
 import net.freeutils.httpserver.HTTPServer;
 import net.freeutils.httpserver.HTTPServer.VirtualHost;
 
-@SuppressWarnings("serial")
 public final class LoginWithMicrosoftDialog extends JDialog {
     private static final HTTPServer server = new HTTPServer(Constants.MICROSOFT_LOGIN_REDIRECT_PORT);
     private static final VirtualHost host = server.getVirtualHost(null);
 
-    private MicrosoftAccount account = null;
+    private final MicrosoftAccount account;
 
     public LoginWithMicrosoftDialog() {
         this(null);
@@ -86,12 +83,9 @@ public final class LoginWithMicrosoftDialog extends JDialog {
         linkPanel.add(linkTextField, BorderLayout.SOUTH);
 
         JButton linkCopyButton = new JButton("Copy");
-        linkCopyButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                linkTextField.selectAll();
-                OS.copyToClipboard(Constants.MICROSOFT_LOGIN_URL);
-            }
+        linkCopyButton.addActionListener(e -> {
+            linkTextField.selectAll();
+            OS.copyToClipboard(Constants.MICROSOFT_LOGIN_URL);
         });
         linkPanel.add(linkCopyButton);
 
@@ -130,6 +124,7 @@ public final class LoginWithMicrosoftDialog extends JDialog {
 
     private void startServer() throws IOException {
         host.addContext("/", (req, res) -> {
+            req.getHeaders().add("Access-Control-Allow-Origin", "*");
             if (req.getParams().containsKey("error")) {
                 res.getHeaders().add("Content-Type", "text/plain");
                 res.send(500, GetText.tr("Error logging in. Check console for more information"));
@@ -168,7 +163,7 @@ public final class LoginWithMicrosoftDialog extends JDialog {
     }
 
     private void addAccount(OauthTokenResponse oauthTokenResponse, XboxLiveAuthResponse xstsAuthResponse,
-            LoginResponse loginResponse, Profile profile) throws Exception {
+            LoginResponse loginResponse, Profile profile) {
         if (account != null || AccountManager.isAccountByName(loginResponse.username)) {
             MicrosoftAccount account = (MicrosoftAccount) AccountManager.getAccountByName(loginResponse.username);
 
@@ -177,7 +172,7 @@ public final class LoginWithMicrosoftDialog extends JDialog {
             }
 
             // if forced to relogin, then make sure they logged into correct account
-            if (account != null && this.account != null && !account.username.equals(this.account.username)) {
+            if (this.account != null && !account.username.equals(this.account.username)) {
                 DialogManager.okDialog().setTitle(GetText.tr("Incorrect account"))
                         .setContent(
                                 GetText.tr("Logged into incorrect account. Please login again on the Accounts tab."))
@@ -265,7 +260,7 @@ public final class LoginWithMicrosoftDialog extends JDialog {
             throw new Exception("Account does not own Minecraft");
         }
 
-        Profile profile = null;
+        Profile profile;
         try {
             profile = MicrosoftAuthAPI.getMcProfile(loginResponse.accessToken);
         } catch (DownloadException e) {
