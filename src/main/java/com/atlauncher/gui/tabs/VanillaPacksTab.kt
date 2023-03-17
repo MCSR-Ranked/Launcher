@@ -57,7 +57,9 @@ class VanillaPacksTab : JPanel(BorderLayout()), Tab, RelocalizationListener {
     private val loaderVersionsDropDown = JComboBox<ComboItem<LoaderVersion?>>()
 
     private fun getCreateInstanceText() = GetText.tr("Create Instance")
-    private val createInstanceButton = JButton(getCreateInstanceText())
+    private val createInstanceButton = JButton(getCreateInstanceText()).apply {
+        font = Font(font.name, Font.BOLD, font.size + 4)
+    }
     private val viewModel: IVanillaPacksViewModel = VanillaPacksViewModel()
     private val scope = CoroutineScope(Dispatchers.Main)
 
