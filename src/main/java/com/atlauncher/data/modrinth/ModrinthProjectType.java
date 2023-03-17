@@ -21,14 +21,5 @@ import com.google.gson.annotations.SerializedName;
 
 public enum ModrinthProjectType {
     @SerializedName("mod")
-    MOD,
-
-    @SerializedName("modpack")
-    MODPACK,
-
-    @SerializedName("resourcepack")
-    RESOURCEPACK,
-
-    @SerializedName("shader")
-    SHADER,
+    MOD
 }

@@ -35,6 +35,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,6 +54,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Stack;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1138,11 +1143,7 @@ public class Instance extends MinecraftVersion {
         ModrinthFile fileToDownload = Optional.ofNullable(file).orElse(version.getPrimaryFile());
 
         Path downloadLocation = FileSystem.DOWNLOADS.resolve(fileToDownload.filename);
-        Path finalLocation = mod.projectType == ModrinthProjectType.MOD
-                ? this.getRoot().resolve("mods").resolve(fileToDownload.filename)
-                : (mod.projectType == ModrinthProjectType.SHADER
-                        ? this.getRoot().resolve("shaderpacks").resolve(fileToDownload.filename)
-                        : this.getRoot().resolve("resourcepacks").resolve(fileToDownload.filename));
+        Path finalLocation = this.getRoot().resolve("mods").resolve(fileToDownload.filename);
         com.atlauncher.network.Download download = com.atlauncher.network.Download.build().setUrl(fileToDownload.url)
                 .downloadTo(downloadLocation).copyTo(finalLocation)
                 .withHttpClient(Network.createProgressClient(dialog));
@@ -1191,11 +1192,8 @@ public class Instance extends MinecraftVersion {
                         || !installedMod.modrinthProject.id.equalsIgnoreCase(mod.id))
                 .collect(Collectors.toList());
 
-        Type modType = mod.projectType == ModrinthProjectType.MOD ? Type.mods
-                : (mod.projectType == ModrinthProjectType.SHADER ? Type.shaderpack : Type.resourcepack);
-
         // add this mod
-        this.launcher.mods.add(new DisableableMod(mod.title, version.name, true, fileToDownload.filename, modType,
+        this.launcher.mods.add(new DisableableMod(mod.title, version.name, true, fileToDownload.filename, Type.mods,
                 null, mod.description, false, true, true, false, mod, version));
 
         this.save();
@@ -1205,11 +1203,7 @@ public class Instance extends MinecraftVersion {
     }
 
     public void addFileFromModCheck(ModCheckProject modCheckProject, ProgressDialog<?> dialog) {
-        Path downloadLocation = FileSystem.DOWNLOADS.resolve(modCheckProject.getModResource().getFileName());
         Path finalLocation = this.getRoot().resolve("mods").resolve(modCheckProject.getModResource().getFileName());
-        com.atlauncher.network.Download download = com.atlauncher.network.Download.build().setUrl(modCheckProject.getModResource().getDownloadUrl())
-            .downloadTo(downloadLocation).copyTo(finalLocation)
-            .withHttpClient(Network.createProgressClient(dialog));
 
         if (Files.exists(finalLocation)) {
             FileUtils.delete(finalLocation);
@@ -1224,18 +1218,24 @@ public class Instance extends MinecraftVersion {
         // delete mod files that are the same mod id
         sameMods.forEach(disableableMod -> Utils.delete(disableableMod.getFile(this)));
 
-        if (download.needToDownload()) {
-            try {
-                download.downloadFile();
-            } catch (IOException e) {
-                LogManager.logStackTrace(e);
-                DialogManager.okDialog().setType(DialogManager.ERROR).setTitle("Failed to download")
-                    .setContent("Failed to download " + modCheckProject.getName() + ". Please try again later.")
-                    .show();
-                return;
+        try {
+            //noinspection ResultOfMethodCallIgnored
+            finalLocation.getParent().toFile().mkdirs();
+            URL url = new URL(modCheckProject.getModResource().getDownloadUrl());
+
+            URLConnection con = url.openConnection();
+            con.setRequestProperty("User-Agent", "ModCheck");
+
+            ReadableByteChannel rbc = Channels.newChannel(con.getInputStream());
+            try (FileOutputStream fos = new FileOutputStream(finalLocation.toFile())) {
+                fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
             }
-        } else {
-            download.copy();
+        } catch (IOException e) {
+            LogManager.logStackTrace(e);
+            DialogManager.okDialog().setType(DialogManager.ERROR).setTitle("Failed to download")
+                .setContent("Failed to download " + modCheckProject.getName() + ". Please try again later.")
+                .show();
+            return;
         }
 
         // remove any mods that are from the same mod from the master mod list

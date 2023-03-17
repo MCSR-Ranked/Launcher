@@ -90,20 +90,6 @@ public class ModrinthApi {
         return null;
     }
 
-    public static ModrinthSearchResult searchResourcePacks(List<String> gameVersions, String query, int page,
-            String sort, String category) {
-        List<String> categories = category == null ? null : Arrays.asList(category);
-
-        return searchModrinth(gameVersions, query, page, sort, categories, ModrinthProjectType.RESOURCEPACK);
-    }
-
-    public static ModrinthSearchResult searchShaders(List<String> gameVersions, String query, int page,
-            String sort, String category) {
-        List<String> categories = category == null ? null : Arrays.asList(category);
-
-        return searchModrinth(gameVersions, query, page, sort, categories, ModrinthProjectType.SHADER);
-    }
-
     public static ModrinthSearchResult searchModsForForge(List<String> gameVersions, String query, int page,
             String sort, String category) {
         List<String> categories = category == null ? Arrays.asList("forge") : Arrays.asList(category, "forge");
@@ -133,14 +119,6 @@ public class ModrinthApi {
                 : Arrays.asList(category, "quilt", "fabric");
 
         return searchModrinth(gameVersions, query, page, sort, categories, ModrinthProjectType.MOD);
-    }
-
-    public static ModrinthSearchResult searchModPacks(String minecraftVersion, String query, int page, String sort,
-            String category) {
-        List<String> categories = category == null ? null : Arrays.asList(category);
-
-        return searchModrinth(minecraftVersion == null ? null : Arrays.asList(minecraftVersion), query, page, sort,
-                categories, ModrinthProjectType.MODPACK);
     }
 
     public static ModrinthProject getProject(String projectId) {
@@ -204,31 +182,10 @@ public class ModrinthApi {
                 .cached(new CacheControl.Builder().maxStale(1, TimeUnit.HOURS).build()).asType(type);
     }
 
-    public static List<ModrinthCategory> getCategoriesForModpacks() {
-        List<ModrinthCategory> categories = getCategories();
-
-        return categories.stream().filter(c -> c.projectType == ModrinthProjectType.MODPACK)
-                .sorted(Comparator.comparing(c -> c.name)).collect(Collectors.toList());
-    }
-
     public static List<ModrinthCategory> getCategoriesForMods() {
         List<ModrinthCategory> categories = getCategories();
 
         return categories.stream().filter(c -> c.projectType == ModrinthProjectType.MOD)
-                .sorted(Comparator.comparing(c -> c.name)).collect(Collectors.toList());
-    }
-
-    public static List<ModrinthCategory> getCategoriesForShaders() {
-        List<ModrinthCategory> categories = getCategories();
-
-        return categories.stream().filter(c -> c.projectType == ModrinthProjectType.SHADER)
-                .sorted(Comparator.comparing(c -> c.name)).collect(Collectors.toList());
-    }
-
-    public static List<ModrinthCategory> getCategoriesForResourcePacks() {
-        List<ModrinthCategory> categories = getCategories();
-
-        return categories.stream().filter(c -> c.projectType == ModrinthProjectType.RESOURCEPACK)
                 .sorted(Comparator.comparing(c -> c.name)).collect(Collectors.toList());
     }
 
