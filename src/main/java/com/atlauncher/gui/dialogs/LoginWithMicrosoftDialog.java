@@ -94,7 +94,7 @@ public final class LoginWithMicrosoftDialog extends JDialog {
         setVisible(false);
         dispose();
 
-        new Thread(() -> {
+        Thread thread = new Thread(() -> {
             try {
                 JsonObject resultCode = MicrosoftAuthAPI.getDeviceAuthCode();
                 loadingPanel.updateText("Click to 'Copy code and Login' button and then paste code.");
@@ -114,6 +114,12 @@ public final class LoginWithMicrosoftDialog extends JDialog {
                             LogManager.warn("Authentication in progress...");
                         } else {
                             LogManager.error("Failed to Authentication Microsoft Account");
+
+                            DialogManager.okDialog()
+                                .setType(DialogManager.ERROR)
+                                .setTitle(GetText.tr("Error!"))
+                                .setContent(GetText.tr("Failed to Authentication Microsoft Account"))
+                                .show();
                             return;
                         }
                     } else {
@@ -122,17 +128,24 @@ public final class LoginWithMicrosoftDialog extends JDialog {
                         acquireXBLToken(oauthTokenResponse);
                         close();
 
-                        DialogManager.okCancelDialog().setTitle(GetText.tr("Done with Microsoft Account Authentication!"));
+                        DialogManager.okDialog()
+                            .setTitle(GetText.tr("Done!"))
+                            .setContent(GetText.tr("Done with Microsoft Account Authentication!"))
+                            .show();
                         break;
                     }
                 }
+            } catch (InterruptedException ignored) {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }).start();
+        });
+        thread.start();
 
         this.setLocationRelativeTo(App.launcher.getParent());
         this.setVisible(true);
+
+        thread.interrupt();
     }
 
     private void close() {
@@ -166,12 +179,6 @@ public final class LoginWithMicrosoftDialog extends JDialog {
 
             AccountManager.addAccount(account);
         }
-    }
-
-    private void acquireAccessToken(String authcode) throws Exception {
-        OauthTokenResponse oauthTokenResponse = MicrosoftAuthAPI.tradeCodeForAccessToken(authcode);
-
-        acquireXBLToken(oauthTokenResponse);
     }
 
     private void acquireXBLToken(OauthTokenResponse oauthTokenResponse) throws Exception {
