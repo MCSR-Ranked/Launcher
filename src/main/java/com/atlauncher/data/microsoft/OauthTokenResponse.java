@@ -39,9 +39,6 @@ public class OauthTokenResponse {
     @SerializedName("refresh_token")
     public String refreshToken;
 
-    @SerializedName("user_id")
-    public String userId;
-
     public String foci;
 
 }

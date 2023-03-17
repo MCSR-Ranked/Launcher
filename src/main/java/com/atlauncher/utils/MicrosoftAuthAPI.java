@@ -32,6 +32,7 @@ import com.atlauncher.data.microsoft.OauthTokenResponse;
 import com.atlauncher.data.microsoft.Profile;
 import com.atlauncher.data.microsoft.XboxLiveAuthResponse;
 import com.atlauncher.network.Download;
+import com.google.gson.JsonObject;
 
 import okhttp3.FormBody;
 import okhttp3.MediaType;
@@ -41,6 +42,24 @@ import okhttp3.RequestBody;
  * Various utility methods for interacting with the Microsoft Auth API.
  */
 public class MicrosoftAuthAPI {
+
+    public static JsonObject getDeviceAuthCode() {
+        RequestBody data = new FormBody.Builder().add("client_id", Constants.MICROSOFT_LOGIN_CLIENT_ID)
+            .add("scope", String.join(" ", Constants.MICROSOFT_LOGIN_SCOPES)).build();
+
+        return Download.build().setUrl(Constants.MICROSOFT_DEVICE_CODE_URL)
+            .header("Content-Type", "application/x-www-form-urlencoded").post(data).asClass(JsonObject.class, Gsons.DEFAULT);
+    }
+
+    public static OauthTokenResponse getDeviceAuthToken(String deviceCode) {
+        RequestBody data = new FormBody.Builder().add("client_id", Constants.MICROSOFT_LOGIN_CLIENT_ID)
+            .add("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
+            .add("device_code", deviceCode).build();
+
+        return Download.build().setUrl(Constants.MICROSOFT_DEVICE_TOKEN_URL)
+            .header("Content-Type", "application/x-www-form-urlencoded").post(data).asClass(OauthTokenResponse.class, Gsons.DEFAULT);
+    }
+
     public static OauthTokenResponse tradeCodeForAccessToken(String code) {
         RequestBody data = new FormBody.Builder().add("client_id", Constants.MICROSOFT_LOGIN_CLIENT_ID)
                 .add("code", code).add("grant_type", "authorization_code")

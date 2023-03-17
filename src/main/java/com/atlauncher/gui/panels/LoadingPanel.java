@@ -30,6 +30,8 @@ import com.atlauncher.utils.Utils;
 
 @SuppressWarnings("serial")
 public class LoadingPanel extends JPanel {
+    private final JLabel label;
+
     public LoadingPanel() {
         this(GetText.tr("Loading..."));
     }
@@ -45,11 +47,15 @@ public class LoadingPanel extends JPanel {
         iconLabel.setIcon(imageIcon);
         imageIcon.setImageObserver(iconLabel);
 
-        JLabel label = new JLabel(text);
+        label = new JLabel(text);
         label.setAlignmentX(Component.CENTER_ALIGNMENT);
         label.setAlignmentY(Component.CENTER_ALIGNMENT);
 
         add(iconLabel);
         add(label);
+    }
+
+    public void updateText(String text) {
+        label.setText(text);
     }
 }

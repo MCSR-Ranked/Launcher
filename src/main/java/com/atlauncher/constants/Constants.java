@@ -125,6 +125,9 @@ public class Constants {
             + "&response_type=code"
             + "&scope=" + String.join("%20", MICROSOFT_LOGIN_SCOPES)
             + "&redirect_uri=" + MICROSOFT_LOGIN_REDIRECT_URL_ENCODED;
+
+    public static final String MICROSOFT_DEVICE_CODE_URL = "https://login.microsoftonline.com/consumers/oauth2/v2.0/devicecode";
+    public static final String MICROSOFT_DEVICE_TOKEN_URL = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
     public static final String MICROSOFT_AUTH_TOKEN_URL = "https://login.live.com/oauth20_token.srf";
     public static final String MICROSOFT_XBL_AUTH_TOKEN_URL = "https://user.auth.xboxlive.com/user/authenticate";
     public static final String MICROSOFT_XSTS_AUTH_TOKEN_URL = "https://xsts.auth.xboxlive.com/xsts/authorize";
