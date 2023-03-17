@@ -128,9 +128,9 @@ jobs:
           prerelease: false
           draft: false
           files: |
-            ./ATLauncher/ATLauncher-${{ needs.build.outputs.clean-version }}.exe
-            ./ATLauncher/ATLauncher-${{ needs.build.outputs.clean-version }}.zip
-            ./ATLauncher/ATLauncher-${{ needs.build.outputs.clean-version }}.jar
+            ./MCSRRankedLauncher/MCSRRankedLauncher-${{ needs.build.outputs.clean-version }}.exe
+            ./MCSRRankedLauncher/MCSRRankedLauncher-${{ needs.build.outputs.clean-version }}.zip
+            ./MCSRRankedLauncher/MCSRRankedLauncher-${{ needs.build.outputs.clean-version }}.jar
 
       - name: Update version
         run: |
@@ -139,7 +139,7 @@ jobs:
           # Changelog
 
           This changelog only contains the changes that are unreleased. For changes for individual releases, please visit the
-          [releases](https://github.com/ATLauncher/ATLauncher/releases) page on GitHub.
+          [releases](https://github.com/RedLime/MCSR-Ranked-Launcher/releases) page on GitHub.
 
           ## $NEW_VERSION
 
