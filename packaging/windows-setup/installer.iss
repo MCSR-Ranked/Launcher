@@ -43,7 +43,7 @@ Source: "{tmp}\{#MyAppName}.exe"; DestDir: "{app}"; Flags: external ignoreversio
 Source: "{tmp}\jre.zip"; DestDir: "{tmp}"; Flags: external deleteafterinstall; Components: java
 
 [Components]
-Name: "mcsrrankedlauncher"; Description: "MCSR Ranked Launcher"; ExtraDiskSpaceRequired: 25000000; Types: full compact custom; Flags: fixed
+Name: "mcsrrankedlauncher"; Description: "MCSR Ranked Launcher"; ExtraDiskSpaceRequired: 30720000; Types: full compact custom; Flags: fixed
 Name: "java"; Description: "Install Java"; ExtraDiskSpaceRequired: 129016602; Types: full
 
 [Languages]
