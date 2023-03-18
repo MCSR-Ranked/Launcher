@@ -1,12 +1,13 @@
-#define MyAppName "ATLauncher"
-#define MyAppURL "https://atlauncher.com"
-#define MyAppVersion "1.1.0.0"
+#define MyAppName "MCSRRankedLauncher"
+#define MyAppDisplayName "MCSR Ranked Launcher"
+#define MyAppURL "https://mcsrranked.com/"
+#define MyAppVersion "1.0"
 
 [Setup]
-AppId={{2F5FDA11-45A5-4CC3-8E51-5E11E2481697}
-AppName={#MyAppName}
-AppVerName={#MyAppName}
-AppPublisher={#MyAppName}
+AppId={{2F5FDA11-45A5-4CC3-8E51-5E11E2481699}
+AppName={#MyAppDisplayName}
+AppVerName={#MyAppDisplayName}
+AppPublisher={#MyAppDisplayName}
 AppVersion={#MyAppVersion}
 VersionInfoVersion={#MyAppVersion}
 AppPublisherURL={#MyAppURL}
@@ -31,7 +32,7 @@ ChangesAssociations=yes
 
 [Run]
 Filename: {tmp}\7za.exe; Parameters: "x ""{tmp}\jre.zip"" -o""{app}\"" * -r -aoa"; Flags: runhidden runascurrentuser; Components: java
-Filename: {app}\{#MyAppName}.exe; Description: {cm:LaunchProgram,{#MyAppName}}; Flags: nowait postinstall skipifsilent
+Filename: {app}\{#MyAppName}.exe; Description: {cm:LaunchProgram,{#MyAppDisplayName}}; Flags: nowait postinstall skipifsilent
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
@@ -42,16 +43,16 @@ Source: "{tmp}\{#MyAppName}.exe"; DestDir: "{app}"; Flags: external ignoreversio
 Source: "{tmp}\jre.zip"; DestDir: "{tmp}"; Flags: external deleteafterinstall; Components: java
 
 [Components]
-Name: "atlauncher"; Description: "ATLauncher"; ExtraDiskSpaceRequired: 20000000; Types: full compact custom; Flags: fixed
+Name: "mcsrrankedlauncher"; Description: "MCSR Ranked Launcher"; ExtraDiskSpaceRequired: 25000000; Types: full compact custom; Flags: fixed
 Name: "java"; Description: "Install Java"; ExtraDiskSpaceRequired: 129016602; Types: full
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppName}.exe"
-Name: "{userdesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppName}.exe"; Tasks: desktopicon
-Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
+Name: "{group}\{#MyAppDisplayName}"; Filename: "{app}\{#MyAppName}.exe"
+Name: "{userdesktop}\{#MyAppDisplayName}"; Filename: "{app}\{#MyAppName}.exe"; Tasks: desktopicon
+Name: "{group}\{cm:UninstallProgram,{#MyAppDisplayName}}"; Filename: "{uninstallexe}"
 
 [InstallDelete]
 Type: filesandordirs; Name: "{app}\jre"; Components: java
@@ -62,6 +63,8 @@ Type: filesandordirs; Name: "{app}\jre"; Components: java
 [Code]
 var
   DownloadPage: TDownloadWizardPage;
+var
+  WinHttpReq: Variant;
 
 procedure InitializeWizard;
 begin
@@ -85,27 +88,40 @@ begin
   if CurPageID = wpReady then begin
     DownloadPage.Clear;
 
-    DownloadPage.Add('https://download.nodecdn.net/containers/atl/ATLauncher.exe', '{#MyAppName}.exe', '');
-
-    if WizardIsComponentSelected('java') then begin
-      if IsWin64 then begin
-        DownloadPage.Add('https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.3%2B7/OpenJDK17U-jre_x64_windows_hotspot_17.0.3_7.zip', 'jre.zip', 'd77745fdb57b51116f7b8fabd7d251067edbe3c94ea18fa224f64d9584b41a97');
-      end else begin
-        DownloadPage.Add('https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.3%2B7/OpenJDK17U-jre_x86-32_windows_hotspot_17.0.3_7.zip', 'jre.zip', 'e29e311e4200a32438ef65637a75eb8eb09f73a37cef3877f08d02b6355cd221');
-      end;
-    end;
-
-    DownloadPage.Show;
-    try
-      try
-        DownloadPage.Download;
-        Result := True;
-      except
-          SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
+    begin
+      WinHttpReq := CreateOleObject('WinHttp.WinHttpRequest.5.1');
+      WinHttpReq.Open('GET', 'https://mcsrranked.com/launcher/latest', False);
+      WinHttpReq.Send('');
+      if WinHttpReq.Status <> 200 then
+      begin
+        SuppressibleMsgBox(AddPeriod('HTTP Error: ' + IntToStr(WinHttpReq.Status) + ' ' + WinHttpReq.StatusText), mbCriticalError, MB_OK, IDOK);
         Result := False;
+      end
+        else
+      begin
+        DownloadPage.Add(WinHttpReq.ResponseText, '{#MyAppName}.exe', '');
+
+        if WizardIsComponentSelected('java') then begin
+          if IsWin64 then begin
+            DownloadPage.Add('https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.3%2B7/OpenJDK17U-jre_x64_windows_hotspot_17.0.3_7.zip', 'jre.zip', 'd77745fdb57b51116f7b8fabd7d251067edbe3c94ea18fa224f64d9584b41a97');
+          end else begin
+            DownloadPage.Add('https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.3%2B7/OpenJDK17U-jre_x86-32_windows_hotspot_17.0.3_7.zip', 'jre.zip', 'e29e311e4200a32438ef65637a75eb8eb09f73a37cef3877f08d02b6355cd221');
+          end;
+        end;
+
+        DownloadPage.Show;
+        try
+          try
+            DownloadPage.Download;
+            Result := True;
+          except
+              SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
+            Result := False;
+          end;
+        finally
+          DownloadPage.Hide;
+        end;
       end;
-    finally
-      DownloadPage.Hide;
     end;
   end else
     Result := True;
