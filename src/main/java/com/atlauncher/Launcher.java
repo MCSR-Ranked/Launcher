@@ -54,14 +54,18 @@ import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.MinecraftManager;
 import com.atlauncher.managers.NewsManager;
 import com.atlauncher.managers.PerformanceManager;
+import com.atlauncher.network.Download;
 import com.atlauncher.network.DownloadPool;
 import com.atlauncher.utils.Java;
 import com.atlauncher.utils.OS;
 import com.google.gson.JsonIOException;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class Launcher {
     // Holding update data
@@ -95,7 +99,7 @@ public class Launcher {
 
         AccountManager.loadAccounts(); // Load the saved Accounts
 
-       // PackManager.loadPacks(); // Load the Packs available in the Launcher
+        //PackManager.loadPacks(); // Load the Packs available in the Launcher
 
         //PackManager.loadUsers(); // Load the Testers and Allowed Players for the packs
 
@@ -153,7 +157,7 @@ public class Launcher {
                     GetText.tr("Downloading Launcher Update"));
             progressDialog.addThread(new Thread(() -> {
                 com.atlauncher.network.Download download = com.atlauncher.network.Download.build()
-                        .setUrl(String.format("%s/%s.%s", Constants.DOWNLOAD_SERVER, Constants.LAUNCHER_NAME, toget))
+                        .setUrl(getLatestLauncherURL().replace(".exe", "." + toget))
                         .withHttpClient(Network.createProgressClient(progressDialog)).downloadTo(newFile.toPath());
 
                 progressDialog.setTotalBytes(download.getFilesize());
@@ -179,6 +183,22 @@ public class Launcher {
         } catch (IOException e) {
             LogManager.logStackTrace(e);
         }
+    }
+
+    public String getLatestLauncherURL() {
+        Request request = new Request.Builder()
+            .url(Constants.DOWNLOAD_SERVER + "/launcher/latest")
+            .addHeader("User-Agent", Network.USER_AGENT)
+            .get().build();
+
+        try (Response response = Network.CLIENT.newCall(request).execute()) {
+            if (response.isSuccessful() && response.body() != null) {
+                return response.body().string();
+            }
+        } catch (Exception e) {
+            LogManager.logStackTrace("Failed to check username availability", e);
+        }
+        return "";
     }
 
     public void runUpdate(String currentPath, String temporaryUpdatePath) {
@@ -325,17 +345,33 @@ public class Launcher {
 
         LogManager.debug("Checking for launcher update");
         if (launcherHasUpdate()) {
-            int ret = DialogManager.okDialog().setTitle("Launcher Update Available")
-                .setContent(new HTMLBuilder().center().split(80).text(GetText.tr(
-                        "An update to the launcher is available. Please update by visiting {0} to get the latest features and bug fixes.", Constants.LAUNCHER_UPDATE_URL))
-                    .build())
-                .addOption(GetText.tr("Visit Downloads Page")).setType(DialogManager.INFO).show();
+            if (App.noLauncherUpdate) {
+                int ret = DialogManager.okDialog().setTitle("Launcher Update Available")
+                    .setContent(new HTMLBuilder().center().split(80).text(GetText.tr(
+                            "An update to the launcher is available. Please update by visiting<br>{0}<br>to get the latest features and bug fixes.", Constants.LAUNCHER_UPDATE_URL))
+                        .build())
+                    .addOption(GetText.tr("Visit Downloads Page")).setType(DialogManager.INFO).show();
 
-            if (ret == 1) {
-                OS.openWebBrowser(Constants.LAUNCHER_UPDATE_URL);
+                if (ret == 1) {
+                    OS.openWebBrowser(Constants.LAUNCHER_UPDATE_URL);
+                }
+
+                return;
             }
 
-            return;
+            if (!App.wasUpdated) {
+                downloadUpdate(); // Update the Launcher
+            } else {
+                DialogManager.okDialog().setTitle("Update Failed!")
+                    .setContent(new HTMLBuilder().center()
+                        .text(GetText.tr("Update failed. Please click Ok to close "
+                            + "the launcher and open up the downloads page.<br/><br/>Download "
+                            + "the update and replace the old exe/jar file."))
+                        .build())
+                    .setType(DialogManager.ERROR).show();
+                OS.openWebBrowser(Constants.LAUNCHER_UPDATE_URL);
+                System.exit(0);
+            }
         }
         LogManager.debug("Finished checking for launcher update");
         PerformanceManager.end();
