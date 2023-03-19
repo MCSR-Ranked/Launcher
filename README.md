@@ -51,10 +51,6 @@ spewed in the root directory and are instead contained within a gitignored folde
 
 ## Using an IDE
 
-~~This project is mainly setup and developed to use [VSCode](https://code.visualstudio.com/) for development. You're free
-to use any other IDE that you're accustomed to (if any), but by using VSCode, you get the benefit of predefined tasks
-and launch commands as well as a list of extensions recommended for the project.~~ VSCode no longer works well after the upgrade to be part Kotlin. Until fixed, it's recommended to use IntelliJ.
-
 We also provide some base project files for [IntelliJ IDEA](https://www.jetbrains.com/idea/) so that if you use that,
 you should get access to our base project files which contain correct launch tasks for testing the application as well
 as tasks for running the UI/Unit tests.
@@ -146,8 +142,7 @@ Most of them should be self-explanatory, if not please stop by [ATLauncher Disco
 A couple values in the constants file are specific for ATLauncher or MCSR Ranked Launcher and shouldn't be used in any forks. These are the
 Microsoft Login Client ID.
 
-You can apply for a CurseForge Core key through
-[this link](https://forms.monday.com/forms/dce5ccb7afda9a1c21dab1a1aa1d84eb) and a Microsoft Login Client ID through
+You can apply for a Microsoft Login Client ID through
 [this link](https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app).
 
 ## Versioning System
