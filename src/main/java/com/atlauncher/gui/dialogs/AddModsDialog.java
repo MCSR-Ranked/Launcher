@@ -24,6 +24,7 @@ import java.awt.GridBagConstraints;
 import java.awt.Window;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -229,7 +230,9 @@ public final class AddModsDialog extends JDialog {
 
         List<ModCheckProject> searchResult = Lists.newArrayList();
         for (ModCheckProject availableMod : ModCheckManager.getAvailableMods(mcVersion)) {
-            if (availableMod.getName().toLowerCase(Locale.ROOT).contains(str.toLowerCase(Locale.ROOT)))
+            if (availableMod.getName().toLowerCase(Locale.ROOT).contains(str.toLowerCase(Locale.ROOT))
+                && this.instance.getCustomDisableableMods().stream().noneMatch(mod ->
+                    Objects.equals(mod.getName(), availableMod.getName()) && Objects.equals(mod.getVersion(), availableMod.getModResource().getModVersion().getVersionName())))
                 searchResult.add(availableMod);
         }
 
@@ -265,8 +268,11 @@ public final class AddModsDialog extends JDialog {
 
                     ProgressDialog<?> dialog = new ProgressDialog<>(GetText.tr("Installing " + mod.getName()));
                     dialog.addThread(new Thread(() -> {
-                        instance.addFileFromModCheck(mod, dialog);
+                        instance.addFileFromModCheck(mod, true);
                         dialog.close();
+                        DialogManager.okDialog().setTitle(GetText.tr("Done!", mod.getName()))
+                            .setContent(GetText.tr("Successfully downloaded {0}!", mod.getName()))
+                            .setType(DialogManager.INFO).show();
                     }));
                     dialog.start();
                 }), gbc);
