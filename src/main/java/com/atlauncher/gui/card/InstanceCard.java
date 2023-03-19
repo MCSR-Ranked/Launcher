@@ -565,36 +565,6 @@ public class InstanceCard extends CollapsiblePanel implements RelocalizationList
                     });
                     rightClickMenu.add(cloneItem);
 
-                    JMenuItem shareCodeItem = new JMenuItem(GetText.tr("Share Code"));
-                    shareCodeItem.addActionListener(e1 -> {
-                        try {
-                            java.lang.reflect.Type type = new TypeToken<APIResponse<String>>() {
-                            }.getType();
-
-                            APIResponse<String> response = Gsons.DEFAULT.fromJson(
-                                    Utils.sendAPICall("pack/" + instance.getSafePackName() + "/"
-                                            + instance.launcher.version + "/share-code", instance.getShareCodeData()),
-                                    type);
-
-                            if (response.wasError()) {
-                                App.TOASTER.pop(GetText.tr("Error getting share code."));
-                            } else {
-                                StringSelection text = new StringSelection(response.getData());
-                                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                                clipboard.setContents(text, null);
-
-                                App.TOASTER.pop(GetText.tr("Share code copied to clipboard"));
-                                LogManager.info("Share code copied to clipboard");
-                            }
-                        } catch (IOException ex) {
-                            LogManager.logStackTrace("API call failed", ex);
-                        }
-                    });
-                    shareCodeItem.setVisible((instance.getPack() != null && !instance.getPack().system)
-                            && !instance.isExternalPack() && !instance.launcher.vanillaInstance
-                            && instance.launcher.mods.stream().anyMatch(mod -> mod.optional));
-                    rightClickMenu.add(shareCodeItem);
-
                     rightClickMenu.show(image, e.getX(), e.getY());
                 }
             }

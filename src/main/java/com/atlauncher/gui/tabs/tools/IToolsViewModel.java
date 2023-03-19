@@ -77,14 +77,6 @@ public interface IToolsViewModel {
      */
     int hostsLength();
 
-    /**
-     * Run network checker
-     * @param onTaskComplete A task has completed
-     * @param onFail Failed to run
-     * @param onSuccess Completed
-     */
-    void runNetworkChecker(Consumer<Void> onTaskComplete, Consumer<Void> onFail, Consumer<Void> onSuccess);
-
     // SkinUpdaterToolPanel
 
     /**

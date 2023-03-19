@@ -55,8 +55,6 @@ public class Constants {
     // Launcher domains, endpoints, etc
     public static String BASE_LAUNCHER_PROTOCOL = "https://";
     public static String BASE_LAUNCHER_DOMAIN = "mcsrranked.com";
-    public static String API_BASE_URL = BASE_LAUNCHER_PROTOCOL + "api." + BASE_LAUNCHER_DOMAIN + "/v1/launcher/";
-    public static String API_HOST = "api." + BASE_LAUNCHER_DOMAIN;
 
     // CDN domains, endpoints, etc
     public static String BASE_CDN_PROTOCOL = "https://";
@@ -126,8 +124,6 @@ public class Constants {
 
         BASE_LAUNCHER_PROTOCOL = baseLauncherDomain.startsWith("https://") ? "https://" : "http://";
         BASE_LAUNCHER_DOMAIN = host;
-        API_BASE_URL = BASE_LAUNCHER_PROTOCOL + "api." + host + "/v1/launcher/";
-        API_HOST = "api." + host;
     }
 
     public static void setBaseCdnDomain(String baseCdnDomain) {
