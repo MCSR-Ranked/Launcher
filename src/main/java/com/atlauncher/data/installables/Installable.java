@@ -404,7 +404,7 @@ public abstract class Installable {
                     for (ModCheckProject availableMod : modList) {
                         legalModsDialog.setSubProgress(index++ / (modList.size() * 1.0) * 100, "Downloading " + availableMod.getName());
                         if (!availableMod.getName().equalsIgnoreCase("speedrunigt")) {
-                            targetInstance.addFileFromModCheck(availableMod, legalModsDialog);
+                            targetInstance.addFileFromModCheck(availableMod, false);
                         }
                     }
                     legalModsDialog.close();

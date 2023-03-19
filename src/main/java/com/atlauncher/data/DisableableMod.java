@@ -337,7 +337,7 @@ public class DisableableMod implements Serializable {
 
             ProgressDialog<?> dialog = new ProgressDialog<>(GetText.tr("Installing " + newProject.getName()));
             dialog.addThread(new Thread(() -> {
-                instance.addFileFromModCheck(newProject, dialog);
+                instance.addFileFromModCheck(newProject, false);
                 dialog.close();
             }));
             dialog.start();

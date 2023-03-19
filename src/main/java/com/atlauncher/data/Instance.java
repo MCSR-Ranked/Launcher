@@ -138,6 +138,7 @@ import com.atlauncher.utils.ModrinthApi;
 import com.atlauncher.utils.OS;
 import com.atlauncher.utils.Utils;
 import com.atlauncher.utils.ZipNameMapper;
+import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
@@ -153,6 +154,8 @@ public class Instance extends MinecraftVersion {
         DEFAULT_JAVA.component = "java-runtime-gamma";
         DEFAULT_JAVA.majorVersion = 17;
     }
+
+    public static final Set<String> AUTO_ENABLE_MODS = Sets.newHashSet("Sodium", "Lithium", "Fast Reset", "LazyDFU", "Voyager", "Force Port", "LazyStronghold", "antiresourcereload");
 
     public String inheritsFrom;
     public InstanceLauncher launcher;
@@ -1202,7 +1205,7 @@ public class Instance extends MinecraftVersion {
         App.TOASTER.pop(GetText.tr("{0} Installed", mod.title));
     }
 
-    public void addFileFromModCheck(ModCheckProject modCheckProject, ProgressDialog<?> dialog) {
+    public void addFileFromModCheck(ModCheckProject modCheckProject, boolean forceEnable) {
         Path finalLocation = this.getRoot().resolve("mods").resolve(modCheckProject.getModResource().getFileName());
 
         if (Files.exists(finalLocation)) {
@@ -1250,7 +1253,7 @@ public class Instance extends MinecraftVersion {
         DisableableMod disableableMod = new DisableableMod(modCheckProject.getName(), modCheckProject.getModResource().getModVersion().getVersionName(),
             true, modCheckProject.getModResource().getFileName(), modType, null, "", false, true, modCheckProject);
         this.launcher.mods.add(disableableMod);
-        if (sameMods.size() == 0 || sameMods.stream().anyMatch(DisableableMod::isDisabled)) disableableMod.disable(this);
+        if (!forceEnable && ((sameMods.size() == 0 && !AUTO_ENABLE_MODS.contains(disableableMod.getName())) || sameMods.stream().anyMatch(DisableableMod::isDisabled))) disableableMod.disable(this);
 
         this.save();
     }
