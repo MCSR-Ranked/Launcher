@@ -41,6 +41,7 @@ import org.mini2Dx.gettext.GetText;
 
 import com.atlauncher.App;
 import com.atlauncher.builders.HTMLBuilder;
+import com.atlauncher.data.DisableableMod;
 import com.atlauncher.data.Instance;
 import com.atlauncher.data.ModPlatform;
 import com.atlauncher.data.minecraft.loaders.LoaderVersion;
@@ -231,7 +232,7 @@ public final class AddModsDialog extends JDialog {
         List<ModCheckProject> searchResult = Lists.newArrayList();
         for (ModCheckProject availableMod : ModCheckManager.getAvailableMods(mcVersion)) {
             if (availableMod.getName().toLowerCase(Locale.ROOT).contains(str.toLowerCase(Locale.ROOT))
-                && this.instance.getCustomDisableableMods().stream().noneMatch(mod ->
+                && this.instance.getCustomDisableableMods().stream().filter(DisableableMod::isFromModCheck).noneMatch(mod ->
                     Objects.equals(mod.getName(), availableMod.getName()) && Objects.equals(mod.getVersion(), availableMod.getModResource().getModVersion().getVersionName())))
                 searchResult.add(availableMod);
         }
