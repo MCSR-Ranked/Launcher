@@ -124,7 +124,7 @@ public class App {
      * <p/>
      * --skip-setup-dialog
      */
-    public static boolean skipSetupDialog = false;
+    public static boolean skipSetupDialog = true;
 
     /**
      * This allows skipping the system tray integration so that the launcher doesn't
