@@ -12,5 +12,5 @@ This changelog only contains the changes that are unreleased. For changes for in
 ### New Features
 
 ### Fixes
-
+- Fixed an issue that `Add Mod` have wrong filter
 ### Misc

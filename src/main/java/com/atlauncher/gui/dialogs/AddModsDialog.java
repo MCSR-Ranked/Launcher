@@ -232,9 +232,13 @@ public final class AddModsDialog extends JDialog {
         List<ModCheckProject> searchResult = Lists.newArrayList();
         for (ModCheckProject availableMod : ModCheckManager.getAvailableMods(mcVersion)) {
             if (availableMod.getName().toLowerCase(Locale.ROOT).contains(str.toLowerCase(Locale.ROOT))
-                && this.instance.getCustomDisableableMods().stream().filter(DisableableMod::isFromModCheck).noneMatch(mod ->
-                    Objects.equals(mod.getName(), availableMod.getName()) && Objects.equals(mod.getVersion(), availableMod.getModResource().getModVersion().getVersionName())))
-                searchResult.add(availableMod);
+                && this.instance.getCustomDisableableMods().stream().noneMatch(mod -> {
+                    if (Objects.equals(mod.getName(), availableMod.getName())) {
+                        if (!mod.isFromModCheck()) return false;
+                        return !Objects.equals(mod.getVersion(), availableMod.getModResource().getModVersion().getVersionName());
+                    }
+                    return true;
+            })) searchResult.add(availableMod);
         }
 
         if (searchResult.size() == 0) {
