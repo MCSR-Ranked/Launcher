@@ -18,6 +18,7 @@
 package com.atlauncher.gui.dialogs;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ItemEvent;
@@ -50,6 +51,7 @@ import com.atlauncher.App;
 import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.data.DisableableMod;
 import com.atlauncher.data.Instance;
+import com.atlauncher.data.modcheck.ModCheckProject;
 import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthVersion;
 import com.atlauncher.gui.components.ModsJCheckBox;
@@ -202,7 +204,7 @@ public class EditModsDialog extends JDialog {
                 return;
             }
 
-            final ProgressDialog progressDialog = new ProgressDialog(GetText.tr("Copying Mods"), 0,
+            final ProgressDialog<?> progressDialog = new ProgressDialog<>(GetText.tr("Copying Mods"), 0,
                     GetText.tr("Copying Mods"), this);
 
             progressDialog.addThread(new Thread(() -> {
@@ -247,6 +249,7 @@ public class EditModsDialog extends JDialog {
                             }
 
                             if (!copyTo.getParentFile().exists()) {
+                                //noinspection ResultOfMethodCallIgnored
                                 copyTo.getParentFile().mkdirs();
                             }
 
@@ -340,7 +343,7 @@ public class EditModsDialog extends JDialog {
         for (ModsJCheckBox checkBox : enabledMods) {
             checkBox.addItemListener(e -> {
                 if (e.getStateChange() == ItemEvent.SELECTED || e.getStateChange() == ItemEvent.DESELECTED) {
-                    checkBoxesChanged();
+                    checkBoxesChanged(checkBox);
                 }
             });
             enabledModsPanel.add(checkBox);
@@ -348,7 +351,7 @@ public class EditModsDialog extends JDialog {
         for (ModsJCheckBox checkBox : disabledMods) {
             checkBox.addItemListener(e -> {
                 if (e.getStateChange() == ItemEvent.SELECTED || e.getStateChange() == ItemEvent.DESELECTED) {
-                    checkBoxesChanged();
+                    checkBoxesChanged(checkBox);
                 }
             });
             disabledModsPanel.add(checkBox);
@@ -357,7 +360,7 @@ public class EditModsDialog extends JDialog {
         disabledModsPanel.setPreferredSize(new Dimension(0, disabledMods.size() * 20));
     }
 
-    private void checkBoxesChanged() {
+    private void checkBoxesChanged(ModsJCheckBox selectedCheckBox) {
         boolean hasSelectedACurseForgeOrModrinthMod = (enabledMods.stream().anyMatch(AbstractButton::isSelected)
             && enabledMods.stream().filter(AbstractButton::isSelected)
             .anyMatch(cb -> cb.getDisableableMod().isUpdatable()))
@@ -376,8 +379,31 @@ public class EditModsDialog extends JDialog {
 
         selectAllEnabledModsCheckbox
                 .setSelected(enabledMods.size() != 0 && enabledMods.stream().allMatch(AbstractButton::isSelected));
+
+        if (selectedCheckBox != null && selectedCheckBox.getDisableableMod().isFromModCheck()) {
+            checkIncompatibles(selectedCheckBox);
+        } else {
+            for (ModsJCheckBox enabledMod : enabledMods) {
+                checkIncompatibles(enabledMod);
+            }
+        }
+
         selectAllDisabledModsCheckbox
-                .setSelected(disabledMods.size() != 0 && disabledMods.stream().allMatch(AbstractButton::isSelected));
+                .setSelected(disabledMods.size() != 0 && disabledMods.stream().filter(Component::isEnabled).allMatch(AbstractButton::isSelected));
+    }
+
+    private void checkIncompatibles(ModsJCheckBox modsJCheckBox) {
+        if (!modsJCheckBox.getDisableableMod().isFromModCheck()) return;
+
+        boolean isEnabled = modsJCheckBox.isSelected() || enabledMods.contains(modsJCheckBox);
+
+        List<String> incompatibles = modsJCheckBox.getDisableableMod().modCheckProject.getIncompatibleMods();
+        for (ModsJCheckBox disabledMod : disabledMods) {
+            if (incompatibles.contains(disabledMod.getDisableableMod().getName())) {
+                disabledMod.setEnabled(!isEnabled);
+                if (isEnabled) disabledMod.setSelected(false);
+            }
+        }
     }
 
     private void checkForUpdates() {
@@ -385,7 +411,7 @@ public class EditModsDialog extends JDialog {
         mods.addAll(enabledMods);
         mods.addAll(disabledMods);
 
-        ProgressDialog progressDialog = new ProgressDialog(GetText.tr("Checking For Updates"), mods.size(),
+        ProgressDialog<?> progressDialog = new ProgressDialog<>(GetText.tr("Checking For Updates"), mods.size(),
                 GetText.tr("Checking For Updates"), this);
         progressDialog.addThread(new Thread(() -> {
             for (ModsJCheckBox mod : mods) {
@@ -509,7 +535,7 @@ public class EditModsDialog extends JDialog {
                 if (sha1Hashes.size() != 0) {
                     Set<String> keys = sha1Hashes.keySet();
                     Map<String, ModrinthVersion> modrinthVersions = ModrinthApi
-                            .getVersionsFromSha1Hashes(keys.toArray(new String[keys.size()]));
+                            .getVersionsFromSha1Hashes(keys.toArray(new String[0]));
 
                     if (modrinthVersions != null && modrinthVersions.size() != 0) {
                         String[] projectIdsFound = modrinthVersions.values().stream().map(mv -> mv.projectId)
@@ -559,7 +585,7 @@ public class EditModsDialog extends JDialog {
         enabledModsPanel.removeAll();
         disabledModsPanel.removeAll();
         loadMods();
-        checkBoxesChanged();
+        checkBoxesChanged(null);
         enabledModsPanel.repaint();
         disabledModsPanel.repaint();
     }

@@ -17,7 +17,10 @@
  */
 package com.atlauncher.data.modcheck;
 
+import java.util.List;
 import java.util.Objects;
+
+import org.apache.commons.compress.utils.Lists;
 
 import com.atlauncher.data.json.DownloadType;
 import com.atlauncher.data.json.Mod;
@@ -32,11 +35,14 @@ public class ModCheckProject {
     private final boolean available;
     private final String description;
 
+    public List<String> incompatibles;
+
     public ModCheckProject(ModData modData, ModResource modResource) {
         this.name = modData.getName();
         this.description = modData.getDescription();
         this.available = Objects.isNull(modData.getWarningMessage()) || modData.getWarningMessage().isEmpty();
         this.modResource = modResource;
+        this.incompatibles = modData.getIncompatibleMods();
     }
 
     public String getDescription() {
@@ -53,6 +59,16 @@ public class ModCheckProject {
 
     public ModResource getModResource() {
         return modResource;
+    }
+
+    public List<String> getIncompatibleMods() {
+        if (this.incompatibles == null) {
+            ModCheckProject newResource = ModCheckManager.getUpdatedProject(this.getModResource().getModVersion().getVersionName(), this);
+            if (newResource != null) {
+                this.incompatibles = Lists.newArrayList(newResource.getIncompatibleMods().listIterator());
+            }
+        }
+        return this.incompatibles == null ? Lists.newArrayList() : this.incompatibles;
     }
 
     public Mod convertToMod() {
