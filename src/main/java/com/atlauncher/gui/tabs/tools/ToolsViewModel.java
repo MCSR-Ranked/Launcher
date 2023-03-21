@@ -41,7 +41,6 @@ import com.atlauncher.utils.Utils;
  * 15 / 06 / 2022
  */
 public class ToolsViewModel implements IToolsViewModel, SettingsListener, AccountListener {
-    private Consumer<Boolean> onCanRunNetworkCheckerChanged;
     private Consumer<Boolean> onSkinUpdaterEnabledChanged;
 
     public ToolsViewModel() {
@@ -51,7 +50,6 @@ public class ToolsViewModel implements IToolsViewModel, SettingsListener, Accoun
 
     @Override
     public void onSettingsSaved() {
-        onCanRunNetworkCheckerChanged.accept(canRunNetworkChecker());
     }
 
     @Override
@@ -105,14 +103,8 @@ public class ToolsViewModel implements IToolsViewModel, SettingsListener, Accoun
         }
     }
 
-    private boolean canRunNetworkChecker() {
-        return App.settings.enableLogs;
-    }
-
     @Override
     public void onCanRunNetworkCheckerChanged(Consumer<Boolean> onChanged) {
-        onChanged.accept(canRunNetworkChecker());
-        onCanRunNetworkCheckerChanged = onChanged;
     }
 
     private final String[] HOSTS = { "authserver.mojang.com", "session.minecraft.net", "libraries.minecraft.net",
