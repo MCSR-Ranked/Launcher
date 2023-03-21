@@ -21,10 +21,14 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -33,6 +37,7 @@ import org.mini2Dx.gettext.GetText;
 import com.atlauncher.App;
 import com.atlauncher.Gsons;
 import com.atlauncher.builders.HTMLBuilder;
+import com.atlauncher.constants.Constants;
 import com.atlauncher.data.MicrosoftAccount;
 import com.atlauncher.data.microsoft.Entitlements;
 import com.atlauncher.data.microsoft.LoginResponse;
@@ -49,7 +54,12 @@ import com.atlauncher.utils.MicrosoftAuthAPI;
 import com.atlauncher.utils.OS;
 import com.google.gson.JsonObject;
 
+import net.freeutils.httpserver.HTTPServer;
+import net.freeutils.httpserver.HTTPServer.VirtualHost;
+
 public final class LoginWithMicrosoftDialog extends JDialog {
+    private static final HTTPServer server = new HTTPServer(Constants.MICROSOFT_LOGIN_REDIRECT_PORT);
+    private static final VirtualHost host = server.getVirtualHost(null);
 
     private final MicrosoftAccount account;
 
@@ -59,6 +69,8 @@ public final class LoginWithMicrosoftDialog extends JDialog {
 
     public LoginWithMicrosoftDialog(MicrosoftAccount account) {
         super(App.launcher.getParent(), GetText.tr("Login with Microsoft"), ModalityType.DOCUMENT_MODAL);
+
+        final boolean useLocalServer = App.settings.loginByLocalServer;
 
         this.account = account;
         this.setMinimumSize(new Dimension(400, 400));
@@ -71,22 +83,38 @@ public final class LoginWithMicrosoftDialog extends JDialog {
         JPanel bottomPanel = new JPanel(new BorderLayout());
         JPanel linkPanel = new JPanel(new FlowLayout());
 
-        JTextField linkTextField = new JTextField();
-        linkTextField.setPreferredSize(new Dimension(100, 23));
+        JTextField linkTextField = new JTextField(useLocalServer ? "" : Constants.MICROSOFT_LOGIN_URL);
+        linkTextField.setPreferredSize(new Dimension(useLocalServer ? 300 : 100, 23));
         linkPanel.add(linkTextField, BorderLayout.SOUTH);
 
-        JButton linkCopyButton = new JButton("Copy & Login");
         AtomicReference<String> verificationUri = new AtomicReference<>("");
         AtomicReference<String> userCode = new AtomicReference<>("");
-        linkCopyButton.addActionListener(e -> {
-            if (!verificationUri.get().isEmpty() && !userCode.get().isEmpty()) {
-                OS.copyToClipboard(userCode.get());
-                OS.openWebBrowser(verificationUri.get());
-            }
-        });
-        linkPanel.add(linkCopyButton);
-        linkCopyButton.setEnabled(false);
 
+        JButton linkCopyButton = new JButton("Copy" + (useLocalServer ? "" : " & Login"));
+        if (useLocalServer) {
+            linkCopyButton.addActionListener(e -> {
+                linkTextField.selectAll();
+                OS.copyToClipboard(Constants.MICROSOFT_LOGIN_URL);
+            });
+        } else {
+            linkCopyButton.addActionListener(e -> {
+                if (!verificationUri.get().isEmpty() && !userCode.get().isEmpty()) {
+                    OS.copyToClipboard(userCode.get());
+                    OS.openWebBrowser(verificationUri.get());
+                }
+            });
+            linkCopyButton.setEnabled(false);
+        }
+        linkPanel.add(linkCopyButton);
+
+        if (useLocalServer) {
+            JLabel infoLabel = new JLabel("<html>"
+                + GetText.tr("If your browser hasn't opened, please manually open the below link in your browser")
+                + "</html>");
+            infoLabel.setBorder(BorderFactory.createEmptyBorder(0, 32, 0, 32));
+
+            bottomPanel.add(infoLabel, BorderLayout.CENTER);
+        }
         bottomPanel.add(linkPanel, BorderLayout.SOUTH);
 
         this.add(bottomPanel, BorderLayout.SOUTH);
@@ -94,63 +122,119 @@ public final class LoginWithMicrosoftDialog extends JDialog {
         setVisible(false);
         dispose();
 
-        Thread thread = new Thread(() -> {
-            try {
-                JsonObject resultCode = MicrosoftAuthAPI.getDeviceAuthCode();
-                loadingPanel.updateText("Click to 'Copy code and Login' button and then paste code.");
-                linkTextField.setText(resultCode.get("user_code").getAsString());
-                userCode.set(linkTextField.getText());
-                verificationUri.set(resultCode.get("verification_uri").getAsString());
-                linkCopyButton.setEnabled(true);
-
-                int interval = resultCode.get("interval").getAsInt();
-                long expires = System.currentTimeMillis() + resultCode.get("expires_in").getAsInt() * 1000L;
-                while (true) {
-                    //noinspection BusyWait
-                    Thread.sleep(interval * 1000L);
-                    OauthTokenResponse oauthTokenResponse = MicrosoftAuthAPI.getDeviceAuthToken(resultCode.get("device_code").getAsString());
-                    if (oauthTokenResponse == null) {
-                        if (System.currentTimeMillis() < expires) {
-                            LogManager.warn("Authentication in progress...");
-                        } else {
-                            LogManager.error("Failed to Authentication Microsoft Account");
-
-                            DialogManager.okDialog()
-                                .setType(DialogManager.ERROR)
-                                .setTitle(GetText.tr("Error!"))
-                                .setContent(GetText.tr("Failed to Authentication Microsoft Account"))
-                                .show();
-                            return;
-                        }
-                    } else {
-                        loadingPanel.updateText("Processing Authentication...");
-                        linkCopyButton.setEnabled(false);
-                        acquireXBLToken(oauthTokenResponse);
-                        close();
-
-                        DialogManager.okDialog()
-                            .setTitle(GetText.tr("Done!"))
-                            .setContent(GetText.tr("Done with Microsoft Account Authentication!"))
-                            .show();
-                        break;
-                    }
-                }
-            } catch (InterruptedException ignored) {
-            } catch (Exception e) {
-                e.printStackTrace();
+        Thread thread = null;
+        try {
+            if (useLocalServer) {
+                OS.openWebBrowser(Constants.MICROSOFT_LOGIN_URL);
+                startServer();
             }
-        });
-        thread.start();
+            else {
+                thread = new Thread(() -> {
+                    try {
+                        JsonObject resultCode = MicrosoftAuthAPI.getDeviceAuthCode();
+                        loadingPanel.updateText("Click to 'Copy code and Login' button and then paste code.");
+                        linkTextField.setText(resultCode.get("user_code").getAsString());
+                        userCode.set(linkTextField.getText());
+                        verificationUri.set(resultCode.get("verification_uri").getAsString());
+                        linkCopyButton.setEnabled(true);
+
+                        int interval = resultCode.get("interval").getAsInt();
+                        long expires = System.currentTimeMillis() + resultCode.get("expires_in").getAsInt() * 1000L;
+                        while (true) {
+                            //noinspection BusyWait
+                            Thread.sleep(interval * 1000L);
+                            OauthTokenResponse oauthTokenResponse = MicrosoftAuthAPI.getDeviceAuthToken(resultCode.get("device_code").getAsString());
+                            if (oauthTokenResponse == null) {
+                                if (System.currentTimeMillis() < expires) {
+                                    LogManager.warn("Authentication in progress...");
+                                } else {
+                                    LogManager.error("Failed to Authentication Microsoft Account");
+
+                                    DialogManager.okDialog()
+                                        .setType(DialogManager.ERROR)
+                                        .setTitle(GetText.tr("Error!"))
+                                        .setContent(GetText.tr("Failed to Authentication Microsoft Account"))
+                                        .show();
+                                    return;
+                                }
+                            } else {
+                                loadingPanel.updateText("Processing Authentication...");
+                                linkCopyButton.setEnabled(false);
+                                acquireXBLToken(oauthTokenResponse);
+                                close();
+
+                                DialogManager.okDialog()
+                                    .setTitle(GetText.tr("Done!"))
+                                    .setContent(GetText.tr("Done with Microsoft Account Authentication!"))
+                                    .show();
+                                break;
+                            }
+                        }
+                    } catch (InterruptedException ignored) {
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+                thread.start();
+            }
+        } catch (IOException e) {
+            LogManager.logStackTrace("Error starting web server for Microsoft login", e);
+
+            close();
+        }
 
         this.setLocationRelativeTo(App.launcher.getParent());
         this.setVisible(true);
 
-        thread.interrupt();
+        if (thread != null) {
+            thread.interrupt();
+        }
     }
 
     private void close() {
+        server.stop();
         setVisible(false);
         dispose();
+    }
+
+    private void startServer() throws IOException {
+        host.addContext("/", (req, res) -> {
+            req.getHeaders().add("Access-Control-Allow-Origin", "*");
+            if (req.getParams().containsKey("error")) {
+                res.getHeaders().add("Content-Type", "text/plain");
+                res.send(500, GetText.tr("Error logging in. Check console for more information"));
+                LogManager.error("Error logging into Microsoft account: " + URLDecoder
+                        .decode(req.getParams().get("error_description"), StandardCharsets.UTF_8.toString()));
+                close();
+                return 0;
+            }
+
+            if (!req.getParams().containsKey("code")) {
+                res.getHeaders().add("Content-Type", "text/plain");
+                res.send(400, GetText.tr("Code is missing"));
+                close();
+                return 0;
+            }
+
+            try {
+                acquireAccessToken(req.getParams().get("code"));
+            } catch (Exception e) {
+                LogManager.logStackTrace("Error acquiring accessToken", e);
+                res.getHeaders().add("Content-Type", "text/html");
+                res.send(500, GetText.tr("Error logging in. Check console for more information"));
+                close();
+                return 0;
+            }
+
+            res.getHeaders().add("Content-Type", "text/plain");
+            // #. {0} is the name of the launcher
+            res.send(200, GetText.tr("Login complete. You can now close this window and go back to {0}",
+                    Constants.LAUNCHER_NAME));
+            close();
+            return 0;
+        }, "GET");
+
+        server.start();
     }
 
     private void addAccount(OauthTokenResponse oauthTokenResponse, XboxLiveAuthResponse xstsAuthResponse,
@@ -179,6 +263,12 @@ public final class LoginWithMicrosoftDialog extends JDialog {
 
             AccountManager.addAccount(account);
         }
+    }
+
+    private void acquireAccessToken(String authcode) throws Exception {
+        OauthTokenResponse oauthTokenResponse = MicrosoftAuthAPI.tradeCodeForAccessToken(authcode);
+
+        acquireXBLToken(oauthTokenResponse);
     }
 
     private void acquireXBLToken(OauthTokenResponse oauthTokenResponse) throws Exception {
