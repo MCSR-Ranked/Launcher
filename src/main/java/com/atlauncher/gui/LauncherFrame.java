@@ -107,7 +107,7 @@ public final class LauncherFrame extends JFrame implements RelocalizationListene
             LogManager.info("Showing Launcher");
             setVisible(true);
 
-            if (InstanceManager.getInstances().size() == 0) {
+            if (App.settings.firstTimeRun) {
                 int ret = DialogManager.yesNoDialog(false).setTitle(GetText.tr("Setup Instance"))
                     .setContent(GetText.tr("Hi, it looks like this is your first time, do you want to create an instance right away?"))
                     .setType(DialogManager.INFO).show();
