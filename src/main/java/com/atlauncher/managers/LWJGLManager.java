@@ -90,7 +90,7 @@ public class LWJGLManager {
     }
 
     public static Library getReplacementLWJGL3Library(MinecraftVersion minecraftVersion, Library library) {
-        if (!library.name.contains("lwjgl") || !library.name.contains(":3")) {
+        if (!library.name.contains("lwjgl") || !library.name.contains(":3") || Data.LWJGL_VERSIONS == null) {
             return library;
         }
 
