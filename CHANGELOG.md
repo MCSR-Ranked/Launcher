@@ -10,7 +10,7 @@ This changelog only contains the changes that are unreleased. For changes for in
 ## 1.0.4.2
 
 ### New Features
-- Change mod checkbox to not selectable if you selected/enabled incompatible mod
+
 ### Fixes
 
 ### Misc
