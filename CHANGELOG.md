@@ -10,7 +10,11 @@ This changelog only contains the changes that are unreleased. For changes for in
 ## 1.0.4.1
 
 ### New Features
-
+- Added Microsoft Account login options
+    - Now, you can login with Microsoft Account by using local server, so it doesn't need any code to login
+    - You can change login method on settings
 ### Fixes
-
+- Now, Hello dialog is display only once
+- Removed networkChecker for fix NullPointerException
+- Fixed OauthTokenResponseTypeAdapter NullPointerException
 ### Misc
