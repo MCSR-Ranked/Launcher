@@ -83,7 +83,7 @@ public final class LoginWithMicrosoftDialog extends JDialog {
         JPanel bottomPanel = new JPanel(new BorderLayout());
         JPanel linkPanel = new JPanel(new FlowLayout());
 
-        JTextField linkTextField = new JTextField(useLocalServer ? "" : Constants.MICROSOFT_LOGIN_URL);
+        JTextField linkTextField = new JTextField(useLocalServer ? Constants.MICROSOFT_LOGIN_URL : "");
         linkTextField.setPreferredSize(new Dimension(useLocalServer ? 300 : 100, 23));
         linkPanel.add(linkTextField, BorderLayout.SOUTH);
 

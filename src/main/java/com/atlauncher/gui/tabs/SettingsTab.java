@@ -82,7 +82,6 @@ public class SettingsTab extends JPanel implements Tab, RelocalizationListener {
                     && networkSettingsTab.canConnectWithProxy()) {
                 boolean reloadTheme = generalSettingsTab.needToReloadTheme();
                 boolean themeChanged = generalSettingsTab.themeChanged();
-                boolean languageChanged = generalSettingsTab.languageChanged();
                 boolean reloadInstancesPanel = generalSettingsTab.needToReloadInstancesPanel();
                 generalSettingsTab.save();
                 modsSettingsTab.save();
@@ -95,19 +94,6 @@ public class SettingsTab extends JPanel implements Tab, RelocalizationListener {
                 SettingsManager.post();
                 if (reloadInstancesPanel) {
                     App.launcher.reloadInstancesPanel();
-                }
-                if (languageChanged) {
-                    int ret = DialogManager.yesNoDialog().setType(DialogManager.INFO)
-                            .setTitle(GetText.tr("Language Changed. Restart?"))
-                            .setContent(new HTMLBuilder().center().text(GetText.tr(
-                                    "You've changed the language. For best results, a restart of the launcher is recommended.<br/><br/>Restart Now?"))
-                                    .build())
-                            .show();
-
-                    if (ret == 0) {
-                        OS.restartLauncher();
-                        return;
-                    }
                 }
                 if (reloadTheme) {
                     App.loadTheme(App.settings.theme);

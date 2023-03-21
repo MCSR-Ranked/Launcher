@@ -43,6 +43,18 @@ import okhttp3.RequestBody;
  */
 public class MicrosoftAuthAPI {
 
+    public static OauthTokenResponse tradeCodeForAccessToken(String code) {
+        RequestBody data = new FormBody.Builder().add("client_id", Constants.MICROSOFT_LOGIN_CLIENT_ID)
+                .add("code", code).add("grant_type", "authorization_code")
+                .add("redirect_uri", Constants.MICROSOFT_LOGIN_REDIRECT_URL)
+                .add("scope", String.join(" ", Constants.MICROSOFT_LOGIN_SCOPES)).build();
+
+        return Download.build().setUrl(Constants.MICROSOFT_AUTH_TOKEN_URL)
+                .header("Content-Type", "application/x-www-form-urlencoded").post(data)
+                .asClass(OauthTokenResponse.class, Gsons.DEFAULT);
+    }
+
+
     public static JsonObject getDeviceAuthCode() {
         RequestBody data = new FormBody.Builder().add("client_id", Constants.MICROSOFT_LOGIN_CLIENT_ID)
             .add("scope", String.join(" ", Constants.MICROSOFT_LOGIN_SCOPES)).build();

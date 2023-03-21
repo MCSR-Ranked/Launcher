@@ -53,7 +53,7 @@ import com.atlauncher.utils.sort.InstanceSortingStrategies;
 
 @SuppressWarnings("serial")
 public class GeneralSettingsTab extends AbstractSettingsTab {
-    private final JComboBox<String> language;
+    private final JComboBox<ComboItem<Boolean>> loginMethod;
     private final JComboBox<ComboItem<String>> theme;
     private final JComboBox<ComboItem<String>> dateFormat;
     private final JComboBox<ComboItem<String>> instanceTitleFormat;
@@ -82,26 +82,29 @@ public class GeneralSettingsTab extends AbstractSettingsTab {
         gbc.insets = UIConstants.LABEL_INSETS;
         gbc.anchor = GridBagConstraints.BELOW_BASELINE_TRAILING;
 
-        JLabelWithHover languageLabel = new JLabelWithHover(GetText.tr("Language") + ":", HELP_ICON,
-                GetText.tr("This specifies the language used by the Launcher."));
+        JLabelWithHover languageLabel = new JLabelWithHover(GetText.tr("Microsoft Account Login") + ":", HELP_ICON,
+                GetText.tr("This specifies the method for login your Microsoft account."));
         add(languageLabel, gbc);
 
         gbc.gridx++;
         gbc.insets = UIConstants.FIELD_INSETS;
         gbc.anchor = GridBagConstraints.BASELINE_LEADING;
 
-        JPanel languagePanel = new JPanel();
-        languagePanel.setLayout(new BoxLayout(languagePanel, BoxLayout.X_AXIS));
+        JPanel loginMethodPanel = new JPanel();
+        loginMethodPanel.setLayout(new BoxLayout(loginMethodPanel, BoxLayout.X_AXIS));
 
-        language = new JComboBox<>(
-                Language.locales.stream().filter(l -> l == Locale.ENGLISH || Language.languages.containsValue(l))
-                        .map(locale -> locale.getDisplayName(locale)).toArray(String[]::new));
-        language.setSelectedItem(Language.selected);
-        languagePanel.add(language);
+        loginMethod = new JComboBox<>();
+        loginMethod.addItem(new ComboItem<>(true, "Login by using Local Server"));
+        loginMethod.addItem(new ComboItem<>(false, "Login by Auth Code"));
+        for (int i = 0; i < loginMethod.getItemCount(); i++) {
+            ComboItem<Boolean> selectedItem = loginMethod.getItemAt(i);
+            if (selectedItem.getValue() == App.settings.loginByLocalServer) loginMethod.setSelectedIndex(i);
+        }
+        loginMethodPanel.add(loginMethod);
 
-        languagePanel.add(Box.createHorizontalStrut(5));
+        loginMethodPanel.add(Box.createHorizontalStrut(5));
 
-        add(languagePanel, gbc);
+        add(loginMethodPanel, gbc);
 
         // Theme
 
@@ -514,8 +517,7 @@ public class GeneralSettingsTab extends AbstractSettingsTab {
     @SuppressWarnings("unchecked")
     public boolean needToReloadTheme() {
         return !((ComboItem<String>) theme.getSelectedItem()).getValue().equalsIgnoreCase(App.settings.theme)
-                || App.settings.disableCustomFonts != disableCustomFonts.isSelected()
-                || !((String) language.getSelectedItem()).equalsIgnoreCase(App.settings.language);
+                || App.settings.disableCustomFonts != disableCustomFonts.isSelected();
     }
 
     @SuppressWarnings("unchecked")
@@ -523,23 +525,14 @@ public class GeneralSettingsTab extends AbstractSettingsTab {
         return !((ComboItem<String>) theme.getSelectedItem()).getValue().equalsIgnoreCase(App.settings.theme);
     }
 
-    public boolean languageChanged() {
-        return !((String) language.getSelectedItem()).equalsIgnoreCase(App.settings.language);
-    }
-
     public boolean needToReloadInstancesPanel() {
         return !(((ComboItem<String>) instanceTitleFormat.getSelectedItem()).getValue())
                 .equals(App.settings.instanceTitleFormat);
     }
 
-    public boolean needToReloadLanguage() {
-        return !((String) language.getSelectedItem()).equalsIgnoreCase(Language.selected);
-    }
-
     @SuppressWarnings("unchecked")
     public void save() {
-        Language.setLanguage((String) language.getSelectedItem());
-        App.settings.language = (String) language.getSelectedItem();
+        App.settings.loginByLocalServer = loginMethod.getItemAt(loginMethod.getSelectedIndex()).getValue();
         App.settings.theme = ((ComboItem<String>) theme.getSelectedItem()).getValue();
         App.settings.dateFormat = ((ComboItem<String>) dateFormat.getSelectedItem()).getValue();
         App.settings.instanceTitleFormat = ((ComboItem<String>) instanceTitleFormat.getSelectedItem()).getValue();
