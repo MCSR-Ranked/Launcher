@@ -1,7 +1,7 @@
 #define MyAppName "MCSRRankedLauncher"
 #define MyAppDisplayName "MCSR Ranked Launcher"
 #define MyAppURL "https://mcsrranked.com/"
-#define MyAppVersion "1.2"
+#define MyAppVersion "1.3"
 
 [Setup]
 AppId={{2F5FDA11-45A5-4CC3-8E51-5E11E2481699}
@@ -88,27 +88,40 @@ begin
   if CurPageID = wpReady then begin
     DownloadPage.Clear;
 
-    DownloadPage.Add('https://github.com/RedLime/MCSR-Ranked-Launcher/releases/download/v1.0.3.4/MCSRRankedLauncher-1.0.3.4.exe', '{#MyAppName}.exe', '');
-
-    if WizardIsComponentSelected('java') then begin
-      if IsWin64 then begin
-        DownloadPage.Add('https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.3%2B7/OpenJDK17U-jre_x64_windows_hotspot_17.0.3_7.zip', 'jre.zip', 'd77745fdb57b51116f7b8fabd7d251067edbe3c94ea18fa224f64d9584b41a97');
-      end else begin
-        DownloadPage.Add('https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.3%2B7/OpenJDK17U-jre_x86-32_windows_hotspot_17.0.3_7.zip', 'jre.zip', 'e29e311e4200a32438ef65637a75eb8eb09f73a37cef3877f08d02b6355cd221');
-      end;
-    end;
-
-    DownloadPage.Show;
-    try
-      try
-        DownloadPage.Download;
-        Result := True;
-      except
-          SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
+    begin
+      WinHttpReq := CreateOleObject('WinHttp.WinHttpRequest.5.1');
+      WinHttpReq.Open('GET', 'https://mcsrranked.com/launcher/latest', False);
+      WinHttpReq.Send('');
+      if WinHttpReq.Status <> 200 then
+      begin
+        SuppressibleMsgBox(AddPeriod('HTTP Error: ' + IntToStr(WinHttpReq.Status) + ' ' + WinHttpReq.StatusText), mbCriticalError, MB_OK, IDOK);
         Result := False;
+      end
+        else
+      begin
+        DownloadPage.Add(WinHttpReq.ResponseText, '{#MyAppName}.exe', '');
+
+        if WizardIsComponentSelected('java') then begin
+          if IsWin64 then begin
+            DownloadPage.Add('https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.3%2B7/OpenJDK17U-jre_x64_windows_hotspot_17.0.3_7.zip', 'jre.zip', 'd77745fdb57b51116f7b8fabd7d251067edbe3c94ea18fa224f64d9584b41a97');
+          end else begin
+            DownloadPage.Add('https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.3%2B7/OpenJDK17U-jre_x86-32_windows_hotspot_17.0.3_7.zip', 'jre.zip', 'e29e311e4200a32438ef65637a75eb8eb09f73a37cef3877f08d02b6355cd221');
+          end;
+        end;
+
+        DownloadPage.Show;
+        try
+          try
+            DownloadPage.Download;
+            Result := True;
+          except
+              SuppressibleMsgBox(AddPeriod(GetExceptionMessage), mbCriticalError, MB_OK, IDOK);
+            Result := False;
+          end;
+        finally
+          DownloadPage.Hide;
+        end;
       end;
-    finally
-      DownloadPage.Hide;
     end;
   end else
     Result := True;
