@@ -850,8 +850,8 @@ public class Instance extends MinecraftVersion {
                     App.launcher.getParent().setVisible(false);
                 }
 
-                LogManager.info("Launching pack " + this.launcher.pack + " " + this.launcher.version + " for "
-                        + "Minecraft " + this.id);
+                LogManager.info(String.format("Launching pack %s %s for Minecraft %s", this.launcher.pack,
+                    this.launcher.version, this.id));
 
                 Process process = null;
 
