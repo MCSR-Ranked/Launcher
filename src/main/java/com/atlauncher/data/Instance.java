@@ -155,7 +155,7 @@ public class Instance extends MinecraftVersion {
         DEFAULT_JAVA.majorVersion = 17;
     }
 
-    public static final Set<String> AUTO_ENABLE_MODS = Sets.newHashSet("Sodium", "Lithium", "Fast Reset", "LazyDFU", "Voyager", "Force Port", "LazyStronghold", "antiresourcereload");
+    public static final Set<String> AUTO_ENABLE_MODS = Sets.newHashSet("Sodium", "Lithium", "Fast Reset", "LazyDFU", "Starlight", "Voyager", "Force Port", "LazyStronghold", "antiresourcereload");
 
     public String inheritsFrom;
     public InstanceLauncher launcher;
