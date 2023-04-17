@@ -39,7 +39,10 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
+import com.atlauncher.App;
+import com.atlauncher.FileSystem;
 import com.atlauncher.Network;
+import com.atlauncher.managers.ConfigManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.PerformanceManager;
 import com.atlauncher.utils.javafinder.JavaFinder;
@@ -317,5 +320,26 @@ public class Java {
                 + "pLiaWN0bfVKfjllDiIGknibVb63dDcY3fe0Dkhvld1927jyNxF1WW6LZZm6zNTfl\n"
                 + "MrY=\n"
                 + "-----END CERTIFICATE-----"));
+    }
+
+    public static boolean shouldPromptToUpdateBundledJre() {
+        if (!OS.isWindows() || !OS.usingExe()) {
+            return false;
+        }
+
+        if (Files.exists(FileSystem.JRE) && Java.bundledJreOutOfDate()) {
+            return true;
+        }
+
+        if (App.settings.seenBundledJrePromptVersion < ConfigManager.getConfigItem("bundledJre.promptVersion", 1)) {
+            return false;
+        }
+
+        return Java.getLauncherJavaVersionNumber() < 17 || !Files.exists(FileSystem.JRE);
+    }
+
+    public static boolean bundledJreOutOfDate() {
+        return !Java.getVersionForJavaPath(FileSystem.JRE.toFile())
+                .equals(ConfigManager.getConfigItem("bundledJre.version", ""));
     }
 }

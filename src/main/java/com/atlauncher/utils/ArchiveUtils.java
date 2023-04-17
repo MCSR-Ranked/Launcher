@@ -54,7 +54,7 @@ public class ArchiveUtils {
         boolean found = false;
 
         try (InputStream is = createInputStream(archivePath);
-             ZipArchiveInputStream zais = new ZipArchiveInputStream(is, "UTF8", true, true)) {
+                ZipArchiveInputStream zais = new ZipArchiveInputStream(is, "UTF8", true, true)) {
             ArchiveEntry entry = null;
             while ((entry = zais.getNextEntry()) != null) {
                 if (!zais.canReadEntryData(entry)) {
@@ -98,8 +98,13 @@ public class ArchiveUtils {
 
     public static String getFile(Path archivePath, String file) {
         try {
-            return new String(ZipUtil.unpackEntry(createInputStream(archivePath), file));
+            byte[] contents = ZipUtil.unpackEntry(createInputStream(archivePath), file);
+
+            if (contents != null) {
+                return new String(contents);
+            }
         } catch (Throwable t) {
+            LogManager.logStackTrace(t);
             // allow this to fail as we can fallback to Apache Commons library
             LogManager.debug(
                     "Failed to get contents of file in " + archivePath.toAbsolutePath() + ". Trying fallback method");
@@ -146,7 +151,7 @@ public class ArchiveUtils {
         }
 
         try (InputStream is = createInputStream(archivePath);
-             ZipArchiveInputStream zais = new ZipArchiveInputStream(is, "UTF8", true, true)) {
+                ZipArchiveInputStream zais = new ZipArchiveInputStream(is, "UTF8", true, true)) {
             ArchiveEntry entry = null;
             while ((entry = zais.getNextEntry()) != null) {
                 if (!zais.canReadEntryData(entry)) {
@@ -208,8 +213,8 @@ public class ArchiveUtils {
         }
 
         // TODO, It seems that exports currently do not use dbus for dir sel,
-        //  it would be optimal to be aware the below line will cause problems
-        //  once dbus is setup for export as well
+        // it would be optimal to be aware the below line will cause problems
+        // once dbus is setup for export as well
         try (OutputStream os = Files.newOutputStream(archivePath);
                 ArchiveOutputStream aos = new ArchiveStreamFactory().createArchiveOutputStream("ZIP", os)) {
 

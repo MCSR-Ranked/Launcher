@@ -652,8 +652,13 @@ public class Instance extends MinecraftVersion {
                         : l)
                 .forEach(library -> {
                     if (library.hasNativeForOS()) {
-                        if ((library.name.contains("glfw") && useSystemGlfw)
-                                || (library.name.contains("openal") && useSystemOpenAl)) {
+                        if (library.name.contains("glfw") && useSystemGlfw) {
+                            LogManager.warn("useSystemGlfw was enabled, not using glfw natives from Minecraft");
+                            return;
+                        }
+
+                        if (library.name.contains("openal") && useSystemOpenAl) {
+                            LogManager.warn("useSystemOpenAl was enabled, not using openal natives from Minecraft");
                             return;
                         }
 
@@ -996,6 +1001,11 @@ public class Instance extends MinecraftVersion {
                     if (line.contains(
                             "has been compiled by a more recent version of the Java Runtime (class file version 60.0)")) {
                         detectedError = MinecraftError.NEED_TO_USE_JAVA_16_OR_NEWER;
+                    }
+
+                    if (line.contains(
+                            "has been compiled by a more recent version of the Java Runtime (class file version 61.0)")) {
+                        detectedError = MinecraftError.NEED_TO_USE_JAVA_17_OR_NEWER;
                     }
 
                     if (line.contains(

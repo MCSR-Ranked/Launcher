@@ -76,6 +76,11 @@ public final class Network {
             "%s/%s (+%s)", Constants.LAUNCHER_NAME, Constants.VERSION.toStringForUserAgent(),
             Constants.LAUNCHER_WEBSITE);
 
+    public static final String API_USER_AGENT = String.format(
+            "%s/%s [%s] (+%s)", Constants.LAUNCHER_NAME, Constants.VERSION.toStringForLogging(),
+            Constants.VERSION.getSha1Revision(),
+            Constants.LAUNCHER_WEBSITE);
+
     static {
         Logger.getLogger(OkHttpClient.class.getName()).setLevel(Level.FINE);
     }
