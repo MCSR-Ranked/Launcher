@@ -44,7 +44,7 @@ Source: "{tmp}\jre.zip"; DestDir: "{tmp}"; Flags: external deleteafterinstall; C
 
 [Components]
 Name: "mcsrrankedlauncher"; Description: "MCSR Ranked Launcher"; ExtraDiskSpaceRequired: 30720000; Types: full compact custom; Flags: fixed
-Name: "java"; Description: "Install Java 17 (Adoptium OpenJDK 17)"; ExtraDiskSpaceRequired: 129016602; Types: full
+Name: "java"; Description: "Install Java 17 (Adoptium OpenJDK 17)"; ExtraDiskSpaceRequired: 129016602; Types: full; Flags: fixed
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
