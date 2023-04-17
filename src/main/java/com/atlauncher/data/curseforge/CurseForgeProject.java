@@ -92,7 +92,23 @@ public class CurseForgeProject {
     }
 
     public boolean hasWebsiteUrl() {
-        return links.containsKey("websiteUrl");
+        return links.containsKey("websiteUrl") && links.get("websiteUrl") != null && !links.get("websiteUrl").isEmpty();
+    }
+
+    public String getIssuesUrl() {
+        return links.get("issuesUrl");
+    }
+
+    public boolean hasIssuesUrl() {
+        return links.containsKey("issuesUrl") && links.get("issuesUrl") != null && !links.get("issuesUrl").isEmpty();
+    }
+
+    public String getWikiUrl() {
+        return links.get("wikiUrl");
+    }
+
+    public boolean hasWikiUrl() {
+        return links.containsKey("wikiUrl") && links.get("wikiUrl") != null && !links.get("wikiUrl").isEmpty();
     }
 
     public String getClassUrlSlug() {

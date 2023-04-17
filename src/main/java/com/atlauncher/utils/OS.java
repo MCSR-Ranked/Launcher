@@ -49,6 +49,7 @@ import java.util.stream.Collectors;
 import com.atlauncher.App;
 import com.atlauncher.FileSystem;
 import com.atlauncher.constants.Constants;
+import com.atlauncher.graphql.type.LauncherInstallMethod;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.PerformanceManager;
 import com.atlauncher.network.Analytics;
@@ -483,6 +484,40 @@ public enum OS {
      *
      * @param args a List of arguments to pass when starting the launcher
      */
+    public static void restartToUpdateBundledJre(Path newJrePath) {
+        String path = getRunningProgramPath().toString();
+
+        List<String> arguments = new ArrayList<>();
+
+        arguments.add(Java.getPathToJavaExecutable(newJrePath));
+        arguments.add("-Djna.nosys=true");
+        arguments.add("-cp");
+        arguments.add(path);
+        arguments.add("com.atlauncher.UpdateBundledJre");
+        arguments.add(newJrePath.toAbsolutePath().toString());
+        arguments.add(FileSystem.JRE.toAbsolutePath().toString());
+        arguments.add(path);
+
+        // pass in all the original arguments
+        arguments.addAll(Arrays.asList(App.PASSED_ARGS));
+
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.directory(FileSystem.BASE_DIR.toFile());
+        processBuilder.command(arguments);
+
+        try {
+            processBuilder.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.exit(0);
+    }
+
+    /**
+     * This restarts the launcher with an option set of arguments to add.
+     *
+     * @param args a List of arguments to pass when starting the launcher
+     */
     public static void restartLauncher(List<String> args) {
         String path = getRunningProgramPath().toString();
 
@@ -655,5 +690,90 @@ public enum OS {
 
     public static String getNativesArch() {
         return OS.is64Bit() ? "64" : "32";
+    }
+
+    public static boolean usingExe() {
+        return getRunningProgramPath().getFileName().toString().endsWith("exe");
+    }
+
+    public static LauncherInstallMethod getInstallMethod() {
+        if (isWindows()) {
+            Path path = getRunningProgramPath();
+
+            if (path.getFileName().toString().endsWith("exe")) {
+                if (usedInstaller()) {
+                    return LauncherInstallMethod.WINDOWS_SETUP;
+                }
+
+                return LauncherInstallMethod.WINDOWS_PORTABLE;
+            }
+
+            if (path.getFileName().toString().endsWith("jar")) {
+                return LauncherInstallMethod.WINDOWS_JAR;
+            }
+
+            if (Files.isDirectory(path)) {
+                return LauncherInstallMethod.WINDOWS_SOURCE;
+            }
+
+            return LauncherInstallMethod.WINDOWS_UNKNOWN;
+        } else if (isMac()) {
+            if (isUsingMacApp()) {
+                return LauncherInstallMethod.MAC_APP;
+            }
+
+            Path path = getRunningProgramPath();
+
+            if (path.getFileName().toString().endsWith("jar")) {
+                return LauncherInstallMethod.MAC_JAR;
+            }
+
+            if (Files.isDirectory(path)) {
+                return LauncherInstallMethod.MAC_SOURCE;
+            }
+
+            return LauncherInstallMethod.MAC_UNKNOWN;
+        } else {
+            if (isUsingFlatpak()) {
+                return LauncherInstallMethod.LINUX_FLATPAK;
+            }
+
+            if (App.installMethod != null) {
+                if (App.installMethod.equalsIgnoreCase("deb")) {
+                    return LauncherInstallMethod.LINUX_DEB;
+                }
+
+                if (App.installMethod.equalsIgnoreCase("rpm")) {
+                    return LauncherInstallMethod.LINUX_RPM;
+                }
+
+                if (App.installMethod.equalsIgnoreCase("aur")) {
+                    return LauncherInstallMethod.LINUX_AUR;
+                }
+
+                if (App.installMethod.equalsIgnoreCase("aur-bin")) {
+                    return LauncherInstallMethod.LINUX_AUR_BIN;
+                }
+
+                return LauncherInstallMethod.LINUX_UNKNOWN;
+            }
+
+            Path path = getRunningProgramPath();
+
+            if (path.getFileName().toString().endsWith("jar")) {
+                return LauncherInstallMethod.LINUX_JAR;
+            }
+
+            if (Files.isDirectory(path)) {
+                return LauncherInstallMethod.LINUX_SOURCE;
+            }
+
+            return LauncherInstallMethod.LINUX_UNKNOWN;
+        }
+    }
+
+    public static boolean usedInstaller() {
+        return Files.exists(FileSystem.BASE_DIR.resolve("unins000.dat"))
+                && Files.exists(FileSystem.BASE_DIR.resolve("unins000.exe"));
     }
 }
