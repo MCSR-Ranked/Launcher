@@ -303,13 +303,13 @@ public class App {
         LogManager.info("Launcher finished loading everything");
 
         if (settings.firstTimeRun) {
-            if (skipSetupDialog) {
-                App.settings.firstTimeRun = false;
-                App.settings.save();
-            } else {
-                LogManager.warn("Launcher not setup. Loading Setup Dialog");
-                new SetupDialog();
-            }
+//            if (skipSetupDialog) {
+//                App.settings.firstTimeRun = false;
+//                App.settings.save();
+//            } else {
+//                LogManager.warn("Launcher not setup. Loading Setup Dialog");
+//                new SetupDialog();
+//            }
         }
 
         checkIfNeedToUpdateBundledJre();
