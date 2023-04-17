@@ -404,8 +404,7 @@ public class App {
         boolean matched = false;
 
         // user used the installer
-        if (Files.exists(FileSystem.BASE_DIR.resolve("unins000.dat"))
-                && Files.exists(FileSystem.BASE_DIR.resolve("unins000.exe"))) {
+        if (OS.isWindows() && OS.usedInstaller()) {
             return;
         }
 

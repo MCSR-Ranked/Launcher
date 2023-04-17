@@ -43,6 +43,10 @@ public final class LogEvent {
     public LogEvent(LogType type, String body, int meta) {
         this.type = type;
 
+        if (body == null) {
+            body = "";
+        }
+
         if (App.settings != null && !LogManager.showDebug) {
             body = body.replace(FileSystem.BASE_DIR.toAbsolutePath().toString(), "**USERSDIR**");
         }

@@ -654,4 +654,9 @@ public enum OS {
     public static String getNativesArch() {
         return OS.is64Bit() ? "64" : "32";
     }
+
+    public static boolean usedInstaller() {
+        return Files.exists(FileSystem.BASE_DIR.resolve("unins000.dat"))
+                && Files.exists(FileSystem.BASE_DIR.resolve("unins000.exe"));
+    }
 }

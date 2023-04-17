@@ -1,7 +1,7 @@
 #define MyAppName "MCSRRankedLauncher"
 #define MyAppDisplayName "MCSR Ranked Launcher"
 #define MyAppURL "https://mcsrranked.com/"
-#define MyAppVersion "1.3"
+#define MyAppVersion "1.4"
 
 [Setup]
 AppId={{2F5FDA11-45A5-4CC3-8E51-5E11E2481699}
@@ -44,7 +44,7 @@ Source: "{tmp}\jre.zip"; DestDir: "{tmp}"; Flags: external deleteafterinstall; C
 
 [Components]
 Name: "mcsrrankedlauncher"; Description: "MCSR Ranked Launcher"; ExtraDiskSpaceRequired: 30720000; Types: full compact custom; Flags: fixed
-Name: "java"; Description: "Install Java"; ExtraDiskSpaceRequired: 129016602; Types: full
+Name: "java"; Description: "Install Java 17 (Adoptium OpenJDK 17)"; ExtraDiskSpaceRequired: 129016602; Types: full
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
