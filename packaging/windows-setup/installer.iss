@@ -14,7 +14,7 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={userappdata}\{#MyAppName}
-DisableDirPage=auto
+DisableDirPage=no
 DisableWelcomePage=no
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
@@ -42,9 +42,13 @@ Source: "7za.exe"; DestDir: "{tmp}"; Flags: deleteafterinstall
 Source: "{tmp}\{#MyAppName}.exe"; DestDir: "{app}"; Flags: external ignoreversion
 Source: "{tmp}\jre.zip"; DestDir: "{tmp}"; Flags: external deleteafterinstall; Components: java
 
+[Types]
+Name: "full"; Description: "Installation with Java (Adoptium OpenJDK 17)"
+Name: "compact"; Description: "Installation without Java"
+
 [Components]
-Name: "mcsrrankedlauncher"; Description: "MCSR Ranked Launcher"; ExtraDiskSpaceRequired: 30720000; Types: full compact custom; Flags: fixed
-Name: "java"; Description: "Install Java 17 (Adoptium OpenJDK 17)"; ExtraDiskSpaceRequired: 129016602; Types: full; Flags: fixed
+Name: "mcsrrankedlauncher"; Description: "MCSR Ranked Launcher"; Types: full compact
+Name: "java"; Description: "Install Java 17 (Adoptium OpenJDK 17)"; Types: full
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -96,10 +100,9 @@ begin
       begin
         SuppressibleMsgBox(AddPeriod('HTTP Error: ' + IntToStr(WinHttpReq.Status) + ' ' + WinHttpReq.StatusText), mbCriticalError, MB_OK, IDOK);
         Result := False;
-      end
-        else
-      begin
+      end else begin
         DownloadPage.Add(WinHttpReq.ResponseText, '{#MyAppName}.exe', '');
+        DownloadPage.Show;
 
         if WizardIsComponentSelected('java') then begin
           if IsWin64 then begin
@@ -109,7 +112,6 @@ begin
           end;
         end;
 
-        DownloadPage.Show;
         try
           try
             DownloadPage.Download;
