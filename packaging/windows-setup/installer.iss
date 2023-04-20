@@ -1,7 +1,7 @@
 #define MyAppName "MCSRRankedLauncher"
 #define MyAppDisplayName "MCSR Ranked Launcher"
 #define MyAppURL "https://mcsrranked.com/"
-#define MyAppVersion "1.4"
+#define MyAppVersion "1.5"
 
 [Setup]
 AppId={{2F5FDA11-45A5-4CC3-8E51-5E11E2481699}
