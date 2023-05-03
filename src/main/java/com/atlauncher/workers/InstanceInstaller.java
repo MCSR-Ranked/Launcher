@@ -432,8 +432,6 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
             return;
         }
 
-        this.minecraftVersion.javaVersion = Instance.DEFAULT_JAVA;
-
         hideSubProgressBar();
     }
 

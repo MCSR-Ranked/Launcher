@@ -149,12 +149,6 @@ import okhttp3.OkHttpClient;
 @Json
 public class Instance extends MinecraftVersion {
 
-    public static final JavaVersion DEFAULT_JAVA = new JavaVersion();
-    static {
-        DEFAULT_JAVA.component = "java-runtime-gamma";
-        DEFAULT_JAVA.majorVersion = 17;
-    }
-
     public static final Set<String> AUTO_ENABLE_MODS = Sets.newHashSet("Sodium", "Lithium", "Fast Reset", "LazyDFU", "Starlight", "Voyager", "Force Port", "LazyStronghold", "antiresourcereload");
 
     public String inheritsFrom;
@@ -187,7 +181,7 @@ public class Instance extends MinecraftVersion {
 
     public void setUpdatedValues(MinecraftVersion version) {
         this.complianceLevel = version.complianceLevel;
-        this.javaVersion = DEFAULT_JAVA;
+        this.javaVersion = version.javaVersion;
         this.type = version.type;
         this.time = version.time;
         this.releaseTime = version.releaseTime;
