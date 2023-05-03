@@ -1,7 +1,7 @@
 #define MyAppName "MCSRRankedLauncher"
 #define MyAppDisplayName "MCSR Ranked Launcher"
 #define MyAppURL "https://mcsrranked.com/"
-#define MyAppVersion "1.5"
+#define MyAppVersion "1.6"
 
 [Setup]
 AppId={{2F5FDA11-45A5-4CC3-8E51-5E11E2481699}
@@ -94,7 +94,7 @@ begin
 
     begin
       WinHttpReq := CreateOleObject('WinHttp.WinHttpRequest.5.1');
-      WinHttpReq.Open('GET', 'https://mcsrranked.com/launcher/latest', False);
+      WinHttpReq.Open('GET', 'https://mcsr-ranked.github.io/meta/v1/launcher/_latest.txt', False);
       WinHttpReq.Send('');
       if WinHttpReq.Status <> 200 then
       begin
