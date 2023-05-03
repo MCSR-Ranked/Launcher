@@ -393,7 +393,7 @@ public abstract class Installable {
         srigtDialog.start();
 
         int ret = DialogManager.yesNoDialog(false).setTitle(GetText.tr("Setup Speedrun Mods"))
-            .setContent(GetText.tr("Do you want to download Minecraft speedrunning legalized mods? (All disabled by default)"))
+            .setContent(GetText.tr("Do you want to download Minecraft speedrunning legalized mods? (Some mods are disabled by default)"))
             .setType(DialogManager.INFO).show();
 
         if (ret == DialogManager.YES_OPTION) {ProgressDialog<?> legalModsDialog = new ProgressDialog<>(GetText.tr("Installing Mods"));

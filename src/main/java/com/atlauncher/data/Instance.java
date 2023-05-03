@@ -115,6 +115,7 @@ import com.atlauncher.data.multimc.MultiMCManifest;
 import com.atlauncher.data.multimc.MultiMCRequire;
 import com.atlauncher.exceptions.CommandException;
 import com.atlauncher.exceptions.InvalidMinecraftVersion;
+import com.atlauncher.gui.LauncherFrame;
 import com.atlauncher.gui.dialogs.InstanceInstallerDialog;
 import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.gui.dialogs.RenameInstanceDialog;
@@ -747,10 +748,13 @@ public class Instance extends MinecraftVersion {
                 : AccountManager.getAccountByName(launcher.account);
 
         if (account == null) {
-            DialogManager.okDialog().setTitle(GetText.tr("No Account Selected"))
-                    .setContent(new HTMLBuilder().center()
-                            .text(GetText.tr("Cannot play instance as you have no account selected.")).build())
-                    .setType(DialogManager.ERROR).show();
+            int ret = DialogManager.yesNoDialog(false).setTitle(GetText.tr("No Account Selected"))
+                .setContent(GetText.tr("Cannot play instance as you have no account selected. do you want to login with your account?"))
+                .setType(DialogManager.ERROR).show();
+
+            if (ret == DialogManager.YES_OPTION) {
+                LauncherFrame.getInstance().openTab(3);
+            }
 
             App.launcher.setMinecraftLaunched(false);
             return false;

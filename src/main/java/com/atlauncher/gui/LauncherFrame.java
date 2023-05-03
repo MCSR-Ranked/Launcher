@@ -112,7 +112,7 @@ public final class LauncherFrame extends JFrame implements RelocalizationListene
                     .setType(DialogManager.INFO).show();
 
                 if (ret == DialogManager.YES_OPTION) {
-                    this.tabbedPane.setSelectedIndex(2);
+                    this.openTab(2);
                 }
 
                 App.settings.firstTimeRun = false;
