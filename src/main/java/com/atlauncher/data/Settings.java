@@ -90,7 +90,7 @@ public class Settings {
 
     // Java/Minecraft
     public int initialMemory = 512;
-    public int maximumMemory = 4096;
+    public int maximumMemory = 2048;
     public int metaspace = (OS.is64Bit() ? 256 : 128);
     public int windowWidth = 854;
     public int windowHeight = 480;
