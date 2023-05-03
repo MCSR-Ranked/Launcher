@@ -7,9 +7,12 @@
 This changelog only contains the changes that are unreleased. For changes for individual releases, please visit the
 [releases](https://github.com/RedLime/MCSR-Ranked-Launcher/releases) page on GitHub.
 
-## 1.1.1.2
+## 1.2.0.0
 
 ### New Features
+- Added dialog when you are trying to launch the game without any accounts
+- Changed CDN server url
+- Changed default allocated memory
 
 ### Fixes
 
