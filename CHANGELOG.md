@@ -10,7 +10,7 @@ This changelog only contains the changes that are unreleased. For changes for in
 ## 1.2.0.1
 
 ### New Features
-
+- Update ModCheck version (v0.6)
 ### Fixes
 
 ### Misc
