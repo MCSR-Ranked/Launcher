@@ -58,8 +58,8 @@ public class Constants {
 
     // CDN domains, endpoints, etc
     public static String BASE_CDN_PROTOCOL = "https://";
-    public static String BASE_CDN_DOMAIN = "raw.githubusercontent.com";
-    public static String BASE_CDN_PATH = "/MCSR-Ranked/meta/lwjgl-rework";
+    public static String BASE_CDN_DOMAIN = "mcsr-ranked.github.io";
+    public static String BASE_CDN_PATH = "/meta/v1";
     public static String DOWNLOAD_SERVER = BASE_CDN_PROTOCOL + BASE_CDN_DOMAIN + BASE_CDN_PATH;
     public static String DOWNLOAD_HOST = BASE_CDN_DOMAIN;
 
