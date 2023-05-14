@@ -17,15 +17,11 @@
  */
 package com.atlauncher.managers;
 
-import java.io.EOFException;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.mini2Dx.gettext.GetText;
@@ -35,14 +31,10 @@ import com.atlauncher.Data;
 import com.atlauncher.FileSystem;
 import com.atlauncher.Gsons;
 import com.atlauncher.data.AbstractAccount;
-import com.atlauncher.data.Account;
 import com.atlauncher.data.MicrosoftAccount;
-import com.atlauncher.data.MojangAccount;
-import com.atlauncher.utils.Utils;
 import com.google.gson.JsonIOException;
 import com.google.gson.reflect.TypeToken;
 
-@SuppressWarnings("deprecation")
 public class AccountManager {
     private static final Type abstractAccountListType = new TypeToken<List<AbstractAccount>>() {
     }.getType();
@@ -62,11 +54,6 @@ public class AccountManager {
         PerformanceManager.start();
         LogManager.debug("Loading accounts");
 
-        if (Files.exists(FileSystem.USER_DATA)) {
-            LogManager.info("Converting old account format to new format.");
-            convertAccounts();
-        }
-
         if (Files.exists(FileSystem.ACCOUNTS)) {
             try (FileReader fileReader = new FileReader(FileSystem.ACCOUNTS.toFile())) {
                 Data.ACCOUNTS.addAll(Gsons.DEFAULT.fromJson(fileReader, abstractAccountListType));
@@ -79,22 +66,6 @@ public class AccountManager {
             if (account.username.equalsIgnoreCase(App.settings.lastAccount)) {
                 Data.SELECTED_ACCOUNT = account;
             }
-
-            if (account instanceof MojangAccount) {
-                MojangAccount mojangAccount = (MojangAccount) account;
-
-                if (mojangAccount.encryptedPassword == null) {
-                    mojangAccount.password = "";
-                    mojangAccount.remember = false;
-                } else {
-                    mojangAccount.password = Utils.decrypt(mojangAccount.encryptedPassword);
-                    if (mojangAccount.password == null) {
-                        LogManager.error("Error reading in saved password from file!");
-                        mojangAccount.password = "";
-                        mojangAccount.remember = false;
-                    }
-                }
-            }
         }
 
         if (Data.SELECTED_ACCOUNT == null && Data.ACCOUNTS.size() >= 1) {
@@ -103,52 +74,6 @@ public class AccountManager {
 
         LogManager.debug("Finished loading accounts");
         PerformanceManager.end();
-    }
-
-    /**
-     * Converts the saved Accounts from old format to new one
-     */
-    private static void convertAccounts() {
-        FileInputStream in = null;
-        ObjectInputStream objIn = null;
-        List<AbstractAccount> convertedAccounts = new LinkedList<>();
-        try {
-            in = new FileInputStream(FileSystem.USER_DATA.toFile());
-            objIn = new ObjectInputStream(in);
-            Object obj;
-            while ((obj = objIn.readObject()) != null) {
-                Account account = (Account) obj;
-
-                convertedAccounts.add(new MojangAccount(account.username, account.password, account.minecraftUsername,
-                        account.uuid, account.remember, account.clientToken, account.store));
-            }
-        } catch (EOFException e) {
-            // Don't log this, it always happens when it gets to the end of the file
-        } catch (IOException | ClassNotFoundException e) {
-            LogManager.logStackTrace("Exception while trying to convert accounts from file.", e);
-        } finally {
-            try {
-                if (objIn != null) {
-                    objIn.close();
-                }
-                if (in != null) {
-                    in.close();
-                }
-            } catch (IOException e) {
-                LogManager.logStackTrace(
-                        "Exception while trying to close FileInputStream/ObjectInputStream when reading in " + ""
-                                + "accounts.",
-                        e);
-            }
-        }
-
-        saveAccounts(convertedAccounts);
-
-        try {
-            Files.delete(FileSystem.USER_DATA);
-        } catch (IOException e) {
-            LogManager.logStackTrace("Exception trying to remove old userdata file after conversion.", e);
-        }
     }
 
     public static void saveAccounts() {

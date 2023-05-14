@@ -282,47 +282,6 @@ public class InstanceExportDialog extends JDialog {
         // bottom panel
         bottomPanel.setLayout(new FlowLayout());
 
-        JButton exportButton = new JButton(GetText.tr("Export"));
-        exportButton.addActionListener(arg0 -> {
-            instance.scanMissingMods(this);
-
-            final ProgressDialog dialog = new ProgressDialog(GetText.tr("Exporting Instance"), 0,
-                    GetText.tr("Exporting Instance. Please wait..."), null, this);
-
-            dialog.addThread(new Thread(() -> {
-                InstanceExportFormat exportFormat = ((ComboItem<InstanceExportFormat>) format.getSelectedItem())
-                        .getValue();
-
-                if (instance.export(name.getText(), version.getText(), author.getText(),
-                        exportFormat, saveTo.getText(), overrides)) {
-                    instance.launcher.lastExportName = name.getText();
-                    instance.launcher.lastExportVersion = version.getText();
-                    instance.launcher.lastExportAuthor = author.getText();
-                    instance.launcher.lastExportSaveTo = saveTo.getText();
-                    instance.save();
-
-                    App.TOASTER.pop(GetText.tr("Exported Instance Successfully"));
-                    String safePathName = name.getText().replaceAll("[\\\"?:*<>|]", "");
-                    if (exportFormat == InstanceExportFormat.CURSEFORGE_AND_MODRINTH) {
-                        OS.openFileExplorer(Paths.get(saveTo.getText()));
-                    } else {
-                        OS.openFileExplorer(
-                                Paths.get(saveTo.getText())
-                                        .resolve(String.format("%s.%s", safePathName,
-                                                (exportFormat == InstanceExportFormat.MODRINTH ? "mrpack" : "zip"))),
-                                true);
-                    }
-                } else {
-                    App.TOASTER.popError(GetText.tr("Failed to export instance. Check the console for details"));
-                }
-                dialog.close();
-                close();
-            }));
-
-            dialog.start();
-        });
-        bottomPanel.add(exportButton);
-
         JButton cancelButton = new JButton(GetText.tr("Cancel"));
         cancelButton.addActionListener(arg0 -> {
             close();

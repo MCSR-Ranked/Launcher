@@ -76,12 +76,15 @@ public abstract class Installable {
     public Path modrinthExtractedPath;
     public MultiMCManifest multiMCManifest;
     public Path multiMCExtractedPath;
+    public String lwjglVersion;
 
     public abstract Pack getPack();
 
     public abstract PackVersion getPackVersion();
 
     public abstract LoaderVersion getLoaderVersion();
+
+    public abstract String getLWJGLVersion();
 
     public boolean startInstall() {
         if (!isReinstall && InstanceManager.isInstance(instanceName)) {
@@ -148,7 +151,7 @@ public abstract class Installable {
 
         boolean saveMods = isReinstall && this.saveMods;
 
-        final InstanceInstaller instanceInstaller = new InstanceInstaller(instanceName, pack, version, isReinstall, changingLoader,
+        final InstanceInstaller instanceInstaller = new InstanceInstaller(instanceName, pack, version, lwjglVersion, isReinstall, changingLoader,
             saveMods, null, showModsChooser, loaderVersion, modrinthExtractedPath, multiMCManifest,
                 multiMCExtractedPath, dialog) {
 
@@ -213,7 +216,7 @@ public abstract class Installable {
                     }
 
                     if (success) {
-                        downloadRankedResources(this.resultInstance);
+                        if (!isReinstall && !isUpdate) downloadRankedResources(this.resultInstance);
 
                         type = DialogManager.INFO;
 

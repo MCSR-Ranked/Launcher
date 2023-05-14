@@ -24,12 +24,9 @@ import java.util.Map;
 
 import com.atlauncher.data.AbstractAccount;
 import com.atlauncher.data.Instance;
-import com.atlauncher.data.LWJGLVersions;
 import com.atlauncher.data.News;
-import com.atlauncher.data.Pack;
 import com.atlauncher.data.minecraft.JavaRuntimes;
 import com.atlauncher.data.minecraft.VersionManifestVersion;
-import com.atlauncher.data.modrinth.ModrinthVersion;
 
 public final class Data {
     public static final List<AbstractAccount> ACCOUNTS = new LinkedList<>();
@@ -43,9 +40,5 @@ public final class Data {
     public static final List<Instance> INSTANCES = new LinkedList<>();
 
     public static final Map<String, VersionManifestVersion> MINECRAFT = new HashMap<>();
-    public static LWJGLVersions LWJGL_VERSIONS = null;
     public static JavaRuntimes JAVA_RUNTIMES = null;
-
-    // Modrinth instance update checking
-    public static final Map<Instance, ModrinthVersion> MODRINTH_INSTANCE_LATEST_VERSION = new HashMap<>();
 }

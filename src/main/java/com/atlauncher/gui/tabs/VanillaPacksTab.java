@@ -98,6 +98,7 @@ public final class VanillaPacksTab extends JPanel implements Tab {
 //    private final JRadioButton loaderTypeQuiltRadioButton = new JRadioButton("Quilt");
 
     private final JComboBox<ComboItem<LoaderVersion>> loaderVersionsDropDown = new JComboBox<>();
+    private final JComboBox<ComboItem<String>> lwjglVersionsDropDown = new JComboBox<>();
     private final JButton createInstanceButton = new JButton(GetText.tr("Create Instance"));
 
     public VanillaPacksTab() {
@@ -306,6 +307,21 @@ public final class VanillaPacksTab extends JPanel implements Tab {
         loaderVersionsDropDown.addItem(new ComboItem<LoaderVersion>(null, GetText.tr("Select Loader First")));
         mainPanel.add(loaderVersionsDropDown, gbc);
 
+        // LWJGL Version
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.insets = UIConstants.LABEL_INSETS;
+        gbc.anchor = GridBagConstraints.BASELINE_TRAILING;
+
+        JLabel lwjglVersionLabel = new JLabel(GetText.tr("LWJGL Version") + ":");
+        mainPanel.add(lwjglVersionLabel, gbc);
+
+        gbc.gridx++;
+        gbc.insets = UIConstants.FIELD_INSETS;
+        gbc.anchor = GridBagConstraints.BASELINE_LEADING;
+
+        mainPanel.add(lwjglVersionsDropDown, gbc);
+
         add(mainPanel, BorderLayout.CENTER);
     }
 
@@ -376,6 +392,15 @@ public final class VanillaPacksTab extends JPanel implements Tab {
             if (selectedLoaderType != null) {
                 selectedLoaderTypeChanged(selectedLoaderType);
             }
+
+
+            try {
+                VersionManifestVersion versionMeta = MinecraftManager.getMinecraftVersion(selectedMinecraftVersion);
+                lwjglVersionsDropDown.removeAllItems();
+                for (String lwjglVersion : versionMeta.lwjglVersions) {
+                    lwjglVersionsDropDown.addItem(new ComboItem<>(lwjglVersion, lwjglVersion));
+                }
+            } catch (InvalidMinecraftVersion e) {}
         }
     }
 
@@ -524,10 +549,11 @@ public final class VanillaPacksTab extends JPanel implements Tab {
         Installable installable;
         try {
             LoaderVersion selectedLoaderVersion = ((ComboItem<LoaderVersion>) loaderVersionsDropDown.getSelectedItem())
-                    .getValue();
+                .getValue();
+            String selectedLWJGLVersion = ((ComboItem<String>) lwjglVersionsDropDown.getSelectedItem()).getValue();
 
             installable = new VanillaInstallable(MinecraftManager.getMinecraftVersion(selectedMinecraftVersion),
-                    selectedLoaderVersion, descriptionField.getText());
+                    selectedLoaderVersion, descriptionField.getText(), selectedLWJGLVersion);
             installable.instanceName = nameField.getText();
             installable.isReinstall = false;
 

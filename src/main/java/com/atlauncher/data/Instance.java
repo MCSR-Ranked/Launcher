@@ -33,8 +33,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.channels.Channels;
@@ -42,7 +40,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -52,9 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
-import java.util.Stack;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -92,7 +87,7 @@ import com.atlauncher.data.minecraft.JavaRuntime;
 import com.atlauncher.data.minecraft.JavaRuntimeManifest;
 import com.atlauncher.data.minecraft.JavaRuntimeManifestFileType;
 import com.atlauncher.data.minecraft.JavaRuntimes;
-import com.atlauncher.data.minecraft.JavaVersion;
+import com.atlauncher.data.minecraft.LWJGLLibrary;
 import com.atlauncher.data.minecraft.Library;
 import com.atlauncher.data.minecraft.LoggingFile;
 import com.atlauncher.data.minecraft.MinecraftVersion;
@@ -107,20 +102,13 @@ import com.atlauncher.data.minecraft.loaders.quilt.QuiltLoader;
 import com.atlauncher.data.modcheck.ModCheckProject;
 import com.atlauncher.data.modrinth.ModrinthFile;
 import com.atlauncher.data.modrinth.ModrinthProject;
-import com.atlauncher.data.modrinth.ModrinthProjectType;
-import com.atlauncher.data.modrinth.ModrinthSide;
 import com.atlauncher.data.modrinth.ModrinthVersion;
-import com.atlauncher.data.multimc.MultiMCComponent;
-import com.atlauncher.data.multimc.MultiMCManifest;
-import com.atlauncher.data.multimc.MultiMCRequire;
 import com.atlauncher.exceptions.CommandException;
 import com.atlauncher.exceptions.InvalidMinecraftVersion;
 import com.atlauncher.gui.LauncherFrame;
-import com.atlauncher.gui.dialogs.InstanceInstallerDialog;
 import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.gui.dialogs.RenameInstanceDialog;
 import com.atlauncher.managers.AccountManager;
-import com.atlauncher.managers.ConfigManager;
 import com.atlauncher.managers.DialogManager;
 import com.atlauncher.managers.InstanceManager;
 import com.atlauncher.managers.LWJGLManager;
@@ -140,11 +128,8 @@ import com.atlauncher.utils.OS;
 import com.atlauncher.utils.Utils;
 import com.atlauncher.utils.ZipNameMapper;
 import com.google.common.collect.Sets;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonIOException;
-import com.google.gson.JsonObject;
 
-import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 
 @Json
@@ -174,6 +159,7 @@ public class Instance extends MinecraftVersion {
     public void setValues(MinecraftVersion version) {
         this.id = version.id;
         this.libraries = version.libraries;
+        this.lwjglVersions = version.lwjglVersions;
         this.mainClass = version.mainClass;
         this.minecraftArguments = version.minecraftArguments;
         this.arguments = version.arguments;
@@ -470,14 +456,12 @@ public class Instance extends MinecraftVersion {
         progressDialog.setLabel(GetText.tr("Downloading Libraries"));
         DownloadPool librariesPool = new DownloadPool();
 
-        // get non native libraries otherwise we double up
-        this.libraries.stream()
-                .filter(library -> library.shouldInstall() && library.downloads.artifact != null
-                        && library.downloads.artifact.url != null && !library.hasNativeForOS())
+        List<Library> totalLibraries = new ArrayList<>(this.libraries);
+        totalLibraries.addAll(LWJGLManager.getLWJGLLibraries(this.launcher.lwjglVersion));
+
+        totalLibraries.stream()
+                .filter(library -> library.shouldInstall() && library.downloads.artifact != null && library.downloads.artifact.url != null)
                 .distinct()
-                .map(l -> LWJGLManager.shouldReplaceLWJGL3(this)
-                        ? LWJGLManager.getReplacementLWJGL3Library(this, l)
-                        : l)
                 .forEach(library -> {
                     com.atlauncher.network.Download download = new com.atlauncher.network.Download()
                             .setUrl(library.downloads.artifact.url)
@@ -488,10 +472,7 @@ public class Instance extends MinecraftVersion {
                     librariesPool.add(download);
                 });
 
-        this.libraries.stream().filter(Library::hasNativeForOS)
-                .map(l -> LWJGLManager.shouldReplaceLWJGL3(this)
-                        ? LWJGLManager.getReplacementLWJGL3Library(this, l)
-                        : l)
+        totalLibraries.stream().filter(Library::hasNativeForOS)
                 .forEach(library -> {
                     com.atlauncher.data.minecraft.Download download = library.getNativeDownloadForOS();
 
@@ -641,10 +622,7 @@ public class Instance extends MinecraftVersion {
         PerformanceManager.start("Extracting Natives");
         boolean useSystemGlfw = Optional.ofNullable(launcher.useSystemGlfw).orElse(App.settings.useSystemGlfw);
         boolean useSystemOpenAl = Optional.ofNullable(launcher.useSystemOpenAl).orElse(App.settings.useSystemOpenAl);
-        this.libraries.stream().filter(Library::shouldInstall)
-                .map(l -> LWJGLManager.shouldReplaceLWJGL3(this)
-                        ? LWJGLManager.getReplacementLWJGL3Library(this, l)
-                        : l)
+        totalLibraries.stream().filter(Library::shouldInstall)
                 .forEach(library -> {
                     if (library.hasNativeForOS()) {
                         if (library.name.contains("glfw") && useSystemGlfw) {
@@ -686,34 +664,6 @@ public class Instance extends MinecraftVersion {
 
         progressDialog.doneTask();
         PerformanceManager.end("Extracting Natives");
-
-        if (LWJGLManager.shouldUseLegacyLWJGL(this)) {
-            PerformanceManager.start("Extracting Legacy LWJGL");
-            progressDialog.setLabel(GetText.tr("Extracting Legacy LWJGL"));
-
-            LWJGLLibrary library = LWJGLManager.getLegacyLWJGLLibrary();
-
-            if (library != null) {
-                com.atlauncher.network.Download download = new com.atlauncher.network.Download().setUrl(library.url)
-                        .downloadTo(FileSystem.LIBRARIES.resolve(library.path)).unzipTo(lwjglNativesTempDir)
-                        .hash(library.sha1).size(library.size).withHttpClient(httpClient);
-
-                if (download.needToDownload()) {
-                    progressDialog.setTotalBytes(library.size);
-
-                    try {
-                        download.downloadFile();
-                    } catch (IOException e) {
-                        LogManager.logStackTrace(e);
-                    }
-                } else {
-                    download.runPostProcessors();
-                }
-            }
-
-            progressDialog.doneTask();
-            PerformanceManager.end("Extracting Legacy LWJGL");
-        }
 
         if (usesCustomMinecraftJar()) {
             PerformanceManager.start("Creating custom minecraft.jar");
@@ -822,17 +772,8 @@ public class Instance extends MinecraftVersion {
             LogManager.logStackTrace(e2, false);
         }
 
-        if (LWJGLManager.shouldUseLegacyLWJGL(this)) {
-            try {
-                Files.createDirectory(lwjglNativesTempDir);
-            } catch (IOException e2) {
-                LogManager.logStackTrace(e2, false);
-            }
-        }
-
         ProgressDialog<Boolean> prepareDialog = new ProgressDialog<>(GetText.tr("Preparing For Launch"),
-                LWJGLManager.shouldUseLegacyLWJGL(this) ? 8 : 7,
-                GetText.tr("Preparing For Launch"));
+                7, GetText.tr("Preparing For Launch"));
         prepareDialog.addThread(new Thread(() -> {
             LogManager.info("Preparing for launch!");
             prepareDialog.setReturnValue(prepareForLaunch(prepareDialog, nativesTempDir, lwjglNativesTempDir));
@@ -870,53 +811,7 @@ public class Instance extends MinecraftVersion {
                     wrapperCommand = null;
                 }
 
-                if (account instanceof MojangAccount) {
-                    MojangAccount mojangAccount = (MojangAccount) account;
-                    LoginResponse session;
-
-                    if (offline) {
-                        session = new LoginResponse(mojangAccount.username);
-                        session.setOffline();
-                    } else {
-                        LogManager.info("Logging into Minecraft!");
-                        ProgressDialog<LoginResponse> loginDialog = new ProgressDialog<>(
-                                GetText.tr("Logging Into Minecraft"), 0, GetText.tr("Logging Into Minecraft"),
-                                "Aborted login to Minecraft!");
-                        loginDialog.addThread(new Thread(() -> {
-                            loginDialog.setReturnValue(mojangAccount.login());
-                            loginDialog.close();
-                        }));
-                        loginDialog.start();
-
-                        session = loginDialog.getReturnValue();
-
-                        if (session == null) {
-                            App.launcher.setMinecraftLaunched(false);
-                            if (App.launcher.getParent() != null) {
-                                App.launcher.getParent().setVisible(true);
-                            }
-                            return;
-                        }
-                    }
-
-                    if (enableCommands && preLaunchCommand != null) {
-                        if (!executeCommand(preLaunchCommand)) {
-                            LogManager.error("Failed to execute pre-launch command");
-
-                            App.launcher.setMinecraftLaunched(false);
-
-                            if (App.launcher.getParent() != null) {
-                                App.launcher.getParent().setVisible(true);
-                            }
-
-                            return;
-                        }
-                    }
-
-                    process = MCLauncher.launch(mojangAccount, this, session, nativesTempDir,
-                            LWJGLManager.shouldUseLegacyLWJGL(this) ? lwjglNativesTempDir : null,
-                            wrapperCommand, username);
-                } else if (account instanceof MicrosoftAccount) {
+                if (account instanceof MicrosoftAccount) {
                     MicrosoftAccount microsoftAccount = (MicrosoftAccount) account;
 
                     if (!offline) {
@@ -956,8 +851,7 @@ public class Instance extends MinecraftVersion {
                         }
                     }
 
-                    process = MCLauncher.launch(microsoftAccount, this, nativesTempDir,
-                            LWJGLManager.shouldUseLegacyLWJGL(this) ? lwjglNativesTempDir : null,
+                    process = MCLauncher.launch(microsoftAccount, this, nativesTempDir, null,
                             wrapperCommand, username);
                 }
 
@@ -1333,303 +1227,6 @@ public class Instance extends MinecraftVersion {
         return true;
     }
 
-    public boolean export(String name, String version, String author, InstanceExportFormat format, String saveTo,
-            List<String> overrides) {
-        if (format == InstanceExportFormat.MULTIMC) {
-            return exportAsMultiMcZip(name, version, author, saveTo, overrides);
-        }
-
-        return false;
-    }
-
-    public boolean exportAsMultiMcZip(String name, String version, String author, String saveTo,
-            List<String> overrides) {
-        String safePathName = name.replaceAll("[\\\"?:*<>|]", "");
-        Path to = Paths.get(saveTo).resolve(safePathName + ".zip");
-        MultiMCManifest manifest = new MultiMCManifest();
-
-        manifest.formatVersion = 1;
-
-        manifest.components = new ArrayList<>();
-
-        Optional<Library> lwjgl3Version = libraries.stream().filter(l -> l.name.contains("org.lwjgl:lwjgl:"))
-                .findFirst();
-
-        // minecraft
-        MultiMCComponent minecraftComponent = new MultiMCComponent();
-        minecraftComponent.cachedName = "Minecraft";
-        minecraftComponent.important = true;
-        minecraftComponent.cachedVersion = id;
-        minecraftComponent.uid = "net.minecraft";
-        minecraftComponent.version = id;
-
-        if (lwjgl3Version.isPresent()) {
-            String lwjgl3VersionString = lwjgl3Version.get().name.replace("org.lwjgl:lwjgl:", "");
-
-            // lwjgl 3
-            MultiMCComponent lwjgl3Component = new MultiMCComponent();
-            lwjgl3Component.cachedName = "LWJGL 3";
-            lwjgl3Component.cachedVersion = lwjgl3VersionString;
-            lwjgl3Component.cachedVolatile = true;
-            lwjgl3Component.dependencyOnly = true;
-            lwjgl3Component.uid = "org.lwjgl3";
-            lwjgl3Component.version = lwjgl3VersionString;
-            manifest.components.add(lwjgl3Component);
-
-            minecraftComponent.cachedRequires = new ArrayList<>();
-            MultiMCRequire lwjgl3Require = new MultiMCRequire();
-            lwjgl3Require.equals = lwjgl3VersionString;
-            lwjgl3Require.suggests = lwjgl3VersionString;
-            lwjgl3Require.uid = "org.lwjgl3";
-            minecraftComponent.cachedRequires.add(lwjgl3Require);
-        }
-
-        manifest.components.add(minecraftComponent);
-
-        // fabric loader
-        if (launcher.loaderVersion.type.equals("Fabric") || launcher.loaderVersion.type.equals("LegacyFabric")) {
-            // mappings
-            MultiMCComponent fabricMappingsComponent = new MultiMCComponent();
-            fabricMappingsComponent.cachedName = "Intermediary Mappings";
-
-            fabricMappingsComponent.cachedRequires = new ArrayList<>();
-            MultiMCRequire minecraftRequire = new MultiMCRequire();
-            minecraftRequire.equals = id;
-            minecraftRequire.uid = "net.minecraft";
-            fabricMappingsComponent.cachedRequires.add(minecraftRequire);
-
-            fabricMappingsComponent.cachedVersion = id;
-            fabricMappingsComponent.cachedVolatile = true;
-            fabricMappingsComponent.dependencyOnly = true;
-            fabricMappingsComponent.uid = "net.fabricmc.intermediary";
-            fabricMappingsComponent.version = id;
-            manifest.components.add(fabricMappingsComponent);
-
-            // loader
-            MultiMCComponent fabricLoaderComponent = new MultiMCComponent();
-            fabricLoaderComponent.cachedName = "Fabric Loader";
-
-            fabricLoaderComponent.cachedRequires = new ArrayList<>();
-            MultiMCRequire intermediaryRequire = new MultiMCRequire();
-            intermediaryRequire.uid = "net.fabricmc.intermediary";
-            fabricLoaderComponent.cachedRequires.add(intermediaryRequire);
-
-            fabricLoaderComponent.cachedVersion = launcher.loaderVersion.version;
-            fabricLoaderComponent.uid = "net.fabricmc.fabric-loader";
-            fabricLoaderComponent.version = launcher.loaderVersion.version;
-            manifest.components.add(fabricLoaderComponent);
-        }
-
-        // forge loader
-        if (launcher.loaderVersion.type.equals("Forge")) {
-            // loader
-            MultiMCComponent forgeMappingsComponent = new MultiMCComponent();
-            forgeMappingsComponent.cachedName = "Forge";
-
-            forgeMappingsComponent.cachedRequires = new ArrayList<>();
-            MultiMCRequire minecraftRequire = new MultiMCRequire();
-            minecraftRequire.equals = id;
-            minecraftRequire.uid = "net.minecraft";
-            forgeMappingsComponent.cachedRequires.add(minecraftRequire);
-
-            forgeMappingsComponent.cachedVersion = launcher.loaderVersion.version;
-            forgeMappingsComponent.uid = "net.minecraftforge";
-            forgeMappingsComponent.version = launcher.loaderVersion.version;
-            manifest.components.add(forgeMappingsComponent);
-        }
-
-        // quilt loader
-        if (launcher.loaderVersion.type.equals("Quilt")) {
-            String hashedName = "org.quiltmc.hashed";
-            String cachedName = "Hashed Mappings";
-            if (ConfigManager.getConfigItem("loaders.quilt.switchHashedForIntermediary", true) == false) {
-                hashedName = "net.fabricmc.intermediary";
-                cachedName = "Intermediary Mappings";
-            }
-
-            // mappings
-            MultiMCComponent quiltMappingsComponent = new MultiMCComponent();
-            quiltMappingsComponent.cachedName = cachedName;
-
-            quiltMappingsComponent.cachedRequires = new ArrayList<>();
-            MultiMCRequire minecraftRequire = new MultiMCRequire();
-            minecraftRequire.equals = id;
-            minecraftRequire.uid = "net.minecraft";
-            quiltMappingsComponent.cachedRequires.add(minecraftRequire);
-
-            quiltMappingsComponent.cachedVersion = id;
-            quiltMappingsComponent.cachedVolatile = true;
-            quiltMappingsComponent.dependencyOnly = true;
-            quiltMappingsComponent.uid = hashedName;
-            quiltMappingsComponent.version = id;
-            manifest.components.add(quiltMappingsComponent);
-
-            // loader
-            MultiMCComponent quiltLoaderComponent = new MultiMCComponent();
-            quiltLoaderComponent.cachedName = "Quilt Loader";
-
-            quiltLoaderComponent.cachedRequires = new ArrayList<>();
-            MultiMCRequire hashedRequire = new MultiMCRequire();
-            hashedRequire.uid = hashedName;
-            quiltLoaderComponent.cachedRequires.add(hashedRequire);
-
-            quiltLoaderComponent.cachedVersion = launcher.loaderVersion.version;
-            quiltLoaderComponent.uid = "org.quiltmc.quilt-loader";
-            quiltLoaderComponent.version = launcher.loaderVersion.version;
-            manifest.components.add(quiltLoaderComponent);
-        }
-
-        // create temp directory to put this in
-        Path tempDir = FileSystem.TEMP.resolve(this.getSafeName() + "-export");
-        FileUtils.createDirectory(tempDir);
-
-        // create mmc-pack.json
-        try (FileWriter fileWriter = new FileWriter(tempDir.resolve("mmc-pack.json").toFile())) {
-            Gsons.MINECRAFT.toJson(manifest, fileWriter);
-        } catch (JsonIOException | IOException e) {
-            LogManager.logStackTrace("Failed to save mmc-pack.json", e);
-
-            FileUtils.deleteDirectory(tempDir);
-
-            return false;
-        }
-
-        // if Legacy Fabric, add patch in
-        if (launcher.loaderVersion.type.equals("LegacyFabric")) {
-            FileUtils.createDirectory(tempDir.resolve("patches"));
-
-            JsonObject patch = new JsonObject();
-            patch.addProperty("formatVersion", 1);
-            patch.addProperty("name", "Intermediary Mappings");
-            patch.addProperty("uid", "net.fabricmc.intermediary");
-            patch.addProperty("version", id);
-
-            JsonArray plusLibraries = new JsonArray();
-            JsonObject intermediary = new JsonObject();
-            intermediary.addProperty("name", String.format("net.fabricmc:intermediary:%s", id));
-            intermediary.addProperty("url", Constants.LEGACY_FABRIC_MAVEN);
-            plusLibraries.add(intermediary);
-            patch.add("+libraries", plusLibraries);
-
-            // create net.fabricmc.intermediary.json
-            try (FileWriter fileWriter = new FileWriter(tempDir.resolve("net.fabricmc.intermediary.json").toFile())) {
-                Gsons.MINECRAFT.toJson(patch, fileWriter);
-            } catch (JsonIOException | IOException e) {
-                LogManager.logStackTrace("Failed to save net.fabricmc.intermediary.json", e);
-
-                FileUtils.deleteDirectory(tempDir);
-
-                return false;
-            }
-
-        }
-
-        // create instance.cfg
-        Path instanceCfgPath = tempDir.resolve("instance.cfg");
-        Properties instanceCfg = new Properties();
-
-        String iconKey = "default";
-        if (hasCustomImage()) {
-            String customIconFileName = "atlauncher_" + getSafeName().toLowerCase();
-            Path customIconPath = tempDir.resolve(customIconFileName + ".png");
-
-            FileUtils.copyFile(this.getRoot().resolve("instance.png"), customIconPath, true);
-
-            iconKey = customIconFileName;
-        }
-
-        instanceCfg.setProperty("AutoCloseConsole", "false");
-        instanceCfg.setProperty("ForgeVersion", "false");
-        instanceCfg.setProperty("InstanceType", "OneSix");
-        instanceCfg.setProperty("IntendedVersion", "");
-        instanceCfg.setProperty("JavaPath", Optional.ofNullable(launcher.javaPath).orElse(App.settings.javaPath)
-                + File.separator + "bin" + File.separator + (OS.isWindows() ? "javaw.exe" : "java"));
-        instanceCfg.setProperty("JVMArgs", Optional.ofNullable(launcher.javaArguments).orElse(""));
-        instanceCfg.setProperty("LWJGLVersion", "");
-        instanceCfg.setProperty("LaunchMaximized", "false");
-        instanceCfg.setProperty("LiteloaderVersion", "");
-        instanceCfg.setProperty("LogPrePostOutput", "true");
-        instanceCfg.setProperty("MCLaunchMethod", "LauncherPart");
-        instanceCfg.setProperty("MaxMemAlloc",
-                Optional.ofNullable(launcher.maximumMemory).orElse(App.settings.maximumMemory) + "");
-
-        if (ConfigManager.getConfigItem("removeInitialMemoryOption", false) == false) {
-            instanceCfg.setProperty("MinMemAlloc",
-                    Optional.ofNullable(launcher.initialMemory).orElse(App.settings.initialMemory) + "");
-        }
-
-        instanceCfg.setProperty("MinecraftWinHeight", App.settings.windowHeight + "");
-        instanceCfg.setProperty("MinecraftWinWidth", App.settings.windowWidth + "");
-        instanceCfg.setProperty("OverrideCommands",
-                launcher.postExitCommand != null || launcher.preLaunchCommand != null || launcher.wrapperCommand != null
-                        ? "true"
-                        : "false");
-        instanceCfg.setProperty("OverrideConsole", "false");
-        instanceCfg.setProperty("OverrideJava", launcher.javaPath == null ? "false" : "true");
-        instanceCfg.setProperty("OverrideJavaArgs", launcher.javaArguments == null ? "false" : "true");
-        instanceCfg.setProperty("OverrideJavaLocation", "false");
-        instanceCfg.setProperty("OverrideMCLaunchMethod", "false");
-        instanceCfg.setProperty("OverrideMemory", launcher.maximumMemory == null ? "false" : "true");
-        instanceCfg.setProperty("OverrideNativeWorkarounds", "false");
-        instanceCfg.setProperty("OverrideWindow", "false");
-        instanceCfg.setProperty("PermGen", Optional.ofNullable(launcher.permGen).orElse(App.settings.metaspace) + "");
-        instanceCfg.setProperty("PostExitCommand",
-                Optional.ofNullable(launcher.postExitCommand).orElse(App.settings.postExitCommand) + "");
-        instanceCfg.setProperty("PreLaunchCommand",
-                Optional.ofNullable(launcher.preLaunchCommand).orElse(App.settings.preLaunchCommand) + "");
-        instanceCfg.setProperty("ShowConsole", "false");
-        instanceCfg.setProperty("ShowConsoleOnError", "true");
-        instanceCfg.setProperty("UseNativeGLFW", "false");
-        instanceCfg.setProperty("UseNativeOpenAL", "false");
-        instanceCfg.setProperty("WrapperCommand",
-                Optional.ofNullable(launcher.wrapperCommand).orElse(App.settings.wrapperCommand) + "");
-        instanceCfg.setProperty("iconKey", iconKey);
-        instanceCfg.setProperty("name", launcher.name);
-        instanceCfg.setProperty("lastLaunchTime", "");
-        instanceCfg.setProperty("notes", "");
-        instanceCfg.setProperty("totalTimePlayed", "0");
-
-        try (OutputStream outputStream = Files.newOutputStream(instanceCfgPath)) {
-            instanceCfg.store(outputStream, "Exported by " + Constants.LAUNCHER_NAME);
-        } catch (JsonIOException | IOException e) {
-            LogManager.logStackTrace("Failed to save mmc-pack.json", e);
-
-            FileUtils.deleteDirectory(tempDir);
-
-            return false;
-        }
-
-        // create an empty .packignore file
-        Path packignoreFile = tempDir.resolve(".packignore");
-        try {
-            packignoreFile.toFile().createNewFile();
-        } catch (IOException ignored) {
-            // this is okay to ignore, it's unused but seems to be there by default
-        }
-
-        // copy over the files into the .minecraft folder
-        Path dotMinecraftPath = tempDir.resolve(".minecraft");
-        FileUtils.createDirectory(dotMinecraftPath);
-
-        for (String path : overrides) {
-            if (!path.equalsIgnoreCase(safePathName + ".zip") && getRoot().resolve(path).toFile().exists()
-                    && (getRoot().resolve(path).toFile().isFile()
-                            || getRoot().resolve(path).toFile().list().length != 0)) {
-                if (getRoot().resolve(path).toFile().isDirectory()) {
-                    Utils.copyDirectory(getRoot().resolve(path).toFile(), dotMinecraftPath.resolve(path).toFile());
-                } else {
-                    Utils.copyFile(getRoot().resolve(path).toFile(), dotMinecraftPath.resolve(path).toFile(), true);
-                }
-            }
-        }
-
-        ArchiveUtils.createZip(tempDir, to);
-
-        FileUtils.deleteDirectory(tempDir);
-
-        return true;
-    }
-
     public boolean rename(String newName) {
         String oldName = this.launcher.name;
         File oldDir = getRoot().toFile();
@@ -1773,22 +1370,6 @@ public class Instance extends MinecraftVersion {
         return "Instance";
     }
 
-    public void update() {
-        new InstanceInstallerDialog(this, true, false, null, null, true, null, App.launcher.getParent(), null);
-    }
-
-    public boolean isUpdatable() {
-        if (launcher.vanillaInstance) {
-            return true;
-        }
-
-        if (isExternalPack()) {
-            return isUpdatableExternalPack();
-        }
-
-        return launcher.packId != 0 && getPack() != null;
-    }
-
     public void backup() {
         backup(App.settings.backupMode);
     }
@@ -1843,9 +1424,6 @@ public class Instance extends MinecraftVersion {
         return isExternalPack() || launcher.vanillaInstance || (getPack() != null && getPack().system);
     }
 
-    public void startReinstall() {
-        new InstanceInstallerDialog(this);
-    }
 
     public void startRename() {
         new RenameInstanceDialog(this);
@@ -1953,7 +1531,7 @@ public class Instance extends MinecraftVersion {
 
         try {
             Installable installable = new VanillaInstallable(MinecraftManager.getMinecraftVersion(id), loaderVersion,
-                    launcher.description);
+                    launcher.description, launcher.lwjglVersion);
             installable.instance = this;
             installable.instanceName = launcher.name;
             installable.isReinstall = true;
@@ -1998,7 +1576,7 @@ public class Instance extends MinecraftVersion {
 
         try {
             Installable installable = new VanillaInstallable(MinecraftManager.getMinecraftVersion(id), loaderVersion,
-                    launcher.description);
+                    launcher.description, launcher.lwjglVersion);
             installable.instance = this;
             installable.instanceName = launcher.name;
             installable.isReinstall = true;
@@ -2073,14 +1651,13 @@ public class Instance extends MinecraftVersion {
         }
 
         loaderVersions.forEach(version -> loaderVersionsDropDown
-                .addItem(new ComboItem<LoaderVersion>(version, version.toStringWithCurrent(this))));
+                .addItem(new ComboItem<>(version, version.toStringWithCurrent(this))));
 
         if (launcher.loaderVersion != null) {
             String loaderVersionString = launcher.loaderVersion.version;
 
             for (int i = 0; i < loaderVersionsDropDown.getItemCount(); i++) {
-                LoaderVersion loaderVersion = ((ComboItem<LoaderVersion>) loaderVersionsDropDown.getItemAt(i))
-                        .getValue();
+                LoaderVersion loaderVersion = loaderVersionsDropDown.getItemAt(i).getValue();
 
                 if (loaderVersion.version.equals(loaderVersionString)) {
                     loaderVersionsDropDown.setSelectedIndex(i);
@@ -2089,8 +1666,8 @@ public class Instance extends MinecraftVersion {
             }
         }
 
-        // ensures that the dropdown is at least 200 px wide
-        loaderVersionLength = Math.max(200, loaderVersionLength);
+        // ensures that the dropdown is at least 300 px wide
+        loaderVersionLength = Math.max(300, loaderVersionLength);
 
         // ensures that there is a maximum width of 400 px to prevent overflow
         loaderVersionLength = Math.min(400, loaderVersionLength);
@@ -2110,12 +1687,13 @@ public class Instance extends MinecraftVersion {
         panel.add(loaderVersionsDropDown);
         panel.add(Box.createVerticalStrut(20));
 
-        int ret = JOptionPane.showConfirmDialog(App.launcher.getParent(), panel,
+        Object[] buttons = { "Change", "Cancel" };
+        int ret = JOptionPane.showOptionDialog(App.launcher.getParent(), panel,
                 // #. {0} is the loader (Forge/Fabric/Quilt)
                 launcher.loaderVersion == null ? GetText.tr("Installing {0}", loaderType)
                         // #. {0} is the loader (Forge/Fabric/Quilt)
                         : GetText.tr("Changing {0} Version", loaderType),
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null, buttons, buttons[0]);
 
         if (ret != 0) {
             return null;
@@ -2131,7 +1709,7 @@ public class Instance extends MinecraftVersion {
 
         try {
             Installable installable = new VanillaInstallable(MinecraftManager.getMinecraftVersion(id), null,
-                    launcher.description);
+                    launcher.description, launcher.lwjglVersion);
             installable.instance = this;
             installable.instanceName = launcher.name;
             installable.isReinstall = true;

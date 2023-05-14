@@ -63,6 +63,7 @@ public class InstanceLauncher {
     public String preLaunchCommand = null;
     public String postExitCommand = null;
     public String wrapperCommand = null;
+    public String lwjglVersion = null;
     public Boolean useSystemGlfw = null;
     public Boolean useSystemOpenAl = null;
 

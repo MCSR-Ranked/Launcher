@@ -192,7 +192,6 @@ public final class AddModsDialog extends JDialog {
         getMods();
     }
 
-    @SuppressWarnings("unchecked")
     private void getMods() {
         setLoading(true);
         prevButton.setEnabled(false);
@@ -234,10 +233,10 @@ public final class AddModsDialog extends JDialog {
             if (availableMod.getName().toLowerCase(Locale.ROOT).contains(str.toLowerCase(Locale.ROOT))
                 && this.instance.getCustomDisableableMods().stream().noneMatch(mod -> {
                     if (Objects.equals(mod.getName(), availableMod.getName())) {
-                        if (!mod.isFromModCheck()) return false;
-                        return !Objects.equals(mod.getVersion(), availableMod.getModResource().getModVersion().getVersionName());
+                        if (!mod.isFromModCheck()) return true;
+                        return Objects.equals(mod.getVersion(), availableMod.getModResource().getModVersion().getVersionName());
                     }
-                    return true;
+                    return false;
             })) searchResult.add(availableMod);
         }
 
@@ -278,6 +277,7 @@ public final class AddModsDialog extends JDialog {
                         DialogManager.okDialog().setTitle(GetText.tr("Done!", mod.getName()))
                             .setContent(GetText.tr("Successfully downloaded {0}!", mod.getName()))
                             .setType(DialogManager.INFO).show();
+                        this.getMods();
                     }));
                     dialog.start();
                 }), gbc);

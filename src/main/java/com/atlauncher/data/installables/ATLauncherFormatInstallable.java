@@ -27,13 +27,14 @@ public abstract class ATLauncherFormatInstallable extends Installable {
     public LoaderVersion loaderVersion;
 
     public ATLauncherFormatInstallable() {
-        this(null, null, null);
+        this(null, null, null, null);
     }
 
-    public ATLauncherFormatInstallable(Pack pack, PackVersion packVersion, LoaderVersion loaderVersion) {
+    public ATLauncherFormatInstallable(Pack pack, PackVersion packVersion, LoaderVersion loaderVersion, String lwjglVersion) {
         this.pack = pack;
         this.packVersion = packVersion;
         this.loaderVersion = loaderVersion;
+        this.lwjglVersion = lwjglVersion;
     }
 
     @Override
@@ -51,4 +52,8 @@ public abstract class ATLauncherFormatInstallable extends Installable {
         return this.loaderVersion;
     }
 
+    @Override
+    public String getLWJGLVersion() {
+        return null;
+    }
 }

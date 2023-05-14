@@ -21,8 +21,6 @@ import java.awt.Dialog.ModalityType;
 import java.awt.FlowLayout;
 import java.awt.Window;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -39,7 +37,6 @@ import org.mini2Dx.gettext.GetText;
 import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.constants.Constants;
 import com.atlauncher.data.DownloadableFile;
-import com.atlauncher.data.Instance;
 import com.atlauncher.data.LauncherVersion;
 import com.atlauncher.data.modcheck.ModCheckManager;
 import com.atlauncher.gui.dialogs.ProgressDialog;
@@ -58,9 +55,6 @@ import com.atlauncher.network.Download;
 import com.atlauncher.network.DownloadPool;
 import com.atlauncher.utils.Java;
 import com.atlauncher.utils.OS;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import okhttp3.OkHttpClient;
@@ -95,7 +89,7 @@ public class Launcher {
 
         MinecraftManager.loadMinecraftVersions(); // Load info about the different Minecraft versions
         MinecraftManager.loadJavaRuntimes(); // Load info about the different java runtimes
-        LWJGLManager.loadLWJGLVersions(); // Load info about the different LWJGL versions
+        LWJGLManager.loadLWJGLVersions();
 
         AccountManager.loadAccounts(); // Load the saved Accounts
 
@@ -314,6 +308,7 @@ public class Launcher {
 
         MinecraftManager.loadMinecraftVersions(); // Load info about the different Minecraft versions
         MinecraftManager.loadJavaRuntimes(); // Load info about the different java runtimes
+        LWJGLManager.loadLWJGLVersions();
     }
 
     public void reloadLauncherData() {

@@ -38,5 +38,6 @@ public class MinecraftVersion {
     public Logging logging;
     public List<Library> libraries;
     public List<Rule> rules;
+    public List<String> lwjglVersions;
     public String mainClass;
 }

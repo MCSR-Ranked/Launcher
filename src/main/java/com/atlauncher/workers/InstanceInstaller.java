@@ -18,7 +18,6 @@
 package com.atlauncher.workers;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -44,10 +43,8 @@ import org.mini2Dx.gettext.GetText;
 import com.atlauncher.App;
 import com.atlauncher.Data;
 import com.atlauncher.FileSystem;
-import com.atlauncher.Gsons;
 import com.atlauncher.Network;
 import com.atlauncher.constants.Constants;
-import com.atlauncher.data.APIResponse;
 import com.atlauncher.data.DisableableMod;
 import com.atlauncher.data.Instance;
 import com.atlauncher.data.InstanceLauncher;
@@ -70,17 +67,16 @@ import com.atlauncher.data.minecraft.JavaRuntime;
 import com.atlauncher.data.minecraft.JavaRuntimeManifest;
 import com.atlauncher.data.minecraft.JavaRuntimeManifestFileType;
 import com.atlauncher.data.minecraft.JavaRuntimes;
+import com.atlauncher.data.minecraft.LWJGLLibrary;
 import com.atlauncher.data.minecraft.Library;
 import com.atlauncher.data.minecraft.LoggingFile;
 import com.atlauncher.data.minecraft.MCMod;
 import com.atlauncher.data.minecraft.MinecraftVersion;
 import com.atlauncher.data.minecraft.MojangAssetIndex;
 import com.atlauncher.data.minecraft.MojangDownload;
-import com.atlauncher.data.minecraft.MojangDownloads;
 import com.atlauncher.data.minecraft.VersionManifestVersion;
 import com.atlauncher.data.minecraft.loaders.Loader;
 import com.atlauncher.data.minecraft.loaders.LoaderVersion;
-import com.atlauncher.data.modrinth.ModrinthFile;
 import com.atlauncher.data.modrinth.ModrinthProject;
 import com.atlauncher.data.modrinth.ModrinthVersion;
 import com.atlauncher.data.multimc.MultiMCComponent;
@@ -88,6 +84,7 @@ import com.atlauncher.data.multimc.MultiMCManifest;
 import com.atlauncher.exceptions.LocalException;
 import com.atlauncher.interfaces.NetworkProgressable;
 import com.atlauncher.managers.InstanceManager;
+import com.atlauncher.managers.LWJGLManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.managers.MinecraftManager;
 import com.atlauncher.network.DownloadPool;
@@ -99,7 +96,6 @@ import com.atlauncher.utils.ModrinthApi;
 import com.atlauncher.utils.OS;
 import com.atlauncher.utils.Utils;
 import com.atlauncher.utils.walker.CaseFileVisitor;
-import com.google.gson.reflect.TypeToken;
 
 import okhttp3.OkHttpClient;
 
@@ -132,6 +128,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
     public com.atlauncher.data.json.Version packVersion;
     public VersionManifestVersion minecraftVersionManifest = null;
     public MinecraftVersion minecraftVersion;
+    private String selectedLWJGLVersion;
 
     public List<Mod> allMods;
     public List<Mod> selectedMods;
@@ -153,7 +150,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
     private JDialog dialog;
     public Instance resultInstance;
 
-    public InstanceInstaller(String name, com.atlauncher.data.Pack pack, com.atlauncher.data.PackVersion version,
+    public InstanceInstaller(String name, com.atlauncher.data.Pack pack, com.atlauncher.data.PackVersion version, String selectedLWJGLVersion,
             boolean isReinstall, boolean changingLoader, boolean saveMods, String shareCode,
             boolean showModsChooser, LoaderVersion loaderVersion,
             Path modrinthExtractedPath, MultiMCManifest multiMCManifest,
@@ -166,6 +163,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
         this.saveMods = saveMods;
         this.shareCode = shareCode;
         this.showModsChooser = showModsChooser;
+        this.selectedLWJGLVersion = selectedLWJGLVersion;
         this.dialog = dialog;
 
         this.root = FileSystem.INSTANCES.resolve(name.replaceAll("[^A-Za-z0-9]", ""));
@@ -425,6 +423,13 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
                 .downloadTo(FileSystem.MINECRAFT_VERSIONS_JSON.resolve(minecraftVersionManifest.id + ".json"));
 
         this.minecraftVersion = download.asClass(MinecraftVersion.class);
+
+        LWJGLManager.addLWJGLVersion(
+            com.atlauncher.network.Download.build()
+                .setUrl(String.format("%s/launcher/json/lwjgl/%s.json", Constants.DOWNLOAD_SERVER, this.selectedLWJGLVersion))
+                .downloadTo(FileSystem.LWJGL_VERSIONS_JSON.resolve(this.selectedLWJGLVersion + ".json"))
+                .asClass(LWJGLLibrary.class)
+        );
 
         if (this.minecraftVersion == null) {
             LogManager.error("Failed to download Minecraft json.");
@@ -696,6 +701,7 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
         instance.arguments = this.arguments;
 
         instanceLauncher.loaderVersion = this.loaderVersion;
+        instanceLauncher.lwjglVersion = this.selectedLWJGLVersion;
 
         if (!changingLoader) {
             instanceLauncher.name = this.name;
@@ -1031,18 +1037,6 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
                 + ".jar".replace("/", File.separatorChar + "");
     }
 
-    public List<String> getLibrariesForLaunch() {
-        List<String> libraries = new ArrayList<>();
-
-        libraries.add(this.getMinecraftJarLibraryPath());
-
-        libraries.addAll(this.getLibraries().stream()
-                .filter(library -> library.downloads.artifact != null && library.downloads.artifact.path != null)
-                .map(library -> library.downloads.artifact.path).collect(Collectors.toList()));
-
-        return libraries;
-    }
-
     public String getMinecraftArguments() {
         return this.arguments.asString();
     }
@@ -1096,9 +1090,8 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
         OkHttpClient httpClient = Network.createProgressClient(this);
         DownloadPool pool = new DownloadPool();
 
-        // get non native libraries otherwise we double up
         this.getLibraries().stream().filter(
-                library -> library.shouldInstall() && library.downloads.artifact != null && !library.hasNativeForOS())
+                library -> library.shouldInstall() && library.downloads.artifact != null)
                 .forEach(library -> {
                     com.atlauncher.network.Download download = new com.atlauncher.network.Download()
                             .setUrl(library.downloads.artifact.url)
@@ -1118,6 +1111,19 @@ public class InstanceInstaller extends SwingWorker<Boolean, Void> implements Net
         }
 
         this.getLibraries().stream().filter(Library::hasNativeForOS).forEach(library -> {
+            Download download = library.getNativeDownloadForOS();
+
+            pool.add(new com.atlauncher.network.Download().setUrl(download.url)
+                .downloadTo(FileSystem.LIBRARIES.resolve(download.path)).hash(download.sha1).size(download.size)
+                .withInstanceInstaller(this).withHttpClient(httpClient));
+        });
+
+        LWJGLManager.getLWJGLLibraries(this.selectedLWJGLVersion).forEach(library -> {
+            pool.add(new com.atlauncher.network.Download().setUrl(library.downloads.artifact.url)
+                .downloadTo(FileSystem.LIBRARIES.resolve(library.downloads.artifact.path))
+                .hash(library.downloads.artifact.sha1).size(library.downloads.artifact.size)
+                .withInstanceInstaller(this).withHttpClient(httpClient));
+
             Download download = library.getNativeDownloadForOS();
 
             pool.add(new com.atlauncher.network.Download().setUrl(download.url)

@@ -17,6 +17,8 @@
  */
 package com.atlauncher.data.minecraft;
 
+import java.util.List;
+
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 
@@ -31,6 +33,7 @@ public class VersionManifestVersion {
     public long size;
     public String sha1;
     public String releaseTime;
+    public List<String> lwjglVersions;
 
     public static DateTime release_1_2_5 = ISODateTimeFormat.dateTimeParser()
             .parseDateTime("2012-03-29T22:00:00+00:00");

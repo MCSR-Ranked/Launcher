@@ -1,231 +1,48 @@
-/*
- * MCSR Ranked Launcher - https://github.com/RedLime/MCSR-Ranked-Launcher
- * Copyright (C) 2023 ATLauncher
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
 package com.atlauncher.managers;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-import com.atlauncher.App;
-import com.atlauncher.Data;
 import com.atlauncher.FileSystem;
 import com.atlauncher.Gsons;
-import com.atlauncher.data.LWJGLLibrary;
-import com.atlauncher.data.LWJGLMajorVersion;
-import com.atlauncher.data.LWJGLVersion;
-import com.atlauncher.data.LWJGLVersions;
-import com.atlauncher.data.minecraft.Download;
+import com.atlauncher.data.minecraft.LWJGLLibrary;
 import com.atlauncher.data.minecraft.Library;
-import com.atlauncher.data.minecraft.MinecraftVersion;
-import com.atlauncher.utils.OS;
-import com.atlauncher.utils.Utils;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 
 public class LWJGLManager {
-    /**
-     * Loads info about the different LWJGL versions
-     */
+    private static final Map<String, List<Library>> versionLibMap = new HashMap<>();
+
     public static void loadLWJGLVersions() {
         PerformanceManager.start();
+        LogManager.debug("Loading LWJGL versions");
 
-        Data.LWJGL_VERSIONS = null;
+        versionLibMap.clear();
 
-        Path lwjglPath = FileSystem.JSON.resolve("lwjgl.json");
-
-        if (Files.exists(lwjglPath)) {
-            try {
-                Data.LWJGL_VERSIONS = Gsons.DEFAULT.fromJson(new FileReader(lwjglPath.toFile()), LWJGLVersions.class);
-            } catch (JsonSyntaxException | FileNotFoundException | JsonIOException e1) {
-                LogManager.logStackTrace(e1);
+        try {
+            for (File file : Objects.requireNonNull(FileSystem.LWJGL_VERSIONS_JSON.toFile().listFiles())) {
+                addLWJGLVersion(Gsons.DEFAULT.fromJson(new FileReader(file), LWJGLLibrary.class));
             }
+        } catch (JsonSyntaxException | FileNotFoundException | JsonIOException e) {
+            LogManager.logStackTrace(e);
         }
 
+        LogManager.debug("Finished loading LWJGL versions");
         PerformanceManager.end();
     }
 
-    public static boolean usesLegacyLWJGL(MinecraftVersion minecraftVersion) {
-        return Data.LWJGL_VERSIONS != null && Data.LWJGL_VERSIONS.legacyLwjglVersions.contains(minecraftVersion.id);
+    public static void addLWJGLVersion(LWJGLLibrary lwjglLibrary) {
+        if (lwjglLibrary != null) versionLibMap.put(lwjglLibrary.version, lwjglLibrary.libraries);
     }
 
-    public static LWJGLLibrary getLegacyLWJGLLibrary() {
-        Optional<LWJGLMajorVersion> version = Data.LWJGL_VERSIONS.versions.stream().filter(v -> v.version == 2)
-                .findFirst();
-
-        if (!version.isPresent() || version.get().versions.size() == 0) {
-            return null;
-        }
-
-        LWJGLVersion lwjglVersion = version.get().versions.get(0);
-
-        if (!lwjglVersion.libraries.containsKey("lwjgl")) {
-            return null;
-        }
-
-        Optional<LWJGLLibrary> library = Optional
-                .ofNullable(lwjglVersion.libraries.get("lwjgl").get(OS.getLWJGLClassifier()));
-
-        if (!library.isPresent()) {
-            return null;
-        }
-
-        return library.get();
-    }
-
-    public static Library getReplacementLWJGL3Library(MinecraftVersion minecraftVersion, Library library) {
-        if (!library.name.contains("lwjgl") || !library.name.contains(":3") || Data.LWJGL_VERSIONS == null) {
-            return library;
-        }
-
-        LogManager.debug(String.format("Looking at replacing LWJGL 3 library %s", library.name));
-
-        Optional<LWJGLMajorVersion> version = Data.LWJGL_VERSIONS.versions.stream().filter(v -> v.version == 3)
-                .findFirst();
-
-        if (!version.isPresent() || version.get().versions.size() == 0) {
-            LogManager.debug(String.format("Not replacing library %s as major version 3 not found",
-                    library.name));
-            return library;
-        }
-
-        String lwjglStringVersion = library.name.split(":")[2];
-        String libraryName = library.name.split(":")[1];
-
-        // use 3.3.1 at a minimum, else match to same version as Minecraft
-        String versionToUse = Utils.matchWholeVersion(lwjglStringVersion, "3.3.1", true) ? lwjglStringVersion : "3.3.1";
-
-        Optional<LWJGLVersion> lwjglVersion = version.get().versions.stream()
-                .filter(v -> v.version.equals(versionToUse)).findFirst();
-
-        if (!lwjglVersion.isPresent() || !lwjglVersion.get().libraries.containsKey(libraryName)) {
-            LogManager.debug(String.format("Not replacing library %s as no version (%s) or library found for %s",
-                    library.name, versionToUse, libraryName));
-            return library;
-        }
-
-        // take a copy of this so we're not modifying the original
-        Library replacedLibrary = Gsons.MINECRAFT.fromJson(Gsons.MINECRAFT.toJson(library), Library.class);
-
-        // 1.19-pre1 and onwards removed natives/classifiers, but we're worried about
-        // the base library, no natives library here
-        if ((library.natives == null || library.natives.size() == 0) && !library.name.contains(":natives-")) {
-            Optional<LWJGLLibrary> lwjglLibrary = Optional
-                    .ofNullable(lwjglVersion.get().libraries.get(libraryName).get("*"));
-
-            if (!lwjglLibrary.isPresent()) {
-                LogManager.debug(String.format("Not replacing library %s as couldn't find the library information",
-                        library.name));
-                return library;
-            }
-
-            // if sha1 matches, assume library is good
-            if (library.downloads.artifact.sha1.equals(lwjglLibrary.get().sha1)) {
-                LogManager.debug(String.format("Not replacing library %s as the file is the same", library.name));
-                return library;
-            }
-
-            LogManager.debug(String.format("Replacing library %s", library.name));
-
-            // update the artifact download
-            replacedLibrary.downloads.artifact.path = lwjglLibrary.get().path;
-            replacedLibrary.downloads.artifact.sha1 = lwjglLibrary.get().sha1;
-            replacedLibrary.downloads.artifact.url = lwjglLibrary.get().url;
-            replacedLibrary.downloads.artifact.size = lwjglLibrary.get().size;
-
-            // match the name up (as version can change)
-            replacedLibrary.name = lwjglLibrary.get().name;
-        }
-
-        // now worry about 1.19-pre1 format natives
-        if ((library.natives == null || library.natives.size() == 0) && library.name.contains(":natives-")) {
-            Optional<LWJGLLibrary> lwjglLibrary = Optional
-                    .ofNullable(lwjglVersion.get().libraries.get(libraryName).get(OS.getLWJGLClassifier()));
-
-            if (!lwjglLibrary.isPresent()) {
-                LogManager.debug(String.format(
-                        "Not replacing library %s as couldn't find the library information for classifier %s",
-                        library.name, OS.getLWJGLClassifier()));
-                return library;
-            }
-
-            // if sha1 matches, assume library is good
-            if (library.downloads.artifact.sha1.equals(lwjglLibrary.get().sha1)) {
-                LogManager.debug(String.format("Not replacing library %s as the file is the same", library.name));
-                return library;
-            }
-
-            LogManager.debug(String.format("Replacing native library %s", library.name));
-
-            // update the artifact download
-            replacedLibrary.downloads.artifact.path = lwjglLibrary.get().path;
-            replacedLibrary.downloads.artifact.sha1 = lwjglLibrary.get().sha1;
-            replacedLibrary.downloads.artifact.url = lwjglLibrary.get().url;
-            replacedLibrary.downloads.artifact.size = lwjglLibrary.get().size;
-
-            // match the name up (as version can change)
-            replacedLibrary.name = lwjglLibrary.get().name;
-        }
-
-        // now the old version natives format
-        if (library.natives != null && library.natives.size() != 0) {
-            Optional<LWJGLLibrary> lwjglLibrary = Optional
-                    .ofNullable(lwjglVersion.get().libraries.get(libraryName).get(OS.getLWJGLClassifier()));
-
-            if (!lwjglLibrary.isPresent()) {
-                LogManager.debug(String.format(
-                        "Not replacing library %s as couldn't find the library information for classifier %s",
-                        library.name, OS.getLWJGLClassifier()));
-                return library;
-            }
-
-            // if sha1 matches, assume library is good
-            if (library.downloads.artifact.sha1.equals(lwjglLibrary.get().sha1)) {
-                LogManager.debug(String.format("Not replacing library %s as the file is the same", library.name));
-                return library;
-            }
-
-            LogManager.debug(String.format("Replacing native library %s", library.name));
-
-            // need to change the natives classifier
-            Download nativeDownload = replacedLibrary.getNativeDownloadForOS();
-            nativeDownload.path = lwjglLibrary.get().path;
-            nativeDownload.sha1 = lwjglLibrary.get().sha1;
-            nativeDownload.url = lwjglLibrary.get().url;
-            nativeDownload.size = lwjglLibrary.get().size;
-        }
-
-        return replacedLibrary;
-    }
-
-    /**
-     * We only replace LWJGL 2 if the user is on linux ARM
-     */
-    public static boolean shouldUseLegacyLWJGL(MinecraftVersion minecraftVersion) {
-        return false;
-    }
-
-    /**
-     * We only replace LWJGL 3 if the user is on ARM (unless on Mac ARM where
-     * Minecraft provides natives for it already)
-     */
-    public static boolean shouldReplaceLWJGL3(MinecraftVersion minecraftVersion) {
-        return false;
+    public static List<Library> getLWJGLLibraries(String lwjglVersion) {
+        return versionLibMap.getOrDefault(lwjglVersion, new ArrayList<>()).stream().filter(Library::hasNativeForOS).collect(Collectors.toList());
     }
 }

@@ -34,21 +34,15 @@ import com.atlauncher.constants.Constants;
 import com.atlauncher.data.AbstractAccount;
 import com.atlauncher.data.DisableableMod;
 import com.atlauncher.data.Instance;
-import com.atlauncher.data.LoginResponse;
 import com.atlauncher.data.MicrosoftAccount;
-import com.atlauncher.data.MojangAccount;
 import com.atlauncher.data.minecraft.Library;
 import com.atlauncher.data.minecraft.LoggingClient;
-import com.atlauncher.data.minecraft.PropertyMapSerializer;
 import com.atlauncher.managers.ConfigManager;
 import com.atlauncher.managers.LWJGLManager;
 import com.atlauncher.managers.LogManager;
 import com.atlauncher.utils.Java;
 import com.atlauncher.utils.OS;
 import com.atlauncher.utils.Utils;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.mojang.authlib.properties.PropertyMap;
 import com.mojang.util.UUIDTypeAdapter;
 
 public class MCLauncher {
@@ -66,18 +60,6 @@ public class MCLauncher {
             Path lwjglNativesTempDir,
             String wrapperCommand, String username) throws Exception {
         return launch(account, instance, null, nativesTempDir.toFile(), lwjglNativesTempDir, wrapperCommand, username);
-    }
-
-    public static Process launch(MojangAccount account, Instance instance, LoginResponse response, Path nativesTempDir,
-            Path lwjglNativesTempDir, String wrapperCommand, String username) throws Exception {
-        String props = "[]";
-
-        if (!response.isOffline()) {
-            Gson gson = new GsonBuilder().registerTypeAdapter(PropertyMap.class, new PropertyMapSerializer()).create();
-            props = gson.toJson(response.getAuth().getUserProperties());
-        }
-
-        return launch(account, instance, props, nativesTempDir.toFile(), lwjglNativesTempDir, wrapperCommand, username);
     }
 
     private static Process launch(AbstractAccount account, Instance instance, String props, File nativesDir,
@@ -189,11 +171,8 @@ public class MCLauncher {
         }
 
         instance.libraries.stream().filter(
-                library -> library.shouldInstall() && library.downloads.artifact != null && !library.hasNativeForOS())
-                .filter(library -> library.downloads.artifact != null && library.downloads.artifact.path != null)
-                .map(l -> LWJGLManager.shouldReplaceLWJGL3(instance)
-                        ? LWJGLManager.getReplacementLWJGL3Library(instance, l)
-                        : l)
+                library -> library.shouldInstall() && library.downloads.artifact != null)
+                .filter(library -> library.downloads.artifact.path != null)
                 .forEach(library -> {
                     String path = FileSystem.LIBRARIES.resolve(library.downloads.artifact.path).toFile()
                             .getAbsolutePath();
@@ -205,15 +184,22 @@ public class MCLauncher {
                 });
 
         instance.libraries.stream().filter(Library::hasNativeForOS)
-                .map(l -> LWJGLManager.shouldReplaceLWJGL3(instance)
-                        ? LWJGLManager.getReplacementLWJGL3Library(instance, l)
-                        : l)
                 .forEach(library -> {
                     com.atlauncher.data.minecraft.Download download = library.getNativeDownloadForOS();
 
                     cpb.append(FileSystem.LIBRARIES.resolve(download.path).toFile().getAbsolutePath());
                     cpb.append(File.pathSeparator);
                 });
+
+        LWJGLManager.getLWJGLLibraries(instance.launcher.lwjglVersion).forEach(library -> {
+            cpb.append(FileSystem.LIBRARIES.resolve(library.downloads.artifact.path).toFile().getAbsolutePath());
+            cpb.append(File.pathSeparator);
+
+            com.atlauncher.data.minecraft.Download download = library.getNativeDownloadForOS();
+
+            cpb.append(FileSystem.LIBRARIES.resolve(download.path).toFile().getAbsolutePath());
+            cpb.append(File.pathSeparator);
+        });
 
         File binFolder = instance.getBinDirectory();
         File[] libraryFiles = binFolder.listFiles();

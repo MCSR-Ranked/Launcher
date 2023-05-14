@@ -23,43 +23,32 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ItemEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JPopupMenu;
-import javax.swing.JTextField;
 import javax.swing.event.HyperlinkEvent;
 
 import org.mini2Dx.gettext.GetText;
 
 import com.atlauncher.builders.HTMLBuilder;
 import com.atlauncher.constants.Constants;
-import com.atlauncher.constants.UIConstants;
 import com.atlauncher.data.AbstractAccount;
-import com.atlauncher.data.LoginResponse;
 import com.atlauncher.data.MicrosoftAccount;
-import com.atlauncher.data.MojangAccount;
 import com.atlauncher.evnt.listener.RelocalizationListener;
 import com.atlauncher.evnt.manager.RelocalizationManager;
 import com.atlauncher.gui.dialogs.LoginWithMicrosoftDialog;
 import com.atlauncher.gui.dialogs.ProgressDialog;
 import com.atlauncher.gui.tabs.Tab;
-import com.atlauncher.gui.tabs.accounts.IAccountsViewModel.LoginPostResult;
-import com.atlauncher.gui.tabs.accounts.IAccountsViewModel.LoginPreCheckResult;
 import com.atlauncher.managers.AccountManager;
 import com.atlauncher.managers.DialogManager;
-import com.atlauncher.managers.LogManager;
 import com.atlauncher.utils.ComboItem;
 import com.atlauncher.utils.OS;
 import com.atlauncher.utils.SkinUtils;
@@ -78,7 +67,6 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
     private final JMenuItem changeSkin;
     private final JPopupMenu contextMenu; // Right click menu
 
-    @SuppressWarnings("unchecked")
     public AccountsTab() {
         viewModel = new AccountsViewModel();
         setLayout(new BorderLayout());
@@ -307,71 +295,6 @@ public class AccountsTab extends JPanel implements Tab, RelocalizationListener {
             }
         });
 
-    }
-
-    /**
-     * Run login steps, and react accordingly
-     */
-    @SuppressWarnings("unchecked")
-    private void login() {
-        // Pre check
-        LoginPreCheckResult preCheckResult = viewModel.loginPreCheck();
-        if (preCheckResult instanceof LoginPreCheckResult.Exists) {
-            DialogManager
-                    .okDialog()
-                    .setTitle(GetText.tr("Account Not Added"))
-                    .setContent(GetText.tr("This account already exists."))
-                    .setType(DialogManager.ERROR)
-                    .show();
-            return;
-        }
-
-        LogManager.info("Logging into Minecraft!");
-        final ProgressDialog<LoginResponse> dialog = new ProgressDialog<>(
-                GetText.tr("Logging Into Minecraft"),
-                0,
-                GetText.tr("Logging Into Minecraft"),
-                "Aborting login for " + viewModel.getLoginUsername());
-        dialog.setName("loginDialog");
-        dialog.addThread(new Thread(() -> {
-            viewModel.login();
-            dialog.close();
-        }));
-        dialog.start();
-
-        LoginPostResult postResult = viewModel.loginPost();
-
-        if (postResult instanceof LoginPostResult.Error) {
-            String error = ((LoginPostResult.Error) postResult).errorContent;
-            LogManager.error("error response: " + error);
-            DialogManager
-                    .okDialog()
-                    .setTitle(GetText.tr("Account Not Added"))
-                    .setContent(
-                            new HTMLBuilder()
-                                    .center()
-                                    // #. {0} is the error message from Mojang as to why we couldn't login
-                                    .text(GetText.tr(
-                                            "Account not added as login " +
-                                                    "details were incorrect.<br/><br/>{0}",
-                                            error))
-                                    .build())
-                    .setType(DialogManager.INFO)
-                    .show();
-        } else {
-            if (postResult instanceof LoginPostResult.Edited) {
-                DialogManager
-                        .okDialog()
-                        .setTitle(GetText.tr("Account Edited"))
-                        .setContent(
-                                GetText.tr("Account edited successfully"))
-                        .setType(DialogManager.INFO)
-                        .show();
-            }
-
-            viewModel.pushNewAccounts();
-            accountsComboBox.setSelectedIndex(viewModel.getSelectedIndex());
-        }
     }
 
     @Override

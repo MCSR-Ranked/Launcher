@@ -23,7 +23,6 @@ import java.awt.event.ItemEvent;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
@@ -32,22 +31,17 @@ import org.mini2Dx.gettext.GetText;
 import com.atlauncher.App;
 import com.atlauncher.evnt.listener.RelocalizationListener;
 import com.atlauncher.evnt.manager.RelocalizationManager;
-import com.atlauncher.gui.dialogs.ImportInstanceDialog;
 import com.atlauncher.gui.tabs.InstancesTab;
 import com.atlauncher.utils.sort.InstanceSortingStrategies;
 import com.atlauncher.utils.sort.InstanceSortingStrategy;
 import com.atlauncher.viewmodel.base.IInstancesTabViewModel;
 
 public final class InstancesNavigationPanel extends JPanel implements RelocalizationListener {
-    private final InstancesTab parent;
     private final IInstancesTabViewModel viewModel;
-
-    private final JButton importButton = new JButton(GetText.tr("Import"));
     private final InstancesSearchField searchField;
     private final JComboBox<InstanceSortingStrategy> sortingBox = new JComboBox<>(InstanceSortingStrategies.values());
 
-    public InstancesNavigationPanel(final InstancesTab parent,final IInstancesTabViewModel viewModel) {
-        this.parent = parent;
+    public InstancesNavigationPanel(final InstancesTab parent, final IInstancesTabViewModel viewModel) {
         this.viewModel = viewModel;
         this.searchField = new InstancesSearchField(parent,viewModel);
         this.sortingBox.setMaximumSize(new Dimension(190, 23));
@@ -58,7 +52,6 @@ public final class InstancesNavigationPanel extends JPanel implements Relocaliza
 
         this.setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
         this.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        this.add(importButton);
         this.add(Box.createHorizontalGlue());
         this.add(searchField);
         this.add(Box.createHorizontalStrut(5));
@@ -69,9 +62,6 @@ public final class InstancesNavigationPanel extends JPanel implements Relocaliza
     }
 
     private void addListeners() {
-        // action listeners
-        this.importButton.addActionListener((e) -> new ImportInstanceDialog());
-
         // item listeners
         this.sortingBox.addItemListener((e) -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -82,7 +72,6 @@ public final class InstancesNavigationPanel extends JPanel implements Relocaliza
 
     @Override
     public void onRelocalization() {
-        this.importButton.setText(GetText.tr("Import"));
         this.searchField.putClientProperty("JTextField.placeholderText", GetText.tr("Search"));
         this.sortingBox.repaint();
     }

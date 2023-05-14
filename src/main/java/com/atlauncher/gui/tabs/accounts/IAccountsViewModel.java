@@ -28,7 +28,6 @@ import com.atlauncher.data.MicrosoftAccount;
 
 /**
  * 12 / 06 / 2022
- *
  * The view model for Accounts tab, handles all background activity
  */
 public interface IAccountsViewModel {
@@ -117,64 +116,6 @@ public interface IAccountsViewModel {
      */
     @Nullable
     MicrosoftAccount getSelectedAccountAs();
-
-    /**
-     * @return Is the login username field filled
-     */
-    boolean isLoginUsernameSet();
-
-    /**
-     * @return current value set as login username
-     */
-    @Nullable
-    String getLoginUsername();
-
-    /**
-     * Set the login username
-     *
-     * @param username the new username to save
-     */
-    void setLoginUsername(String username);
-
-    /**
-     * @return Is the login passwords field filled
-     */
-    boolean isLoginPasswordSet();
-
-    /**
-     * Set the login password
-     *
-     * @param password the new password to set
-     */
-    void setLoginPassword(String password);
-
-    /**
-     * Set if the password should be remembered
-     *
-     * @param rememberLogin If the password should be remembered
-     */
-    void setRememberLogin(boolean rememberLogin);
-
-    /**
-     * Run the login pre-check
-     *
-     * @return the result of the pre-check, if null ignore
-     */
-    @Nullable
-    LoginPreCheckResult loginPreCheck();
-
-    /**
-     * Check the login with HQ
-     */
-    void login();
-
-    /**
-     * Finalize the login
-     *
-     * @return The result of the login
-     */
-    @NotNull
-    LoginPostResult loginPost();
 
     /**
      * Pre-check result for login

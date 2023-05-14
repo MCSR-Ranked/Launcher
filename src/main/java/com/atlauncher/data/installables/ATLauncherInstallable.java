@@ -22,7 +22,7 @@ import com.atlauncher.data.PackVersion;
 import com.atlauncher.data.minecraft.loaders.LoaderVersion;
 
 public class ATLauncherInstallable extends ATLauncherFormatInstallable {
-    public ATLauncherInstallable(Pack pack, PackVersion packVersion, LoaderVersion loaderVersion) {
-        super(pack, packVersion, loaderVersion);
+    public ATLauncherInstallable(Pack pack, PackVersion packVersion, LoaderVersion loaderVersion, String lwjglVersion) {
+        super(pack, packVersion, loaderVersion, lwjglVersion);
     }
 }

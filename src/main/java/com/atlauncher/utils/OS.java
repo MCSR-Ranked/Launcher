@@ -321,10 +321,6 @@ public enum OS {
                 || System.getProperty("os.arch").equalsIgnoreCase("aarch64");
     }
 
-    public static boolean isMacArm() {
-        return OS.isMac() && OS.isArm();
-    }
-
     /**
      * Gets the architecture type of the system.
      */
@@ -684,7 +680,17 @@ public enum OS {
     }
 
     public static String getNativesArch() {
-        return OS.is64Bit() ? "64" : "32";
+        if (isArm()) {
+            if (is64Bit()) {
+                return "-arm64";
+            } else {
+                return "-arm32";
+            }
+        } else if (!is64Bit()) {
+            return "-x86";
+        } else {
+            return "";
+        }
     }
 
     public static boolean usingExe() {
