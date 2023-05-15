@@ -7,15 +7,10 @@
 This changelog only contains the changes that are unreleased. For changes for individual releases, please visit the
 [releases](https://github.com/RedLime/MCSR-Ranked-Launcher/releases) page on GitHub.
 
-## 1.3.0.0
+## 1.3.0.1
 
 ### New Features
-- Support multiple LWJGL version
 
 ### Fixes
-- Fix linux/macOS support
-- Fix Add Mods Page
 
 ### Misc
-- Remove unused classes/methods
-- Remove Mojang Account
