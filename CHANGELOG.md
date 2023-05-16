@@ -10,7 +10,7 @@ This changelog only contains the changes that are unreleased. For changes for in
 ## 1.3.0.1
 
 ### New Features
-
+- Fix download wrong libraries on Mac/Linux with Arm Arch
 ### Fixes
 
 ### Misc
