@@ -60,6 +60,8 @@ public class LWJGLManager {
     }
 
     public static List<Library> getLWJGLLibraries(String lwjglVersion) {
-        return versionLibMap.getOrDefault(lwjglVersion, new ArrayList<>()).stream().filter(Library::hasNativeForOS).collect(Collectors.toList());
+        return versionLibMap.getOrDefault(lwjglVersion, new ArrayList<>()).stream()
+            .filter(library -> library.hasNativeForOS() && library.shouldInstall())
+            .collect(Collectors.toList());
     }
 }
