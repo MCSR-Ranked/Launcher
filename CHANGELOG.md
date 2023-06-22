@@ -10,7 +10,7 @@ This changelog only contains the changes that are unreleased. For changes for in
 ## 1.3.0.2
 
 ### New Features
-
+- Fix old ModCheck version
 ### Fixes
 
 ### Misc
