@@ -1108,7 +1108,7 @@ public class Instance extends MinecraftVersion {
     }
 
     public void addFileFromModCheck(ModCheckProject modCheckProject, boolean forceEnable) {
-        Path finalLocation = this.getRoot().resolve("mods").resolve(modCheckProject.getModResource().getFileName());
+        Path finalLocation = this.getRoot().resolve("mods").resolve(modCheckProject.getModFile().getName());
 
         if (Files.exists(finalLocation)) {
             FileUtils.delete(finalLocation);
@@ -1126,7 +1126,7 @@ public class Instance extends MinecraftVersion {
         try {
             //noinspection ResultOfMethodCallIgnored
             finalLocation.getParent().toFile().mkdirs();
-            URL url = new URL(modCheckProject.getModResource().getDownloadUrl());
+            URL url = new URL(modCheckProject.getModFile().getUrl());
 
             URLConnection con = url.openConnection();
             con.setRequestProperty("User-Agent", "ModCheck");
@@ -1152,8 +1152,8 @@ public class Instance extends MinecraftVersion {
         Type modType = Type.mods;
 
         // add this mod
-        DisableableMod disableableMod = new DisableableMod(modCheckProject.getName(), modCheckProject.getModResource().getModVersion().getVersionName(),
-            true, modCheckProject.getModResource().getFileName(), modType, null, "", false, true, modCheckProject);
+        DisableableMod disableableMod = new DisableableMod(modCheckProject.getName(), modCheckProject.getModFile().getVersion(),
+            true, modCheckProject.getModFile().getName(), modType, null, "", false, true, modCheckProject);
         this.launcher.mods.add(disableableMod);
         if (!forceEnable && ((sameMods.size() == 0 && !AUTO_ENABLE_MODS.contains(disableableMod.getName())) || sameMods.stream().anyMatch(DisableableMod::isDisabled))) disableableMod.disable(this);
 

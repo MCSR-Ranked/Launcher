@@ -18,31 +18,30 @@
 package com.atlauncher.data.modcheck;
 
 import java.util.List;
-import java.util.Objects;
 
 import org.apache.commons.compress.utils.Lists;
 
 import com.atlauncher.data.json.DownloadType;
 import com.atlauncher.data.json.Mod;
 import com.atlauncher.data.json.ModType;
-import com.pistacium.modcheck.mod.ModData;
-import com.pistacium.modcheck.mod.resource.ModResource;
+import com.pistacium.modcheck.mod.ModFile;
+import com.pistacium.modcheck.mod.ModInfo;
 
 public class ModCheckProject {
 
     private final String name;
-    private final ModResource modResource;
+    private final ModFile modFile;
     private final boolean available;
     private final String description;
 
     public List<String> incompatibles;
 
-    public ModCheckProject(ModData modData, ModResource modResource) {
-        this.name = modData.getName();
-        this.description = modData.getDescription();
-        this.available = Objects.isNull(modData.getWarningMessage()) || modData.getWarningMessage().isEmpty();
-        this.modResource = modResource;
-        this.incompatibles = modData.getIncompatibleMods();
+    public ModCheckProject(ModInfo modInfo, ModFile modFile) {
+        this.name = modInfo.getName();
+        this.description = modInfo.getDescription();
+        this.available = modInfo.isRecommended();
+        this.modFile = modFile;
+        this.incompatibles = modInfo.getIncompatible();
     }
 
     public String getDescription() {
@@ -57,13 +56,13 @@ public class ModCheckProject {
         return name;
     }
 
-    public ModResource getModResource() {
-        return modResource;
+    public ModFile getModFile() {
+        return modFile;
     }
 
     public List<String> getIncompatibleMods() {
         if (this.incompatibles == null) {
-            ModCheckProject newResource = ModCheckManager.getUpdatedProject(this.getModResource().getModVersion().getVersionName(), this);
+            ModCheckProject newResource = ModCheckManager.getUpdatedProject(this.getModFile().getVersion(), this);
             if (newResource != null) {
                 this.incompatibles = Lists.newArrayList(newResource.getIncompatibleMods().listIterator());
             }
@@ -76,11 +75,11 @@ public class ModCheckProject {
 
         mod.client = true;
         mod.download = DownloadType.direct;
-        mod.file = this.getModResource().getFileName();
+        mod.file = this.getModFile().getName();
         mod.name = this.getName();
         mod.type = ModType.mods;
-        mod.url = this.getModResource().getDownloadUrl();
-        mod.version = this.getModResource().getModVersion().getVersionName();
+        mod.url = this.getModFile().getUrl();
+        mod.version = this.getModFile().getVersion();
 
         return mod;
     }

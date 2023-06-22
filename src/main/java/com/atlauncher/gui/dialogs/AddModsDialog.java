@@ -234,7 +234,7 @@ public final class AddModsDialog extends JDialog {
                 && this.instance.getCustomDisableableMods().stream().noneMatch(mod -> {
                     if (Objects.equals(mod.getName(), availableMod.getName())) {
                         if (!mod.isFromModCheck()) return true;
-                        return Objects.equals(mod.getVersion(), availableMod.getModResource().getModVersion().getVersionName());
+                        return Objects.equals(mod.getVersion(), availableMod.getModFile().getVersion());
                     }
                     return false;
             })) searchResult.add(availableMod);

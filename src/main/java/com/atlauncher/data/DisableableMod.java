@@ -330,7 +330,7 @@ public class DisableableMod implements Serializable {
             new ModrinthVersionSelectorDialog(parent, pair.left(), pair.right(), instance, modrinthVersion.id);
         } else if (this.isFromModCheck()) {
             ModCheckProject newProject = ModCheckManager.getUpdatedProject(instance.getMinecraftVersion(), this.modCheckProject);
-            if (newProject == null || newProject.getModResource().getModVersion().compareTo(this.modCheckProject.getModResource().getModVersion()) <= 0) {
+            if (newProject == null || newProject.getModFile().getVersion().equals(this.modCheckProject.getModFile().getVersion())) {
                 return false;
             }
 
